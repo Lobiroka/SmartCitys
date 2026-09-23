@@ -7,6 +7,8 @@ import {
   listMinhasDenuncias,
   listarFeedDenuncias,
   getDenunciaDetalhes,
+  updateDenuncia,
+  deleteDenuncia,
 } from '../controllers/cidadaoController';
 import {
   atualizarStatusDenuncia,
@@ -32,6 +34,8 @@ router.get('/feed', authMiddleware, roleMiddleware('cidadao'), listarFeedDenunci
 // 3. ROTA DINÂMICA COMPLETA (Sempre por ÚLTIMO no arquivo)
 // Se essa rota ficar em cima, ela tenta "comer" o /gestor/:id achando que "gestor" é o ID da denúncia.
 router.get('/:id', authMiddleware, roleMiddleware('cidadao'), getDenunciaDetalhes);
+router.patch('/:id', authMiddleware, roleMiddleware('cidadao'), updateDenuncia);
+router.delete('/:id', authMiddleware, roleMiddleware('cidadao'), deleteDenuncia);
 
 
 export default router;

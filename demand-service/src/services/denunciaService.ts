@@ -16,6 +16,8 @@ export interface CreateDenunciaInput {
   regiao: Regioes;
   descricao: string;
   endereco: string;
+  latitude?: number;
+  longitude?: number;
   prioridade?: NivelPrioridade;
   imagens?: string[];
 }
@@ -53,6 +55,8 @@ export function validateCreateDenunciaInput(body: Record<string, unknown>): Crea
     regiao,
     descricao,
     endereco,
+    latitude,
+    longitude,
     prioridade,
     imagens,
   } = body;
@@ -86,6 +90,16 @@ export function validateCreateDenunciaInput(body: Record<string, unknown>): Crea
     throw httpError('endereco deve ser uma string', 400);
   }
 
+  if (latitude !== undefined &&
+      (typeof latitude !== 'number' || latitude < -90 || latitude > 90)) {
+    throw httpError('latitude inválida', 400);
+  }
+
+  if (longitude !== undefined &&
+      (typeof longitude !== 'number' || longitude < -180 || longitude > 180)) {
+    throw httpError('longitude inválida', 400);
+  }
+
   if (prioridade !== undefined) {
     if (typeof prioridade !== 'string' || !PRIORIDADES_VALIDAS.has(prioridade)) {
       throw httpError('prioridade inválida', 400);
@@ -98,6 +112,8 @@ export function validateCreateDenunciaInput(body: Record<string, unknown>): Crea
     regiao: regiao as Regioes,
     descricao,
     endereco,
+    latitude,
+    longitude,
     prioridade: prioridade as NivelPrioridade | undefined,
     imagens: Array.isArray(imagens) ? (imagens as string[]) : undefined,
   };
@@ -121,6 +137,8 @@ export async function createDenuncia(subject: string, input: CreateDenunciaInput
       regiao: input.regiao,
       descricao: input.descricao,
       endereco: input.endereco,
+      latitude: input.latitude,
+      longitude: input.longitude,
       prioridade: input.prioridade ?? NivelPrioridade.MEDIA,
       status: StatusDenuncia.ABERTA,
       cidadao_id: cidadaoId,
@@ -131,6 +149,55 @@ export async function createDenuncia(subject: string, input: CreateDenunciaInput
       imagens: true,
     },
   });
+}
+
+export async function updateDenuncia(
+  subject: string,
+  denunciaId: number,
+  input: CreateDenunciaInput
+) {
+  const cidadaoId = await resolveCidadaoId(subject);
+  const existing = await prisma.denuncia.findFirst({
+    where: { id_denuncia: denunciaId, cidadao_id: cidadaoId },
+  });
+
+  if (!existing) throw httpError('Denúncia não encontrada', 404);
+  if (existing.status !== StatusDenuncia.ABERTA) {
+    throw httpError('Somente denúncias abertas podem ser editadas', 400);
+  }
+
+  return prisma.denuncia.update({
+    where: { id_denuncia: denunciaId },
+    data: {
+      titulo: input.titulo,
+      categoria: input.categoria,
+      regiao: input.regiao,
+      descricao: input.descricao,
+      endereco: input.endereco,
+      prioridade: input.prioridade ?? existing.prioridade,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      imagens: {
+        deleteMany: {},
+        create: (input.imagens ?? []).map((caminho_file) => ({ caminho_file })),
+      },
+    },
+    include: { imagens: true },
+  });
+}
+
+export async function deleteDenuncia(subject: string, denunciaId: number) {
+  const cidadaoId = await resolveCidadaoId(subject);
+  const existing = await prisma.denuncia.findFirst({
+    where: { id_denuncia: denunciaId, cidadao_id: cidadaoId },
+  });
+
+  if (!existing) throw httpError('Denúncia não encontrada', 404);
+  if (existing.status !== StatusDenuncia.ABERTA) {
+    throw httpError('Somente denúncias abertas podem ser excluídas', 400);
+  }
+
+  await prisma.denuncia.delete({ where: { id_denuncia: denunciaId } });
 }
 
 export async function listDenunciasByCidadao(

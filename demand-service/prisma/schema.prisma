@@ -37,6 +37,8 @@ model Denuncia {
   prioridade    NivelPrioridade @default(MEDIA)
   data_registro DateTime        @default(now())
   endereco           String
+  latitude           Float?
+  longitude          Float?
   email_solicitante  String?
 
   cidadao_id    Int
