@@ -75,3 +75,9 @@ salvos no artefato `evidencias-e2e-<run_id>`, inclusive quando o E2E falha.
 O banco é descartado ao terminar o job; o usuário e as sessões no realm de
 testes continuam no Keycloak. Uma execução completa no GitHub ainda é necessária
 para validar o build, as credenciais e os seletores do login nesse ambiente.
+
+Deixe `apk_run_id` vazio para a regressão normal, que gera um APK novo.
+Durante o diagnóstico do Maestro, é possível informar uma execução desta mesma
+branch que tenha o artefato `apk-e2e-<run_id>`. O workflow confere se o código mobile
+e a configuração de build são iguais antes de reutilizar o APK. Os três níveis de
+testes continuam executando. Se modificar secrets de build, gere um APK novo.
