@@ -150,6 +150,13 @@ jobs:
           bash "$RUNNER_TEMP/install-maestro.sh"
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
+      - name: Salvar APK para diagnóstico
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-e2e-${{ github.run_id }}
+          path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 2
+
       - name: Habilitar aceleração do emulador
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
