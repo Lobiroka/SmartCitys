@@ -31,10 +31,18 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+**/.env
 .env*.local
 
 # typescript
 *.tsbuildinfo
+
+# tests
+coverage/
+**/coverage/
+.codex-doc-work/
+apps/mobile/coverage/
 
 app-example
 
@@ -44,3 +52,8 @@ AGENTS.md
 # generated native folders
 /ios
 /android
+/docs
+
+# generated native folders for mobile workspace
+/apps/mobile/android
+/apps/mobile/ios

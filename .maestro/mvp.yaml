@@ -1,0 +1,59 @@
+appId: com.darkartsbm.smartcitys
+name: MVP - autenticação e criação de ocorrência
+---
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+      camera: allow
+
+- assertVisible: "Smart City"
+- tapOn:
+    id: "login-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "username"
+    timeout: 60000
+- tapOn:
+    id: "username"
+- inputText: "${E2E_USERNAME}"
+- tapOn:
+    id: "password"
+- inputText: "${E2E_PASSWORD}"
+- tapOn: "(?i)(entrar|sign in)"
+
+- extendedWaitUntil:
+    visible: "Sair"
+    timeout: 60000
+- tapOn: "Ocorrências"
+- extendedWaitUntil:
+    visible: "Ocorrências"
+    timeout: 30000
+- tapOn:
+    id: "occurrence-create-button"
+
+- tapOn:
+    id: "occurrence-save-button"
+- assertVisible: "Preencha título, descrição e endereço."
+
+- tapOn:
+    id: "occurrence-title-input"
+- inputText: "${E2E_TITLE}"
+- tapOn:
+    id: "occurrence-description-input"
+- inputText: "Ocorrencia criada pelo teste automatizado"
+- tapOn:
+    id: "occurrence-address-input"
+- inputText: "Rua do Teste, 100"
+- tapOn:
+    id: "occurrence-location-button"
+- extendedWaitUntil:
+    visible: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
+    timeout: 30000
+- tapOn:
+    id: "occurrence-save-button"
+
+- extendedWaitUntil:
+    visible: "${E2E_TITLE}"
+    timeout: 60000
