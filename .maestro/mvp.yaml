@@ -99,6 +99,11 @@ name: MVP - autenticação e criação de ocorrência
     id: "occurrence-save-button"
 
 - extendedWaitUntil:
+    notVisible:
+      id: "occurrence-save-button"
+    timeout: 60000
+- tapOn: "Ocorrências"
+- extendedWaitUntil:
     visible: "${E2E_TITLE}"
     timeout: 60000
 
