@@ -127,6 +127,8 @@ jobs:
 
       - name: Configurar Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Gerar APK Android para testes
         working-directory: apps/mobile
