@@ -36,7 +36,9 @@ name: MVP - autenticação e criação de ocorrência
 - tapOn:
     id: "password"
 - inputText: "${E2E_PASSWORD}"
-- tapOn: "(?i)(entrar|sign in)"
+- hideKeyboard
+- tapOn:
+    id: "kc-login"
 
 - extendedWaitUntil:
     visible: "Sair"
