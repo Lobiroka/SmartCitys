@@ -17,6 +17,15 @@ name: MVP - autenticação e criação de ocorrência
 - tapOn:
     id: "login-button"
 
+# O navegador do emulador pode exibir o primeiro acesso antes do Keycloak.
+- runFlow:
+    when:
+      visible:
+        id: "com.android.chrome:id/signin_fre_dismiss_button"
+    commands:
+      - tapOn:
+          id: "com.android.chrome:id/signin_fre_dismiss_button"
+
 - extendedWaitUntil:
     visible:
       id: "username"
