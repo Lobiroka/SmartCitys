@@ -7,6 +7,12 @@ name: MVP - autenticação e criação de ocorrência
       location: allow
       camera: allow
 
+- runFlow:
+    when:
+      visible: "Pixel Launcher isn't responding"
+    commands:
+      - tapOn:
+          id: "android:id/aerr_close"
 - assertVisible: "Smart City"
 - tapOn:
     id: "login-button"
