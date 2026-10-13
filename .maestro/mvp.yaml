@@ -65,9 +65,19 @@ name: MVP - autenticação e criação de ocorrência
 - tapOn:
     id: "occurrence-title-input"
 - inputText: "${E2E_TITLE}"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "occurrence-description-input"
+    direction: DOWN
 - tapOn:
     id: "occurrence-description-input"
 - inputText: "Ocorrencia criada pelo teste automatizado"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "occurrence-address-input"
+    direction: DOWN
 - tapOn:
     id: "occurrence-address-input"
 - inputText: "Rua do Teste, 100"
