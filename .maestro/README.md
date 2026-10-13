@@ -74,8 +74,13 @@ falha se qualquer nível falhar ou não executar. Os resultados do Maestro são
 salvos no artefato `evidencias-e2e-<run_id>`, inclusive quando o E2E falha.
 
 O banco é descartado ao terminar o job; o usuário e as sessões no realm de
-testes continuam no Keycloak. Uma execução completa no GitHub ainda é necessária
-para validar o build, as credenciais e os seletores do login nesse ambiente.
+testes continuam no Keycloak.
+
+Validação no GitHub Actions: [execução 38479762930](https://github.com/Lobiroka/SmartCitys/actions/runs/38479762930)
+concluiu os três níveis com sucesso: 31 testes Jest, 24 testes de API e o fluxo
+MVP Maestro. Os seis filtros avançados fora da TAS continuam sinalizados como
+ignorados. Essa execução reutilizou o APK da execução 38445938768, cujo build
+passou; o workflow conferiu que o código mobile e a configuração eram idênticos.
 
 Deixe `apk_run_id` vazio para a regressão normal, que gera um APK novo.
 Durante o diagnóstico do Maestro, é possível informar uma execução desta mesma
