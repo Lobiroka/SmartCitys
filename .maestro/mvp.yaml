@@ -88,8 +88,9 @@ name: MVP - autenticação e criação de ocorrência
     direction: DOWN
 - tapOn:
     id: "occurrence-location-button"
-- extendedWaitUntil:
-    visible: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
+- scrollUntilVisible:
+    element: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
+    direction: DOWN
     timeout: 30000
 - scrollUntilVisible:
     element:

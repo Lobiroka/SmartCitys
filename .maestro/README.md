@@ -56,8 +56,9 @@ Configure os repository secrets `E2E_USERNAME`, `E2E_PASSWORD` e
 `GOOGLE_MAPS_ANDROID_API_KEY`. O realm usado é `smartcitys-test`, em
 `https://auth.darkartsbm.com`, com cliente público `smartcitys-mobile-test`,
 PKCE S256, callback `wb://auth/callback` e audience `smartcitys-api-test`.
-O usuário deve ter papel de realm `cidadao`, senha não temporária e nenhuma
-ação obrigatória que interrompa o login.
+O usuário deve ter papel de realm `cidadao`, e-mail preenchido, senha não temporária
+e nenhuma ação obrigatória que interrompa o login. Complete os campos exigidos
+pelo perfil do realm para evitar a tela de atualização de cadastro durante o E2E.
 
 PostgreSQL, Redis e os três serviços Node são temporários no runner. O APK é
 gerado com bundle JavaScript para x86_64 e instalado no emulador Android API 34.
