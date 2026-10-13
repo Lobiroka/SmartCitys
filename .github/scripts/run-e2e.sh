@@ -13,6 +13,10 @@ capture_failure() {
   exit "$result"
 }
 trap capture_failure EXIT
+adb shell wm size 720x1280
+adb shell wm density 320
+# Aguarda serviços de primeiro boot antes de iniciar o aplicativo e o navegador.
+sleep 20
 adb reverse tcp:8080 tcp:8080
 adb emu geo fix -34.877 -8.0476
 adb install -r apps/mobile/android/app/build/outputs/apk/release/app-release.apk
