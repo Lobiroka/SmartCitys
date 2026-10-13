@@ -57,3 +57,19 @@ name: MVP - autenticação e criação de ocorrência
 - extendedWaitUntil:
     visible: "${E2E_TITLE}"
     timeout: 60000
+
+# TC-03: sair e reabrir sem limpar dados comprova o logout local.
+- tapOn: "Home"
+- tapOn: "Sair"
+- extendedWaitUntil:
+    visible:
+      id: "login-button"
+    timeout: 30000
+- stopApp
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      id: "login-button"
+    timeout: 30000
+- assertNotVisible: "Sair"

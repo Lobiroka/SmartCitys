@@ -23,8 +23,9 @@ describe('useOccurrenceFeedViewModel', () => {
                 mapped,
                 occurrenceFixture({ id: 2, latitude: null }),
                 occurrenceFixture({ id: 3, longitude: null }),
+                occurrenceFixture({ id: 4, latitude: null, longitude: null }),
             ],
-            pagination: { page: 1, limit: 100, total: 3, totalPages: 1 },
+            pagination: { page: 1, limit: 100, total: 4, totalPages: 1 },
         });
 
         const { result } = renderHook(() =>

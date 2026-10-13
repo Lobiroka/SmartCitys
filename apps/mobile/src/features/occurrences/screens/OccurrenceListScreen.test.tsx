@@ -68,8 +68,9 @@ describe('OccurrenceListScreen', () => {
         expect(vm.remove).toHaveBeenCalledWith(1);
     });
 
-    it('não permite editar nem excluir uma ocorrência finalizada', async () => {
-        const resolved = occurrenceFixture({ id: 2, status: 'RESOLVIDA' });
+    it.each(['EM_ANALISE', 'RESOLVIDA'] as const)(
+        'TC-17: não permite editar nem excluir ocorrência %s', async (status) => {
+        const resolved = occurrenceFixture({ id: 2, status });
         useViewModelMock.mockReturnValue(viewModel({
             occurrences: [resolved],
             filteredOccurrences: [resolved],
@@ -78,7 +79,6 @@ describe('OccurrenceListScreen', () => {
 
         expect(screen.queryByTestId('occurrence-edit-2')).toBeNull();
         expect(screen.queryByTestId('occurrence-delete-2')).toBeNull();
-        expect(screen.getAllByText('Resolvida')).toHaveLength(2);
     });
 
     it('mostra estado vazio e falha de carregamento', async () => {

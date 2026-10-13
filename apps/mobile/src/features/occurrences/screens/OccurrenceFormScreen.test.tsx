@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import { OccurrenceFormScreen } from './OccurrenceFormScreen';
 import { useOccurrenceFormViewModel } from
@@ -58,14 +58,20 @@ describe('OccurrenceFormScreen', () => {
         expect(vm.useCurrentLocation).toHaveBeenCalledTimes(1);
     });
 
-    it('volta somente quando o ViewModel salva com sucesso', async () => {
-        const vm = viewModel();
+    it('TC-16: na edição, aguarda sucesso antes de voltar', async () => {
+        let finishSave!: (success: boolean) => void;
+        const pendingSave = new Promise<boolean>((resolve) => {
+            finishSave = resolve;
+        });
+        const vm = viewModel({ save: jest.fn(() => pendingSave) });
         useViewModelMock.mockReturnValue(vm as never);
-        const screen = await render(<OccurrenceFormScreen />);
+        const screen = await render(<OccurrenceFormScreen id={9} />);
 
         fireEvent.press(screen.getByTestId('occurrence-save-button'));
 
         await waitFor(() => expect(vm.save).toHaveBeenCalledTimes(1));
+        expect(mockBack).not.toHaveBeenCalled();
+        await act(async () => finishSave(true));
         expect(mockBack).toHaveBeenCalledTimes(1);
     });
 

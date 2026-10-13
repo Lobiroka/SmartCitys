@@ -59,14 +59,25 @@ describe('useOccurrenceListViewModel', () => {
 
     it('expõe a falha do serviço sem apagar os dados existentes', async () => {
         const service = createOccurrenceServiceMock();
-        service.listMine.mockRejectedValue(new Error('API indisponível'));
+        const occurrence = occurrenceFixture();
+        service.listMine.mockResolvedValueOnce({
+            data: [occurrence],
+            pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
+        }).mockRejectedValueOnce(new Error('API indisponível'));
         const { result } = renderHook(() =>
             useOccurrenceListViewModel({ service }),
         );
         await act(async () => { await Promise.resolve(); });
 
+        await waitFor(() => expect(result.current.occurrences).toEqual([occurrence]));
+        await act(async () => result.current.load(true));
+
         await waitFor(() => expect(result.current.error).toBe('API indisponível'));
+        expect(service.listMine).toHaveBeenCalledTimes(2);
+        expect(result.current.occurrences).toEqual([occurrence]);
+        expect(result.current.filteredOccurrences).toEqual([occurrence]);
         expect(result.current.isLoading).toBe(false);
+        expect(result.current.isRefreshing).toBe(false);
     });
 });
 

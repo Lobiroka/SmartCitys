@@ -1,19 +1,24 @@
-name: CI Backend
+name: Regressão completa
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  regressao-completa:
+    name: Regressão completa
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+      KEYCLOAK_ISSUER: https://auth.darkartsbm.com/realms/smartcitys-test
+      KEYCLOAK_AUDIENCE: smartcitys-api-test
+      DATABASE_URL: postgresql://smartcitys_test:teste_ci@localhost:5432/smartcitys_test?schema=demand
+      DATABASE_URL_DEMAND: postgresql://smartcitys_test:teste_ci@localhost:5432/smartcitys_test?schema=demand
+      REDIS_URL: redis://localhost:6379
 
     services:
       postgres:
@@ -46,7 +51,29 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+
+      - name: Instalar dependências do mobile
+        run: npm ci
+
+      - name: Validar configuração E2E
+        env:
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
+        run: |
+          for variable in E2E_USERNAME E2E_PASSWORD GOOGLE_MAPS_ANDROID_API_KEY; do
+            if [ -z "${!variable}" ]; then
+              echo "::error::Secret obrigatório ausente: $variable"
+              exit 1
+            fi
+          done
+          curl --fail --silent --show-error "$KEYCLOAK_ISSUER/.well-known/openid-configuration" -o /dev/null
+
+      - name: Testes Unitários
+        id: unitarios
+        continue-on-error: true
+        run: npm run mobile:test
 
       - name: Instalar dependências do Demand Service
         working-directory: ./apps/backend/demand-service
@@ -62,7 +89,9 @@ jobs:
         working-directory: ./apps/backend/demand-service
         run: npm run build
 
-      - name: Executar testes do Demand Service
+      - name: Testes de API
+        id: api
+        continue-on-error: true
         working-directory: ./apps/backend/demand-service
         env:
           TEST_DATABASE_URL: postgresql://smartcitys_test:teste_ci@localhost:5432/smartcitys_test?schema=demand
@@ -86,3 +115,79 @@ jobs:
       - name: Compilar Gateway
         working-directory: ./apps/backend/api-gateway
         run: npm run build
+
+      - name: Iniciar API temporária de testes
+        run: bash .github/scripts/start-test-api.sh
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Gerar APK Android para testes
+        working-directory: apps/mobile
+        env:
+          GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
+          EXPO_PUBLIC_KEYCLOAK_ISSUER: https://auth.darkartsbm.com/realms/smartcitys-test
+          EXPO_PUBLIC_KEYCLOAK_CLIENT_ID: smartcitys-mobile-test
+          EXPO_PUBLIC_API_URL: http://localhost:8080
+        run: |
+          npx expo prebuild --platform android --no-install
+          python ../../.github/scripts/configure-test-android.py
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon --max-workers=2
+
+      - name: Instalar Maestro
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev -o "$RUNNER_TEMP/install-maestro.sh"
+          bash "$RUNNER_TEMP/install-maestro.sh"
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Habilitar aceleração do emulador
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Testes End-to-End (E2E)
+        id: e2e
+        continue-on-error: true
+        timeout-minutes: 15
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          MAESTRO_CLI_NO_ANALYTICS: 'true'
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: bash .github/scripts/run-e2e.sh
+
+      - name: Salvar evidências E2E
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-e2e-${{ github.run_id }}
+          path: test-results/e2e
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Verificar resultado da regressão
+        if: ${{ !cancelled() }}
+        env:
+          UNITARIOS: ${{ steps.unitarios.outcome }}
+          API: ${{ steps.api.outcome }}
+          E2E: ${{ steps.e2e.outcome }}
+        run: |
+          printf 'Unitários: %s\nAPI: %s\nE2E: %s\n' "$UNITARIOS" "$API" "$E2E" >> "$GITHUB_STEP_SUMMARY"
+          test "$UNITARIOS" = success
+          test "$API" = success
+          test "$E2E" = success

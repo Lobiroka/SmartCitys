@@ -28,8 +28,9 @@ o Compose e o arquivo local `.env.local` (não versionado). Os caminhos relativo
 de build permanecem válidos. Configure o ambiente a partir de `.env.example`.
 
 O workflow de backend fica em `.github/workflows/testes-api.yml` na raiz.
-Ele ainda não reúne os três níveis da atividade: o E2E requer APK, dispositivo
-ou emulador, Maestro e acesso ao Keycloak e à API; veja `.maestro/README.md`.
+Ele reúne os três níveis em um único job manual: Jest, Vitest/Supertest e Maestro.
+A API e o banco são temporários; o login usa o realm `smartcitys-test`.
+Veja `.maestro/README.md` para secrets, ambiente e evidências da execução.
 
 O histórico do backend foi incorporado por merge, mantendo seus commits originais.
 O repositório original pode ser mantido como referência durante a transição.

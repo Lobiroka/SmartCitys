@@ -37,6 +37,34 @@ describe('useOccurrenceFormViewModel', () => {
         expect(service.create).not.toHaveBeenCalled();
     });
 
+    it.each([
+        ['título', '', 'Descrição', 'Endereço'],
+        ['descrição', 'Título', '', 'Endereço'],
+        ['endereço', 'Título', 'Descrição', ''],
+    ])('TC-05: impede criar quando falta %s', async (
+        _field, title, description, address,
+    ) => {
+        const { result, service } = await setup();
+        act(() => {
+            result.current.setTitle(title);
+            result.current.setDescription(description);
+            result.current.setAddress(address);
+        });
+        await act(async () => result.current.useCurrentLocation());
+
+        expect(result.current.latitude).toBe(coordinates.latitude);
+        expect(result.current.longitude).toBe(coordinates.longitude);
+
+        await act(async () => {
+            expect(await result.current.save()).toBe(false);
+        });
+
+        expect(result.current.error)
+            .toBe('Preencha título, descrição e endereço.');
+        expect(service.create).not.toHaveBeenCalled();
+        expect(service.update).not.toHaveBeenCalled();
+    });
+
     it('exige coordenadas antes de criar a ocorrência', async () => {
         const { result, service } = await setup();
         act(() => {
@@ -61,6 +89,9 @@ describe('useOccurrenceFormViewModel', () => {
             result.current.setDescription('  Descrição  ');
             result.current.setAddress('  Endereço  ');
             result.current.setPhoto('data:image/jpeg;base64,photo');
+            result.current.setCategory('SANEAMENTO');
+            result.current.setRegion('AGRESTE');
+            result.current.setPriority('ALTA');
         });
         await act(async () => result.current.useCurrentLocation());
         await act(async () => {
@@ -72,6 +103,9 @@ describe('useOccurrenceFormViewModel', () => {
             title: 'Título',
             description: 'Descrição',
             address: 'Endereço',
+            category: 'SANEAMENTO',
+            region: 'AGRESTE',
+            priority: 'ALTA',
             ...coordinates,
             images: ['data:image/jpeg;base64,photo'],
         }));
@@ -81,6 +115,9 @@ describe('useOccurrenceFormViewModel', () => {
         const { result, service } = await setup(9);
         await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+        expect(result.current.title).toBe('Poste sem iluminação');
+        act(() => result.current.setTitle('Poste corrigido'));
+
         await act(async () => {
             expect(await result.current.save()).toBe(true);
         });
@@ -88,7 +125,7 @@ describe('useOccurrenceFormViewModel', () => {
         expect(service.getById).toHaveBeenCalledWith(9);
         expect(service.update).toHaveBeenCalledWith(
             9,
-            expect.objectContaining({ title: 'Poste sem iluminação' }),
+            expect.objectContaining({ title: 'Poste corrigido' }),
         );
         expect(service.create).not.toHaveBeenCalled();
     });

@@ -41,6 +41,7 @@ yarn-error.*
 # tests
 coverage/
 **/coverage/
+test-results/
 .codex-doc-work/
 apps/mobile/coverage/
 
