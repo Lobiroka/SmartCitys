@@ -31,6 +31,8 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+**/.env
 .env*.local
 
 # typescript
@@ -38,6 +40,8 @@ yarn-error.*
 
 # tests
 coverage/
+**/coverage/
+.codex-doc-work/
 apps/mobile/coverage/
 
 app-example

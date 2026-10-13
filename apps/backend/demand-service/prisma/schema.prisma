@@ -1,0 +1,120 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["demand"]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+model Cidadao {
+  id_cidadao Int        @id @default(autoincrement())
+  keycloak_sub String @unique
+  denuncias  Denuncia[]
+
+  @@map("cidadaos")
+  @@schema("demand")
+}
+
+model Gestor {
+  id_gestor  Int         @id @default(autoincrement())
+  keycloak_sub String @unique
+  historicos Historico[]
+
+  @@map("gestores")
+  @@schema("demand")
+}
+
+model Denuncia {
+  id_denuncia   Int             @id @default(autoincrement())
+  titulo        String          @db.VarChar(50)
+  categoria     Categorias
+  regiao        Regioes
+  descricao     String
+  status        StatusDenuncia  @default(ABERTA)
+  prioridade    NivelPrioridade @default(MEDIA)
+  data_registro DateTime        @default(now())
+  endereco           String
+  latitude           Float?
+  longitude          Float?
+  email_solicitante  String?
+
+  cidadao_id    Int
+  cidadao       Cidadao         @relation(fields: [cidadao_id], references: [id_cidadao])
+  imagens       Imagem[]
+  historicos    Historico[]
+
+  @@index([categoria])
+  @@index([status])
+  @@index([prioridade])
+  @@index([regiao])
+  @@map("denuncias")
+  @@schema("demand")
+}
+
+model Historico {
+  id_historico   Int            @id @default(autoincrement())
+  data_abertura  DateTime       @default(now())
+  data_alteracao DateTime       @updatedAt
+  status         StatusDenuncia
+  prioridade     NivelPrioridade
+  denuncia_id    Int
+  denuncia       Denuncia       @relation(fields: [denuncia_id], references: [id_denuncia], onDelete: Cascade)
+  gestor_id      Int
+  gestor         Gestor         @relation(fields: [gestor_id], references: [id_gestor])
+
+  @@map("historicos")
+  @@schema("demand")
+}
+
+model Imagem {
+  id_imagem    Int      @id @default(autoincrement())
+  caminho_file String  
+  data_upload  DateTime @default(now())
+  denuncia_id  Int
+  denuncia     Denuncia @relation(fields: [denuncia_id], references: [id_denuncia], onDelete: Cascade)
+
+  @@map("imagens")
+  @@schema("demand")
+}
+
+enum Categorias {
+  ILUMINACAO_PUBLICA
+  MANUTENCAO_DE_VIAS
+  SANEAMENTO
+  COLETA_DE_LIXO
+  FISCALIZACAO
+  SEGURANCA
+  SINALIZACAO_DE_TRANSITO
+  OUTROS_EMPECILHOS
+
+  @@schema("demand")
+}
+
+enum Regioes {
+  REGIAO_METROPOLITANA_DO_RECIFE
+  ZONA_DA_MATA
+  AGRESTE
+  SERTAO
+  OUTRA
+
+  @@schema("demand")
+}
+
+enum StatusDenuncia {
+  ABERTA
+  EM_ANALISE
+  RESOLVIDA
+
+  @@schema("demand")
+}
+
+enum NivelPrioridade {
+  ALTA
+  MEDIA
+  BAIXA
+
+  @@schema("demand")
+}

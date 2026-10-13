@@ -16,7 +16,9 @@
     "mobile:lint": "npm run lint --workspace @smart-city/mobile",
     "mobile:test": "npm run test --workspace @smart-city/mobile",
     "mobile:test:coverage": "npm run test:coverage --workspace @smart-city/mobile",
-    "mobile:test:e2e": "npm run test:e2e --workspace @smart-city/mobile"
+    "mobile:test:e2e": "npm run test:e2e --workspace @smart-city/mobile",
+    "backend:test": "npm --prefix apps/backend/demand-service test",
+    "backend:build": "npm --prefix apps/backend/demand-service run build && npm --prefix apps/backend/metrics-service run build && npm --prefix apps/backend/api-gateway run build"
   },
   "devDependencies": {
     "react": "19.2.3",

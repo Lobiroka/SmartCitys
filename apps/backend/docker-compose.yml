@@ -1,0 +1,61 @@
+services:
+
+  redis:
+    image: redis:7-alpine
+    container_name: smartcity_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  demand-service:
+    build: ./demand-service
+    container_name: smartcity_demand
+    restart: always
+    env_file:
+      - .env.local
+    environment:
+      PORT: 3002
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: ${DATABASE_URL_DEMAND:?Defina DATABASE_URL_DEMAND}
+    ports:
+      - "3002:3002"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  metrics-service:
+    build: ./metrics-service
+    container_name: smartcity_metrics
+    restart: always
+    env_file:
+      - .env.local
+    environment:
+      PORT: 3003
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL_DEMAND: ${DATABASE_URL_DEMAND}
+    ports:
+      - "3003:3003"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: smartcity_gateway
+    restart: always
+    env_file:
+      - .env.local
+    environment:
+      PORT: 8080
+      DEMAND_SERVICE_URL: http://demand-service:3002
+      METRICS_SERVICE_URL: http://metrics-service:3003
+    ports:
+      - "8080:8080"
+    depends_on:
+      - demand-service
+      - metrics-service

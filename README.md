@@ -4,7 +4,37 @@ Aplicativo mobile para registro e acompanhamento de ocorrências urbanas. O proj
 
 > Status: MVP mobile funcional em Android. Autenticação, sessão, mapa, GPS, câmera e CRUD de ocorrências estão integrados. Ainda faltam validação manual completa, refinamento visual, testes e validação no iOS.
 
-## Plataformas
+## Backend no monorepo
+
+O aplicativo permanece em `apps/mobile`; os serviços Express estão em
+`apps/backend/demand-service`, `apps/backend/metrics-service` e
+`apps/backend/api-gateway`. O mobile continua seguindo MVVM.
+
+As dependências do backend permanecem independentes dos workspaces mobile.
+Na raiz, instale-as com:
+
+```powershell
+npm --prefix apps/backend/demand-service ci
+npm --prefix apps/backend/metrics-service ci
+npm --prefix apps/backend/api-gateway ci
+```
+
+Use `npm run backend:build` para compilar os três serviços. Para executar
+`npm run backend:test`, configure `TEST_DATABASE_URL` para PostgreSQL exclusivo
+de testes e prepare seu schema Prisma. Consulte `apps/backend/demand-service/README-TEST.md`.
+
+Para Docker Compose, execute os comandos dentro de `apps/backend`, onde ficam
+o Compose e o arquivo local `.env.local` (não versionado). Os caminhos relativos
+de build permanecem válidos. Configure o ambiente a partir de `.env.example`.
+
+O workflow de backend fica em `.github/workflows/testes-api.yml` na raiz.
+Ele ainda não reúne os três níveis da atividade: o E2E requer APK, dispositivo
+ou emulador, Maestro e acesso ao Keycloak e à API; veja `.maestro/README.md`.
+
+O histórico do backend foi incorporado por merge, mantendo seus commits originais.
+O repositório original pode ser mantido como referência durante a transição.
+
+## Plataformas suportadas
 
 - Android
 - iOS

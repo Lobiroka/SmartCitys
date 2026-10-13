@@ -1,0 +1,88 @@
+name: CI Backend
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: smartcitys_test
+          POSTGRES_PASSWORD: teste_ci
+          POSTGRES_DB: smartcitys_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U smartcitys_test -d smartcitys_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependências do Demand Service
+        working-directory: ./apps/backend/demand-service
+        run: npm ci
+
+      - name: Preparar banco de testes
+        working-directory: ./apps/backend/demand-service
+        env:
+          DATABASE_URL: postgresql://smartcitys_test:teste_ci@localhost:5432/smartcitys_test?schema=demand
+        run: npx prisma db push
+
+      - name: Compilar Demand Service
+        working-directory: ./apps/backend/demand-service
+        run: npm run build
+
+      - name: Executar testes do Demand Service
+        working-directory: ./apps/backend/demand-service
+        env:
+          TEST_DATABASE_URL: postgresql://smartcitys_test:teste_ci@localhost:5432/smartcitys_test?schema=demand
+        run: npm test
+      - name: Instalar dependências do Metrics Service
+        working-directory: ./apps/backend/metrics-service
+        run: npm ci
+
+      - name: Gerar Prisma Client do Metrics Service
+        working-directory: ./apps/backend/metrics-service
+        run: npm run prisma:generate
+
+      - name: Compilar Metrics Service
+        working-directory: ./apps/backend/metrics-service
+        run: npm run build
+
+      - name: Instalar dependências do Gateway
+        working-directory: ./apps/backend/api-gateway
+        run: npm ci
+
+      - name: Compilar Gateway
+        working-directory: ./apps/backend/api-gateway
+        run: npm run build
