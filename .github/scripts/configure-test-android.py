@@ -18,7 +18,7 @@ resources.mkdir(parents=True, exist_ok=True)
 <network-security-config>
   <base-config cleartextTrafficPermitted="false" />
   <domain-config cleartextTrafficPermitted="true">
-    <domain>localhost</domain>
+    <domain includeSubdomains="false">localhost</domain>
   </domain-config>
 </network-security-config>
 ''', encoding='utf-8')
