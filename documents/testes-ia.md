@@ -91,7 +91,7 @@ Como cidadão, quero visualizar ocorrências georreferenciadas no mapa para comp
 - **HU e CA:** HU-01, CA-04
 - **Nível:** Sistema E2E
 - **Técnica:** Transição de estados da sessão
-- **Modalidade:** Automatizável
+- **Modalidade:** Automatizado com Maestro; execução pendente
 - **Pré-condições:** usuário autenticado.
 - **Passos:** tocar em `Sair` e reabrir o aplicativo.
 - **Resultado esperado:** os tokens são apagados e a tela de login volta a ser exibida.
@@ -113,7 +113,7 @@ Como cidadão, quero visualizar ocorrências georreferenciadas no mapa para comp
 - **HU e CA:** HU-02, CA-01
 - **Nível:** Componente
 - **Técnica:** Particionamento de equivalência
-- **Modalidade:** Automatizável
+- **Modalidade:** Automatizado no ViewModel com Jest
 - **Pré-condições:** formulário de criação aberto.
 - **Passos:** repetir o salvamento omitindo, separadamente, título, descrição e endereço.
 - **Resultado esperado:** cada partição inválida é recusada antes da chamada ao backend.
@@ -312,6 +312,10 @@ Como cidadão, quero visualizar ocorrências georreferenciadas no mapa para comp
 - **Pós-condições:** evidências registradas por dispositivo e versão; caso permanece pendente até execução.
 
 ## Pendências e limites conhecidos
+
+- TC-01 verifica restauração e acesso às rotas com serviço de sessão e roteador simulados; não acessa SecureStore real.
+- TC-04 a TC-07, TC-11, TC-14 a TC-18 têm verificações de ViewModel e/ou componentes. Os testes de tela e de ViewModel são separados para respeitar MVVM.
+- O fluxo Maestro inclui TC-02, TC-21 e TC-03 (logout seguido de reabertura sem limpar dados); a persistência do logout é verificada pelo retorno à tela de login.
 
 - O fluxo Maestro está preparado, mas sua execução completa depende de Keycloak, API, banco, build e credenciais de teste disponíveis.
 - A validação em iOS ainda depende de macOS e Xcode.

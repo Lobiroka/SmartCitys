@@ -7,9 +7,24 @@ name: MVP - autenticação e criação de ocorrência
       location: allow
       camera: allow
 
+- runFlow:
+    when:
+      visible: "Pixel Launcher isn't responding"
+    commands:
+      - tapOn:
+          id: "android:id/aerr_close"
 - assertVisible: "Smart City"
 - tapOn:
     id: "login-button"
+
+# O navegador do emulador pode exibir o primeiro acesso antes do Keycloak.
+- runFlow:
+    when:
+      visible:
+        id: "com.android.chrome:id/signin_fre_dismiss_button"
+    commands:
+      - tapOn:
+          id: "com.android.chrome:id/signin_fre_dismiss_button"
 
 - extendedWaitUntil:
     visible:
@@ -21,7 +36,9 @@ name: MVP - autenticação e criação de ocorrência
 - tapOn:
     id: "password"
 - inputText: "${E2E_PASSWORD}"
-- tapOn: "(?i)(entrar|sign in)"
+- hideKeyboard
+- tapOn:
+    id: "kc-login"
 
 - extendedWaitUntil:
     visible: "Sair"
@@ -33,27 +50,76 @@ name: MVP - autenticação e criação de ocorrência
 - tapOn:
     id: "occurrence-create-button"
 
+- scrollUntilVisible:
+    element:
+      id: "occurrence-save-button"
+    direction: DOWN
 - tapOn:
     id: "occurrence-save-button"
 - assertVisible: "Preencha título, descrição e endereço."
 
+- scrollUntilVisible:
+    element:
+      id: "occurrence-title-input"
+    direction: UP
 - tapOn:
     id: "occurrence-title-input"
 - inputText: "${E2E_TITLE}"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "occurrence-description-input"
+    direction: DOWN
 - tapOn:
     id: "occurrence-description-input"
 - inputText: "Ocorrencia criada pelo teste automatizado"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "occurrence-address-input"
+    direction: DOWN
 - tapOn:
     id: "occurrence-address-input"
 - inputText: "Rua do Teste, 100"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "occurrence-location-button"
+    direction: DOWN
 - tapOn:
     id: "occurrence-location-button"
-- extendedWaitUntil:
-    visible: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
+- scrollUntilVisible:
+    element: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
+    direction: DOWN
     timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "occurrence-save-button"
+    direction: DOWN
 - tapOn:
     id: "occurrence-save-button"
 
 - extendedWaitUntil:
+    notVisible:
+      id: "occurrence-save-button"
+    timeout: 60000
+- tapOn: "Ocorrências"
+- extendedWaitUntil:
     visible: "${E2E_TITLE}"
     timeout: 60000
+
+# TC-03: sair e reabrir sem limpar dados comprova o logout local.
+- tapOn: "Home"
+- tapOn: "Sair"
+- extendedWaitUntil:
+    visible:
+      id: "login-button"
+    timeout: 30000
+- stopApp
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      id: "login-button"
+    timeout: 30000
+- assertNotVisible: "Sair"
