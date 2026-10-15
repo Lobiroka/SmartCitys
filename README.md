@@ -28,9 +28,27 @@ o Compose e o arquivo local `.env.local` (não versionado). Os caminhos relativo
 de build permanecem válidos. Configure o ambiente a partir de `.env.example`.
 
 O workflow de backend fica em `.github/workflows/testes-api.yml` na raiz.
-Ele reúne os três níveis em um único job manual: Jest, Vitest/Supertest e Maestro.
+Ele reúne os três níveis em um único job: Jest, Vitest/Supertest e Maestro.
+Pode ser acionado manualmente e está agendado diariamente às 00:00 de Fortaleza
+(03:00 UTC), na branch padrão. O início pode atrasar conforme a fila do GitHub.
 A API e o banco são temporários; o login usa o realm `smartcitys-test`.
 Veja `.maestro/README.md` para secrets, ambiente e evidências da execução.
+
+O workflow `.github/workflows/testes-unitarios.yml` executa todos os testes Jest
+em cada push de branch e em pull requests para `main`. O check
+`Unitários e componentes` deve ser obrigatório na proteção da `main`, com entrada
+de alterações por pull request. O Actions verifica o código depois do push;
+a proteção impede o merge enquanto os testes não passam.
+
+Para interromper o push local antes do envio quando os testes falharem, ative
+o hook versionado em cada clone (com as dependências já instaladas):
+
+```powershell
+git config core.hooksPath .githooks
+```
+
+Esse hook executa `npm run mobile:test`. A configuração é local e precisa ser
+repetida pelos outros membros da equipe; ela não substitui a proteção no GitHub.
 
 O histórico do backend foi incorporado por merge, mantendo seus commits originais.
 O repositório original pode ser mantido como referência durante a transição.
