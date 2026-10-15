@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+echo 'Executando todos os testes unitários e de componentes antes do push...'
+if ! npm run mobile:test; then
+  echo 'Push interrompido: corrija os testes antes de enviar os commits.' >&2
+  exit 1
+fi

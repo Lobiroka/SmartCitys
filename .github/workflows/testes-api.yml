@@ -1,6 +1,9 @@
 name: Regressão completa
 
 on:
+  schedule:
+    # 03:00 UTC = 00:00 em America/Fortaleza (UTC-3).
+    - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:
       apk_run_id:

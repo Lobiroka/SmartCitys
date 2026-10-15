@@ -46,7 +46,8 @@ reais e, portanto, cria um registro real no ambiente apontado por `.env.local`.
 
 ## GitHub Actions
 
-O workflow `.github/workflows/testes-api.yml` permite execução manual pelo menu
+O workflow `.github/workflows/testes-api.yml` executa diariamente às 00:00 de
+Fortaleza (03:00 UTC) na branch padrão, sujeito à fila do GitHub, e permite execução manual pelo menu
 Actions → Regressão completa → Run workflow. Ele executa todos os testes Jest
 (unitários e componentes), todos os testes de API habilitados e todo o fluxo MVP
 Maestro, incluindo logout. Os filtros avançados com `it.skip` permanecem fora
