@@ -1,4 +1,4 @@
-import { Text, View, Button,Linking,Alert } from 'react-native';
+import { Text, View, Button,Linking,Alert,Pressable } from 'react-native';
 import MapView, { Callout, Marker } from 'react-native-maps';
 
 import { ThemedText } from '@/components/themed-text';
@@ -16,7 +16,15 @@ import {
 } from '@/src/features/occurrences/models/occurrenceOptions';
 
 export function MainMapScreen() {
-    const { region, isLoading, locationError,loadLocation,isPermissionBlocked } = useMainMapViewModel();
+    const { region,
+        isLoading,
+        locationError,
+        loadLocation,
+        isPermissionBlocked,
+        isProfileMenuOpen,
+        toggleProfileMenu
+    } = useMainMapViewModel();
+
     const { session, signOut } = useAuthSession();
     const { occurrences, occurrenceError } = useOccurrenceFeedViewModel();
 
@@ -33,7 +41,16 @@ export function MainMapScreen() {
 
     return (
         <View style={styles.container}>
-            <MapView style={styles.map} region={region} showsUserLocation>
+            <MapView
+                style={styles.map}
+                region={region}
+                showsUserLocation
+                onPress={() => {
+                    if (isProfileMenuOpen) {
+                        toggleProfileMenu();
+                    }
+                }}
+            >
                 {occurrences.map((occurrence) => {
                     if (occurrence.latitude === null || occurrence.longitude === null) {
                         return null;
@@ -63,16 +80,34 @@ export function MainMapScreen() {
 
             {session.status === 'authenticated' && (
                 <ThemedView style={styles.sessionBox}>
-                    <ThemedText numberOfLines={1}>
-                        {session.user.name ??
-                            session.user.email ??
-                            'Conta conectada'}
-                    </ThemedText>
+                    <Pressable style={styles.avatarButton}
+                        onPress={ toggleProfileMenu }
+                        accessibilityRole="button"
+                        accessibilityLabel="Menu do Perfil"
+                        accessibilityState={{expanded:isProfileMenuOpen}}
+                    >
+                        <ThemedText
+                            lightColor="#fff"
+                            darkColor="#fff"
+                            type="defaultSemiBold"
+                        >
+                            {(session.user.name?.trim() || session.user.email || '?')
+                                .charAt(0)
+                                .toUpperCase()}
+                        </ThemedText>
+                </Pressable>
 
-                    <Button
-                        title="Sair"
-                        onPress={signOut}
-                    />
+                    {isProfileMenuOpen && (
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.profileMenuItem,
+                                { opacity: pressed ? 0.6 : 1 },
+                            ]}
+                            accessibilityRole="button"
+                            onPress={signOut}
+                        >
+                            <ThemedText>Sair</ThemedText>
+                        </Pressable>)}
                 </ThemedView>
             )}
 

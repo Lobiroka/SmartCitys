@@ -1,7 +1,7 @@
 import {
     ActivityIndicator,
-    Button,
     StyleSheet,
+    Pressable,
 } from 'react-native';
 import { ThemedText } from
         '@/components/themed-text';
@@ -24,15 +24,25 @@ export function LoginScreen() {
                 Entre para registrar e acompanhar denúncias.
             </ThemedText>
 
-            {isLoading ? (
-                <ActivityIndicator />
-            ) : (
-                <Button
-                    testID="login-button"
-                    title="Entrar"
-                    onPress={signIn}
-                />
-            )}
+            <Pressable
+                style={({ pressed }) => [
+                    styles.button,
+                    { opacity: pressed ? 0.7 : 1 },
+                ]}
+                disabled={isLoading}
+                accessibilityState={{ disabled: isLoading, busy: isLoading }}
+                testID="login-button"
+                accessibilityRole="button"
+                onPress={signIn}
+            >
+                {isLoading ? (
+                    <ActivityIndicator color="#fff" />
+                ) : (
+                    <ThemedText lightColor="#fff" darkColor="#fff">
+                        Entrar
+                    </ThemedText>
+                )}
+            </Pressable>
 
             {session.status === 'error' && (
                 <ThemedText style={styles.error}>
@@ -51,13 +61,24 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     title: {
-        fontSize: 28,
+        fontSize: 32,
+        textAlign: 'center',
         fontWeight: 'bold',
+        lineHeight: 40,
     },
     description: {
         fontSize: 16,
+        textAlign: 'center',
     },
     error: {
         color: '#b00020',
+    },
+    button: {
+        paddingVertical: 14,
+        alignItems: 'center',
+        borderRadius: 12,
+        backgroundColor: '#2563eb',
+        minHeight: 52,
+        justifyContent: 'center',
     },
 });
