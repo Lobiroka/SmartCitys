@@ -11,16 +11,23 @@ export const styles = StyleSheet.create({
     sessionBox: {
         position: 'absolute',
         top: 48,
-        right: 16,
-        maxWidth: 220,
-        padding: 12,
+        left: 16,
         gap: 8,
-        borderRadius: 8,
-        alignItems: 'flex-end',
+        borderRadius: 12,
+        alignItems: 'flex-start',
+
+    },
+    avatarButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        backgroundColor: '#2563eb',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     messageBox: {
         position: 'absolute',
-        top: 48,
+        top: 168,
         left: 16,
         right: 16,
         backgroundColor: '#fff',
@@ -43,5 +50,12 @@ export const styles = StyleSheet.create({
     calloutTitle: {
         fontSize: 16,
         fontWeight: '700',
+    },
+    profileMenuItem: {
+        minWidth: 120,
+        minHeight: 48,
+        paddingHorizontal: 16,
+        justifyContent: 'center',
+        borderRadius: 8,
     },
 });

@@ -29,6 +29,11 @@ export function useMainMapViewModel(){
         locationSubscriptionRef.current?.remove();
         locationSubscriptionRef.current = null;
     }, []);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+    function toggleProfileMenu() {
+        setIsProfileMenuOpen((current) => !current);
+    }
 
     const loadLocation = useCallback(async () => {
         stopLocationTracking();
@@ -36,6 +41,7 @@ export function useMainMapViewModel(){
         setIsLoading(true);
         setLocationError(null);
         setIsPermissionBlocked(false);
+
 
         try {
             const subscription = await watchCoordinates(
@@ -141,5 +147,7 @@ export function useMainMapViewModel(){
         locationError,
         isPermissionBlocked,
         loadLocation,
+        isProfileMenuOpen,
+        toggleProfileMenu,
     };
 }

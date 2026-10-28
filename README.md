@@ -2,7 +2,10 @@
 
 Aplicativo mobile para registro e acompanhamento de ocorrências urbanas. O projeto utiliza React Native com Expo, autenticação pelo Keycloak e arquitetura MVVM.
 
-> Status: MVP mobile funcional em Android. Autenticação, sessão, mapa, GPS, câmera e CRUD de ocorrências estão integrados. Ainda faltam validação manual completa, refinamento visual, testes e validação no iOS.
+> Status em 26/10/2026: MVP mobile funcional em Android no ambiente atual, com autenticação, sessão, mapa, GPS, câmera e CRUD integrados. Regressão de unitários, API e E2E aprovada e registrada em `.maestro/README.md`. Banco do Keycloak já migrado para RDS; banco de ocorrências ainda no Supabase, com migração para RDS planejada, conforme confirmação do responsável. Prioridade: preparar e publicar o backend na AWS, integrar Valkey e S3 e validar esse ambiente antes dos refinamentos visuais, iOS e distribuição.
+
+Quadro de acompanhamento: [Projeto 5 SmartCity no Trello](https://trello.com/b/KaOhR9dk/projeto-5-smartcity).
+Esta revisão reflete o código local e as evidências já registradas; não representa uma nova execução dos testes nem uma auditoria da infraestrutura.
 
 ## Backend no monorepo
 
@@ -75,7 +78,10 @@ O desenvolvimento e os testes realizados até agora foram concentrados no Androi
 - Acompanhamento da posição do usuário com Expo Location.
 - Tratamento de permissão negada ou bloqueada, incluindo atalho para as configurações do celular.
 - Cliente HTTP que envia o token do Keycloak ao backend.
-- Modelos, contratos, mapeamento e serviço inicial para consultar ocorrências do usuário.
+- Listagem de ocorrências com `FlatList`, pesquisa textual e filtro de status locais.
+- Criação de ocorrência com formulário, localização e foto capturada com Expo Camera.
+- Edição e exclusão de ocorrências abertas do próprio cidadão, com confirmação de exclusão.
+- Feed de ocorrências com coordenadas exibidas como marcadores no mapa.
 - Tema claro e escuro seguindo a configuração do aparelho.
 
 ## Fluxo atual de telas
@@ -122,12 +128,12 @@ flowchart LR
 - **Service:** encapsula integrações com Keycloak, API, GPS e armazenamento.
 - **Composition root:** instancia as implementações e conecta suas dependências.
 
-### Fluxo preparado para ocorrências
+### Fluxo implementado para ocorrências
 
 ```text
-Tela futura de ocorrências
+OccurrenceListScreen / OccurrenceFormScreen / MainMapScreen
         ↓
-ViewModel futuro
+ViewModels de listagem, formulário e feed
         ↓
 OccurrenceService
         ↓
@@ -135,10 +141,10 @@ ApiOccurrenceService
         ↓
 AuthenticatedFetchHttpClient
         ↓ Authorization: Bearer <access token>
-Backend /demands/my-demands
+Backend /demands (listagem própria, feed e CRUD)
 ```
 
-O serviço de consulta já está preparado, mas ainda não é chamado por uma tela. Isso significa que o backend da aplicação ainda não participa do fluxo visual atual.
+As telas já consomem o backend por meio dos ViewModels e serviços. `appDependencies.ts` monta as dependências de autenticação, cliente HTTP e ocorrências. Pesquisa e filtro de status da listagem são aplicados aos itens carregados; listagem e feed solicitam uma página de até 100 registros, sem carregamento das páginas seguintes.
 
 ## Arquitetura e estrutura
 
@@ -156,7 +162,7 @@ smart-city/
 │       │   │   ├── auth/        # Autenticação e sessão
 │       │   │   ├── location/    # Integração com GPS
 │       │   │   ├── map/         # Tela e ViewModel do mapa
-│       │   │   └── occurrences/ # Modelos e serviços de ocorrências
+│       │   │   └── occurrences/ # Telas, ViewModels, modelos e serviços
 │       │   ├── navigation/      # Proteção e fluxo de rotas
 │       │   └── shared/          # Cliente HTTP e erros compartilhados
 │       ├── app.config.ts
@@ -309,9 +315,37 @@ O fluxo atual depende de:
 - **Keycloak:** autenticação, registro, tokens, renovação e logout.
 - **Google Maps Platform:** mapa nativo no Android.
 - **GPS do dispositivo:** localização obtida por Expo Location.
-- **Backend da aplicação:** necessário para as funcionalidades de ocorrências quando forem conectadas às telas.
+- **Backend da aplicação:** integrado às telas de ocorrências e ao feed do mapa.
 
 O APK contém apenas o frontend. Para que as ocorrências funcionem fora da rede local, o backend deverá estar publicado em uma URL HTTPS acessível pelo celular.
+
+## Infraestrutura AWS definida
+
+Decisão do responsável em 26/10/2026: a infraestrutura de destino do backend será AWS, com EC2, RDS PostgreSQL, ElastiCache com Valkey e S3. A escolha dos serviços está definida; sua implantação e integração ainda precisam ser concluídas e validadas.
+
+| Componente | Situação atual confirmada | Destino e responsabilidade |
+|---|---|---|
+| Execução do backend | Serviços existentes no monorepo; servidor para publicação ainda pendente | EC2 para executar `api-gateway`, `demand-service` e `metrics-service` |
+| Banco do Keycloak | Migração para RDS concluída, informada pelo responsável | RDS; persistência de identidade separada dos dados de ocorrências |
+| Banco de ocorrências | PostgreSQL no Supabase, informado pelo responsável | Migrar estrutura e dados para RDS PostgreSQL, preservando o schema `demand` e a integração Prisma |
+| Cache e comunicação entre serviços | Redis local no Docker Compose; código usa cache, lista de eventos e pub/sub | ElastiCache com Valkey; configurar conexão e validar os comandos utilizados |
+| Fotografias | Captura e envio em base64 no MVP | S3 para os arquivos; banco guarda a chave/referência do objeto |
+| Acesso do aplicativo à API | Publicação externa ainda pendente | Domínio e HTTPS para o gateway na infraestrutura AWS |
+
+Fluxo de destino: aplicativo → gateway na EC2 → serviços de ocorrências/métricas → RDS e ElastiCache/Valkey. O fluxo de fotos utilizará S3, com autorização controlada pelo backend. O aplicativo continua autenticando pelo Keycloak existente.
+
+Ainda serão definidos região, recursos existentes que podem ser reutilizados, tamanho da EC2, configuração do RDS e do ElastiCache, domínio, terminação HTTPS e processo de publicação. Usar RDS para os dois contextos não define se compartilharão a mesma instância; dados e credenciais de Keycloak e ocorrências devem permanecer separados.
+
+### Preparação e critérios de conclusão
+
+- **Inventário:** identificar recursos AWS já disponíveis, rede e acesso administrativo antes de criar ou alterar serviços. O histórico de configuração de Supabase, Neon e Lightsail no Trello não comprova a implantação do backend no destino definido.
+- **Migração Supabase → RDS:** planejar backup, compatibilidade, transferência de estrutura/dados, usuários e permissões, conferência de registros/relacionamentos/sequências e retorno ao ambiente anterior em caso de falha. Definir a janela de troca; atualizar as conexões de ocorrências e métricas somente após validar o destino. Manter a origem até concluir o aceite.
+- **EC2 e Valkey:** preparar a execução dos três serviços, configurar suas conexões e validar health checks, cache, publicação/assinatura e consumo da lista de eventos. O Compose atual ainda aponta para Redis local; a configuração AWS precisa ser preparada separadamente, incluindo TLS/autenticação conforme os recursos escolhidos.
+- **S3:** definir bucket, permissões da aplicação e acesso autorizado às imagens; implementar envio, persistência da referência, leitura e tratamento de falhas/exclusão. Definir também o tratamento das fotos base64 existentes. Escolher S3 não significa que a integração já está implementada.
+- **Publicação:** configurar rede e regras de acesso, identidade IAM da EC2, segredos, domínio/HTTPS, logs, backups e procedimento de implantação/retorno; definir permissões entre EC2, banco, Valkey e S3.
+- **Aceite AWS:** validar API, autenticação, CRUD, fotos e métricas no ambiente publicado e repetir a regressão aplicável com dados exclusivos de teste. A aprovação anterior da CI utiliza API/banco temporários e não comprova o funcionamento dessa nova infraestrutura.
+
+Esta seção documenta a decisão e o trabalho pendente. Não foram provisionados recursos, migrados dados ou alteradas configurações de execução nesta atualização.
 
 ## O que falta para o MVP
 
@@ -328,15 +362,50 @@ O APK contém apenas o frontend. Para que as ocorrências funcionem fora da rede
 - [x] Tratar estados vazios, carregamento e erros das telas de ocorrências.
 - [ ] Refinar a tela inicial de login e a apresentação do aplicativo.
 - [ ] Refinar os componentes visuais, incluindo o botão de logout.
+- [ ] Adicionar atalhos no mapa para criar ocorrência e recentralizar a localização.
 - [ ] Validar todo o fluxo em Android físico e emulador.
 - [ ] Compilar e validar o fluxo no iOS.
 - [x] Criar testes unitários dos ViewModels e mapeadores principais.
 - [x] Criar testes de componentes das telas principais.
 - [x] Preparar fluxo E2E do MVP com Maestro.
-- [ ] Executar o fluxo Maestro em Android com serviços externos disponíveis.
+- [x] Executar o fluxo Maestro em Android com serviços externos disponíveis (regressão registrada em `.maestro/README.md`).
+- [x] Configurar testes unitários por push/PR e regressão diária/manual no GitHub Actions.
+- [x] Migrar o banco do Keycloak para RDS (conclusão informada pelo responsável pelo projeto).
+- [ ] Migrar o PostgreSQL de ocorrências do Supabase para RDS e validar dados/conexões.
+- [ ] Preparar EC2 e publicar gateway, serviço de ocorrências e serviço de métricas.
+- [ ] Integrar e validar ElastiCache com Valkey em substituição ao Redis local no ambiente AWS.
+- [ ] Integrar fotos ao S3 e definir a migração das imagens base64 existentes.
+- [ ] Validar o fluxo integrado e a regressão aplicável no ambiente AWS.
 - [ ] Preparar build de distribuição do MVP.
 - [ ] Publicar o backend em HTTPS para testes externos.
 - [ ] Revisar segredos e configurações de produção antes da publicação.
+
+## Roadmap de continuidade
+
+A sequência abaixo é um plano de trabalho, sem datas assumidas. Seguiremos o modo de aprendizado do `AGENTS.md`: explicar o conceito e o motivo, propor uma pequena alteração, aguardar a implementação pelo usuário e revisar antes de avançar. A arquitetura mobile permanece MVVM.
+
+| Ordem | Etapa | Entregas e critério de conclusão | Estado |
+|---|---|---|---|
+| 1 | Inventário AWS e banco de ocorrências | Primeiro passo: levantar os recursos AWS existentes e o banco de origem, sem alterações. Depois planejar e executar, em passos separados, a migração Supabase → RDS com conferência dos dados e plano de retorno. | Prioridade atual; Keycloak no RDS já concluído |
+| 2 | Execução na EC2 e ElastiCache/Valkey | Preparar os três serviços, conexões ao RDS e Valkey e validar health checks, cache e eventos; configurar rede, permissões e operação. | A fazer |
+| 3 | Fotos no S3 | Implementar envio e acesso autorizado às fotos, guardar referências no banco e tratar imagens antigas e falhas. | Destino definido; integração pendente |
+| 4 | HTTPS e validação integrada AWS | Publicar o gateway com domínio/HTTPS, configurar o aplicativo e validar autenticação, CRUD, fotos, métricas e regressão aplicável no novo ambiente. | A fazer após preparar os serviços e integrações |
+| 5 | Login, mapa e componentes | Refinar login e painel da conta/logout, criar atalhos no mapa para nova ocorrência e recentralização e revisar marcadores/mensagens; preservar MVVM e conferir temas/testes existentes. | Após a infraestrutura; parte funcional já implementada |
+| 6 | Aceite manual Android | Registrar aparelho/emulador, versão e evidências de sessão, CRUD, câmera e GPS concedido/negado/bloqueado; corrigir problemas encontrados, um por vez. | Pendente no ambiente de destino; E2E anterior aprovado |
+| 7 | Compatibilidade iOS | Em macOS com Xcode, gerar build, conferir mapa, callback de autenticação, câmera e permissões e executar o roteiro crítico com evidências. | Pendente de ambiente e validação |
+| 8 | Distribuição do MVP | Definir distribuição, configurar assinatura e identificadores, gerar build instalável e repetir o aceite no ambiente AWS. | A fazer após as validações |
+
+### Pendências de evolução e decisões de escopo
+
+- **Login/registro hospedado no Keycloak:** há um cartão de personalização em desenvolvimento no Trello. O tema não está neste repositório; confirmar o que já foi realizado no servidor antes de planejar alterações. É diferente da tela de entrada do aplicativo.
+- **Fotos no S3:** provedor já definido; integração e tratamento das imagens antigas fazem parte da preparação AWS, antes da validação do ambiente de destino.
+- **Paginação e filtros de API:** avaliar carregamento das próximas páginas e filtros no servidor. Hoje os filtros da tela atuam apenas nos itens carregados; os seis testes de filtros avançados de API permanecem ignorados e fora do escopo aprovado do plano de testes.
+- **Documentação do backend:** o `apps/backend/README.md` ainda descreve o antigo `auth-service` e JWT compartilhado. Deve ser atualizado em uma revisão própria; a autenticação atual usa Keycloak e validação com chaves públicas.
+- **Mapa Vivo:** zonas de risco, PostGIS, pontuação de risco, heatmap e alertas permanecem no pós-MVP, conforme o Trello.
+
+### Evidência disponível
+
+O registro em `.maestro/README.md` aponta a execução 38479762930 do GitHub Actions com 31 testes Jest, 24 testes de API e o fluxo MVP Maestro aprovados; seis testes de filtros avançados ficaram ignorados. Isso valida o caminho automatizado registrado, mas não substitui o aceite manual completo nem a validação iOS. A migração do banco do Keycloak para RDS foi confirmada pelo responsável nesta retomada.
 
 ## Requisitos acadêmicos acompanhados
 
@@ -364,4 +433,4 @@ O APK contém apenas o frontend. Para que as ocorrências funcionem fora da rede
 
 ## Estado atual da integração com o backend
 
-O cliente HTTP autenticado atende listagem própria, feed do mapa, detalhes, criação, atualização e remoção. O backend armazena coordenadas opcionais e restringe edição e exclusão às ocorrências abertas pertencentes ao cidadão autenticado. Fotografias são enviadas como base64 no MVP; antes de produção, devem migrar para armazenamento de objetos e o banco deve guardar apenas a URL do arquivo.
+O cliente HTTP autenticado atende listagem própria, feed do mapa, detalhes, criação, atualização e remoção. O backend armazena coordenadas opcionais e restringe edição e exclusão às ocorrências abertas pertencentes ao cidadão autenticado. O PostgreSQL de ocorrências está no Supabase e será migrado para RDS. Fotografias ainda são enviadas como base64; a integração planejada usará S3 e o banco guardará a chave/referência do objeto, com acesso autorizado às imagens. A publicação na EC2 e a integração com ElastiCache/Valkey e S3 permanecem pendentes.
