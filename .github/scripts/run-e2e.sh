@@ -2,8 +2,10 @@
 set -euo pipefail
 
 mkdir -p test-results/e2e
+started_at=$SECONDS
 capture_failure() {
   local result=$?
+  printf '{"exit_code":%s,"duration_seconds":%s}\n' "$result" "$((SECONDS - started_at))" > test-results/e2e/execution.json
   if [ "$result" -ne 0 ]; then
     adb exec-out screencap -p > test-results/e2e/failure.png || true
     adb shell uiautomator dump /sdcard/e2e-hierarchy.xml > /dev/null 2>&1 || true

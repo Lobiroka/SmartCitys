@@ -27,11 +27,40 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
+      - name: Iniciar coleta de qualidade
+        run: |
+          mkdir -p test-results
+          date +%s > test-results/started-at
+      - name: Validar gerador de relatórios
+        run: python -m unittest discover -s .github/scripts/tests -v
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validar registro de issues
+        run: node --test .github/scripts/tests/quality-issue.test.cjs
       - name: Instalar dependências
         run: npm ci
       - name: Executar todos os testes unitários e de componentes
-        run: npm run mobile:test
+        id: unitarios
+        continue-on-error: true
+        run: python .github/scripts/run-quality-tests.py mobile
+      - name: Gerar relatórios de qualidade
+        if: ${{ !cancelled() }}
+        env:
+          MOBILE_OUTCOME: ${{ steps.unitarios.outcome }}
+          PRE_REPORT_STATUS: ${{ job.status }}
+        run: python .github/scripts/quality-report.py --expected mobile
+      - name: Salvar resultados e relatórios
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qualidade-unitarios-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preservar resultado dos testes
+        if: ${{ !cancelled() }}
+        env:
+          MOBILE_OUTCOME: ${{ steps.unitarios.outcome }}
+        run: test "$MOBILE_OUTCOME" = success

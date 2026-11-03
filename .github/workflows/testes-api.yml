@@ -57,10 +57,21 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
 
+      - name: Iniciar coleta de qualidade
+        run: |
+          mkdir -p test-results
+          date +%s > test-results/started-at
+
+      - name: Validar gerador de relatórios
+        run: python -m unittest discover -s .github/scripts/tests -v
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Validar registro de issues
+        run: node --test .github/scripts/tests/quality-issue.test.cjs
 
       - name: Instalar dependências do mobile
         run: npm ci
@@ -82,7 +93,7 @@ jobs:
       - name: Testes Unitários
         id: unitarios
         continue-on-error: true
-        run: npm run mobile:test
+        run: python .github/scripts/run-quality-tests.py mobile
 
       - name: Instalar dependências do Demand Service
         working-directory: ./apps/backend/demand-service
@@ -101,10 +112,9 @@ jobs:
       - name: Testes de API
         id: api
         continue-on-error: true
-        working-directory: ./apps/backend/demand-service
         env:
           TEST_DATABASE_URL: postgresql://smartcitys_test:teste_ci@localhost:5432/smartcitys_test?schema=demand
-        run: npm test
+        run: python .github/scripts/run-quality-tests.py api --cwd apps/backend/demand-service
       - name: Instalar dependências do Metrics Service
         working-directory: ./apps/backend/metrics-service
         run: npm ci
@@ -207,6 +217,35 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -memory 3072 -cores 2 -skin 720x1280
           disable-animations: true
           script: bash .github/scripts/run-e2e.sh
+
+      - name: Coletar logs dos serviços
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p test-results/service-logs
+          if [ -d "$RUNNER_TEMP/smartcitys-logs" ]; then
+            cp -r "$RUNNER_TEMP/smartcitys-logs/." test-results/service-logs/
+          fi
+
+      - name: Gerar relatórios de qualidade
+        if: ${{ !cancelled() }}
+        env:
+          MOBILE_OUTCOME: ${{ steps.unitarios.outcome }}
+          API_OUTCOME: ${{ steps.api.outcome }}
+          E2E_OUTCOME: ${{ steps.e2e.outcome }}
+          PRE_REPORT_STATUS: ${{ job.status }}
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
+        run: python .github/scripts/quality-report.py
+
+      - name: Salvar resultados e relatórios
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qualidade-regressao-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Salvar evidências E2E
         if: ${{ !cancelled() }}

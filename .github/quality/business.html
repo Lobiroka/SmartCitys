@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartCitys — Relatório de negócio</title>
+<style>body{font:17px/1.6 system-ui,sans-serif;max-width:900px;margin:32px auto;padding:0 20px;color:#17243a;background:#f5f7fb}section{background:white;border:1px solid #d7dfeb;border-radius:12px;padding:24px;margin:20px 0}h1,h2{line-height:1.2}li{overflow-wrap:anywhere}a{color:#164db4}</style></head>
+<body><h1>SmartCitys — Visão de negócio da qualidade</h1>
+<section><h2>{{STATUS}}</h2><p>{{RECOMMENDATION}}</p><p>Esta é uma avaliação da validação automatizada desta execução, não uma certificação de todo o produto.</p></section>
+<section><h2>Indicadores</h2><p>{{PASSED}} testes aprovados de {{EXECUTED}} executados.<br>Taxa de aprovação: <strong>{{SUCCESS_RATE}}</strong>.<br>Taxa de falha: {{FAILURE_RATE}}.<br>Testes reprovados: {{FAILED}}.<br>Testes ignorados: {{SKIPPED}} — funcionalidades não verificadas por esses casos.</p><p>Tempo até gerar o relatório: {{PIPELINE_SECONDS}} segundos. Duração maior não significa necessariamente pior produto.</p></section>
+<section><h2>Abrangência da validação</h2><p>{{SCOPE}}</p><p>Cobertura descreve código exercitado, não satisfação dos usuários ou ausência de defeitos.</p><ul>{{COVERAGE_HTML}}</ul></section>
+<section><h2>Riscos para a decisão</h2><ul>{{RISKS_HTML}}</ul><p>Verde: critérios medidos atendidos. Amarelo: cobertura ausente/abaixo da meta ou testes ignorados. Vermelho: pelo menos um teste reprovado. Inconclusivo: sem falhas registradas, mas execução/coleta incompleta.</p></section>
+<section><h2>Rastreabilidade</h2><p>{{WORKFLOW}} · Execução {{RUN}} · Tentativa {{ATTEMPT}}<br>Gerado em UTC: {{DATE}}</p><a href="{{RUN_URL}}">Consultar execução e evidências</a><p><a href="technical.html">Abrir relatório técnico</a></p></section>
+<footer>Relatório gerado automaticamente a partir dos resultados disponíveis na pipeline.</footer></body></html>
