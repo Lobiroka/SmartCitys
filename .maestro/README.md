@@ -11,6 +11,10 @@ O fluxo `mvp.yaml` valida o caminho crítico em um build próprio do aplicativo:
 7. confirma que ela aparece na listagem;
 8. sai da sessão e reabre o app sem limpar dados, confirmando o retorno ao login (TC-03).
 
+Após o login, o fluxo aguarda o controle acessível `Menu do Perfil` no mapa.
+A opção `Sair` só aparece depois de abrir esse menu; o teste faz isso antes do logout.
+Esperar `Sair` imediatamente após autenticar não corresponde à interface atual.
+
 ## Pré-requisitos
 
 - APK de desenvolvimento ou preview instalado com o application ID
