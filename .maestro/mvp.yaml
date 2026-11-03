@@ -41,7 +41,7 @@ name: MVP - autenticação e criação de ocorrência
     id: "kc-login"
 
 - extendedWaitUntil:
-    visible: "Sair"
+    visible: "Menu do Perfil"
     timeout: 60000
 - tapOn: "Ocorrências"
 - extendedWaitUntil:
@@ -110,6 +110,13 @@ name: MVP - autenticação e criação de ocorrência
 
 # TC-03: sair e reabrir sem limpar dados comprova o logout local.
 - tapOn: "Home"
+- extendedWaitUntil:
+    visible: "Menu do Perfil"
+    timeout: 30000
+- tapOn: "Menu do Perfil"
+- extendedWaitUntil:
+    visible: "Sair"
+    timeout: 10000
 - tapOn: "Sair"
 - extendedWaitUntil:
     visible:
