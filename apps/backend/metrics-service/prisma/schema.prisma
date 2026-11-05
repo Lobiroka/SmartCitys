@@ -18,7 +18,7 @@ model Denuncia {
   status        StatusDenuncia  @default(ABERTA)
   prioridade    NivelPrioridade @default(MEDIA)
   data_registro DateTime        @default(now())
-  endereco      String
+  endereco      String?
   cidadao_id    Int
 
   @@index([categoria])

@@ -100,12 +100,6 @@ export function OccurrenceFormScreen({ id }: Props) {
                         testID="occurrence-address-input"
                         placeholder="Rua, número e referência" placeholderTextColor={colors.icon} />
                 </Field>
-                <OptionGroup label="Categoria" options={occurrenceCategories}
-                    value={vm.category} onChange={vm.setCategory} />
-                <OptionGroup label="Região" options={occurrenceRegions}
-                    value={vm.region} onChange={vm.setRegion} />
-                <OptionGroup label="Prioridade" options={occurrencePriorities}
-                    value={vm.priority} onChange={vm.setPriority} />
                 <Field label="Localização">
                     <ThemedText>
                         {vm.latitude === null || vm.longitude === null
@@ -113,11 +107,18 @@ export function OccurrenceFormScreen({ id }: Props) {
                             : `${vm.latitude.toFixed(6)}, ${vm.longitude.toFixed(6)}`}
                     </ThemedText>
                     <Pressable style={styles.secondaryButton}
-                        testID="occurrence-location-button"
-                        onPress={() => { void vm.useCurrentLocation(); }}>
+                               testID="occurrence-location-button"
+                               onPress={() => { void vm.useCurrentLocation(); }}>
                         <ThemedText>Usar localização atual</ThemedText>
                     </Pressable>
                 </Field>
+                <OptionGroup label="Categoria" options={occurrenceCategories}
+                    value={vm.category} onChange={vm.setCategory} />
+                <OptionGroup label="Região" options={occurrenceRegions}
+                    value={vm.region} onChange={vm.setRegion} />
+                <OptionGroup label="Prioridade" options={occurrencePriorities}
+                    value={vm.priority} onChange={vm.setPriority} />
+
                 <Field label="Foto">
                     {vm.photo && <Image source={{ uri: vm.photo }} style={styles.preview} />}
                     <View style={styles.row}>

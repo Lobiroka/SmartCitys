@@ -88,24 +88,28 @@ export function useOccurrenceFormViewModel(
     }, [dependencies]);
 
     const save = useCallback(async () => {
-        if (!title.trim() || !description.trim() || !address.trim()) {
-            setError('Preencha título, descrição e endereço.');
+        const trimmedAddress = address.trim();
+        const hasCoordinates = latitude !== null && longitude !== null;
+
+        if (!title.trim() || !description.trim()) {
+            setError('Preencha título e descrição.');
             return false;
         }
-        if (latitude === null || longitude === null) {
-            setError('Confirme a localização da ocorrência.');
+
+        if (!trimmedAddress && !hasCoordinates) {
+            setError('Informe um endereço ou use a localização atual.');
             return false;
         }
 
         const input: SaveOccurrenceInput = {
             title: title.trim(),
             description: description.trim(),
-            address: address.trim(),
+            address: address.trim() || null,
             category,
             region,
             priority,
-            latitude,
-            longitude,
+            latitude: hasCoordinates ? latitude : null,
+            longitude: hasCoordinates ? longitude : null,
             images: photo ? [photo] : [],
         };
 

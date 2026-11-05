@@ -21,7 +21,7 @@ export type OccurrenceApiDto = {
     status: OccurrenceStatus;
     prioridade: OccurrencePriority;
     data_registro: string;
-    endereco: string;
+    endereco: string | null;
     latitude?: number | string | null;
     longitude?: number | string | null;
     email_solicitante: string | null;
@@ -34,10 +34,10 @@ export type SaveOccurrenceApiDto = {
     categoria: OccurrenceCategory;
     regiao: OccurrenceRegion;
     descricao: string;
-    endereco: string;
+    endereco: string | null;
     prioridade: OccurrencePriority;
-    latitude: number;
-    longitude: number;
+    latitude: number | null;
+    longitude: number| null;
     imagens?: string[];
 };
 

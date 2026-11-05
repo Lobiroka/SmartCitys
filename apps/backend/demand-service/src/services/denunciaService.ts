@@ -15,9 +15,9 @@ export interface CreateDenunciaInput {
   categoria: Categorias;
   regiao: Regioes;
   descricao: string;
-  endereco: string;
-  latitude?: number;
-  longitude?: number;
+  endereco: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   prioridade?: NivelPrioridade;
   imagens?: string[];
 }
@@ -61,7 +61,7 @@ export function validateCreateDenunciaInput(body: Record<string, unknown>): Crea
     imagens,
   } = body;
 
-  const camposObrigatorios = { titulo, categoria, regiao, descricao, endereco };
+  const camposObrigatorios = { titulo, categoria, regiao, descricao };
   const faltando = Object.entries(camposObrigatorios)
     .filter(([, valor]) => valor === undefined || valor === null || valor === '')
     .map(([campo]) => campo);
@@ -86,18 +86,35 @@ export function validateCreateDenunciaInput(body: Record<string, unknown>): Crea
     throw httpError('descricao deve ser uma string', 400);
   }
 
-  if (typeof endereco !== 'string') {
+  if (endereco != null && typeof endereco !== 'string') {
     throw httpError('endereco deve ser uma string', 400);
   }
 
-  if (latitude !== undefined &&
-      (typeof latitude !== 'number' || latitude < -90 || latitude > 90)) {
+  const enderecoNormalizado = typeof endereco === 'string'
+    ? endereco.trim() || null
+    : null;
+
+  if (latitude != null &&
+      (typeof latitude !== 'number' || !Number.isFinite(latitude) ||
+       latitude < -90 || latitude > 90)) {
     throw httpError('latitude inválida', 400);
   }
 
-  if (longitude !== undefined &&
-      (typeof longitude !== 'number' || longitude < -180 || longitude > 180)) {
+  if (longitude != null &&
+      (typeof longitude !== 'number' || !Number.isFinite(longitude) ||
+       longitude < -180 || longitude > 180)) {
     throw httpError('longitude inválida', 400);
+  }
+
+  const temLatitude = latitude != null;
+  const temLongitude = longitude != null;
+
+  if (temLatitude !== temLongitude) {
+    throw httpError('Informe latitude e longitude juntas.', 400);
+  }
+
+  if (enderecoNormalizado === null && !temLatitude) {
+    throw httpError('Informe um endereço ou use a localização atual.', 400);
   }
 
   if (prioridade !== undefined) {
@@ -111,7 +128,7 @@ export function validateCreateDenunciaInput(body: Record<string, unknown>): Crea
     categoria: categoria as Categorias,
     regiao: regiao as Regioes,
     descricao,
-    endereco,
+    endereco: enderecoNormalizado,
     latitude,
     longitude,
     prioridade: prioridade as NivelPrioridade | undefined,

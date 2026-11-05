@@ -33,14 +33,13 @@ describe('useOccurrenceFormViewModel', () => {
         });
 
         expect(result.current.error)
-            .toBe('Preencha título, descrição e endereço.');
+            .toBe('Preencha título e descrição.');
         expect(service.create).not.toHaveBeenCalled();
     });
 
     it.each([
         ['título', '', 'Descrição', 'Endereço'],
         ['descrição', 'Título', '', 'Endereço'],
-        ['endereço', 'Título', 'Descrição', ''],
     ])('TC-05: impede criar quando falta %s', async (
         _field, title, description, address,
     ) => {
@@ -60,17 +59,17 @@ describe('useOccurrenceFormViewModel', () => {
         });
 
         expect(result.current.error)
-            .toBe('Preencha título, descrição e endereço.');
+            .toBe('Preencha título e descrição.');
         expect(service.create).not.toHaveBeenCalled();
         expect(service.update).not.toHaveBeenCalled();
     });
 
-    it('exige coordenadas antes de criar a ocorrência', async () => {
+    it('impede criar sem endereço e sem GPS', async () => {
         const { result, service } = await setup();
         act(() => {
             result.current.setTitle('Título');
             result.current.setDescription('Descrição');
-            result.current.setAddress('Endereço');
+            result.current.setAddress('   ');
         });
 
         await act(async () => {
@@ -78,8 +77,45 @@ describe('useOccurrenceFormViewModel', () => {
         });
 
         expect(result.current.error)
-            .toBe('Confirme a localização da ocorrência.');
+            .toBe('Informe um endereço ou use a localização atual.');
         expect(service.create).not.toHaveBeenCalled();
+    });
+
+    it('cria com endereço e sem GPS', async () => {
+        const { result, service } = await setup();
+        act(() => {
+            result.current.setTitle('Título');
+            result.current.setDescription('Descrição');
+            result.current.setAddress('  Rua Central, 20  ');
+        });
+
+        await act(async () => {
+            expect(await result.current.save()).toBe(true);
+        });
+
+        expect(service.create).toHaveBeenCalledWith(expect.objectContaining({
+            address: 'Rua Central, 20',
+            latitude: null,
+            longitude: null,
+        }));
+    });
+
+    it('cria com GPS e sem endereço', async () => {
+        const { result, service } = await setup();
+        act(() => {
+            result.current.setTitle('Título');
+            result.current.setDescription('Descrição');
+        });
+
+        await act(async () => result.current.useCurrentLocation());
+        await act(async () => {
+            expect(await result.current.save()).toBe(true);
+        });
+
+        expect(service.create).toHaveBeenCalledWith(expect.objectContaining({
+            address: null,
+            ...coordinates,
+        }));
     });
 
     it('obtém o GPS e envia um input normalizado na criação', async () => {
