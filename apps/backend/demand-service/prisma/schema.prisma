@@ -10,41 +10,41 @@ generator client {
 }
 
 model Cidadao {
-  id_cidadao Int        @id @default(autoincrement())
-  keycloak_sub String @unique
-  denuncias  Denuncia[]
+  id_cidadao   Int        @id @default(autoincrement())
+  keycloak_sub String     @unique
+  denuncias    Denuncia[]
 
   @@map("cidadaos")
   @@schema("demand")
 }
 
 model Gestor {
-  id_gestor  Int         @id @default(autoincrement())
-  keycloak_sub String @unique
-  historicos Historico[]
+  id_gestor    Int         @id @default(autoincrement())
+  keycloak_sub String      @unique
+  historicos   Historico[]
 
   @@map("gestores")
   @@schema("demand")
 }
 
 model Denuncia {
-  id_denuncia   Int             @id @default(autoincrement())
-  titulo        String          @db.VarChar(50)
-  categoria     Categorias
-  regiao        Regioes
-  descricao     String
-  status        StatusDenuncia  @default(ABERTA)
-  prioridade    NivelPrioridade @default(MEDIA)
-  data_registro DateTime        @default(now())
-  endereco           String
-  latitude           Float?
-  longitude          Float?
-  email_solicitante  String?
+  id_denuncia       Int             @id @default(autoincrement())
+  titulo            String          @db.VarChar(50)
+  categoria         Categorias
+  regiao            Regioes
+  descricao         String
+  status            StatusDenuncia  @default(ABERTA)
+  prioridade        NivelPrioridade @default(MEDIA)
+  data_registro     DateTime        @default(now())
+  endereco          String?
+  latitude          Float?
+  longitude         Float?
+  email_solicitante String?
 
-  cidadao_id    Int
-  cidadao       Cidadao         @relation(fields: [cidadao_id], references: [id_cidadao])
-  imagens       Imagem[]
-  historicos    Historico[]
+  cidadao_id Int
+  cidadao    Cidadao     @relation(fields: [cidadao_id], references: [id_cidadao])
+  imagens    Imagem[]
+  historicos Historico[]
 
   @@index([categoria])
   @@index([status])
@@ -55,15 +55,15 @@ model Denuncia {
 }
 
 model Historico {
-  id_historico   Int            @id @default(autoincrement())
-  data_abertura  DateTime       @default(now())
-  data_alteracao DateTime       @updatedAt
+  id_historico   Int             @id @default(autoincrement())
+  data_abertura  DateTime        @default(now())
+  data_alteracao DateTime        @updatedAt
   status         StatusDenuncia
   prioridade     NivelPrioridade
   denuncia_id    Int
-  denuncia       Denuncia       @relation(fields: [denuncia_id], references: [id_denuncia], onDelete: Cascade)
+  denuncia       Denuncia        @relation(fields: [denuncia_id], references: [id_denuncia], onDelete: Cascade)
   gestor_id      Int
-  gestor         Gestor         @relation(fields: [gestor_id], references: [id_gestor])
+  gestor         Gestor          @relation(fields: [gestor_id], references: [id_gestor])
 
   @@map("historicos")
   @@schema("demand")
@@ -71,7 +71,7 @@ model Historico {
 
 model Imagem {
   id_imagem    Int      @id @default(autoincrement())
-  caminho_file String  
+  caminho_file String
   data_upload  DateTime @default(now())
   denuncia_id  Int
   denuncia     Denuncia @relation(fields: [denuncia_id], references: [id_denuncia], onDelete: Cascade)

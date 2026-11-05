@@ -15,7 +15,7 @@ export function mapOccurrenceApiDto(
         status: dto.status,
         priority: dto.prioridade,
         createdAt: dto.data_registro,
-        address: dto.endereco,
+        address: dto.endereco ?? '',
         latitude: toCoordinate(dto.latitude),
         longitude: toCoordinate(dto.longitude),
         requesterEmail: dto.email_solicitante,

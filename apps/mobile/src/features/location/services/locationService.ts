@@ -16,10 +16,13 @@ export async function watchCoordinates(
     }) => void,
     onError: (message: string) => void
 ) {
-    const permission =
-        await Location.requestForegroundPermissionsAsync();
+    let permission = await Location.getForegroundPermissionsAsync();
 
-    if (permission.status !== 'granted') {
+    if (!permission.granted && permission.canAskAgain) {
+        permission = await Location.requestForegroundPermissionsAsync();
+    }
+
+    if (!permission.granted) {
         throw new LocationPermissionError(permission.canAskAgain);
     }
 

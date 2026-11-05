@@ -52,9 +52,9 @@ export type SaveOccurrenceInput = {
     category: OccurrenceCategory;
     region: OccurrenceRegion;
     description: string;
-    address: string;
+    address: string | null;
     priority: OccurrencePriority;
-    latitude: number;
-    longitude: number;
+    latitude: number | null;
+    longitude: number | null;
     images?: string[];
 };
