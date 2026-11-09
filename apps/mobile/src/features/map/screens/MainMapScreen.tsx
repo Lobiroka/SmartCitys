@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { pushNotificationService } from '@/src/composition/appDependencies';
 import { Text, View, Button,Linking,Alert,Pressable } from 'react-native';
 import MapView, { Callout, Marker } from 'react-native-maps';
 
@@ -27,6 +29,21 @@ export function MainMapScreen() {
 
     const { session, signOut } = useAuthSession();
     const { occurrences, occurrenceError } = useOccurrenceFeedViewModel();
+    const [isChangingNotifications, setIsChangingNotifications] = useState(false);
+
+    async function changeNotifications(enable: boolean) {
+        setIsChangingNotifications(true);
+        try {
+            if (enable) await pushNotificationService.enable();
+            else await pushNotificationService.disable();
+            Alert.alert(enable ? 'Notificações ativadas' : 'Notificações desativadas');
+        } catch (error) {
+            Alert.alert('Não foi possível alterar as notificações',
+                error instanceof Error ? error.message : 'Tente novamente.');
+        } finally {
+            setIsChangingNotifications(false);
+        }
+    }
 
     async function handleOpenSettings() {
         try {
@@ -98,16 +115,36 @@ export function MainMapScreen() {
                 </Pressable>
 
                     {isProfileMenuOpen && (
+                        <>
+                        <Pressable
+                            style={styles.profileMenuItem}
+                            accessibilityRole="button"
+                            disabled={isChangingNotifications}
+                            onPress={() => void changeNotifications(true)}
+                        >
+                            <ThemedText>Ativar notificações</ThemedText>
+                        </Pressable>
+                        <Pressable
+                            style={styles.profileMenuItem}
+                            accessibilityRole="button"
+                            disabled={isChangingNotifications}
+                            onPress={() => void changeNotifications(false)}
+                        >
+                            <ThemedText>Desativar notificações</ThemedText>
+                        </Pressable>
                         <Pressable
                             style={({ pressed }) => [
                                 styles.profileMenuItem,
                                 { opacity: pressed ? 0.6 : 1 },
                             ]}
                             accessibilityRole="button"
+                            disabled={isChangingNotifications}
                             onPress={signOut}
                         >
                             <ThemedText>Sair</ThemedText>
-                        </Pressable>)}
+                        </Pressable>
+                        </>
+                    )}
                 </ThemedView>
             )}
 

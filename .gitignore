@@ -58,3 +58,5 @@ AGENTS.md
 # generated native folders for mobile workspace
 /apps/mobile/android
 /apps/mobile/ios
+/apps/mobile/google-services.json
+/apps/mobile/*firebase-adminsdk*.json

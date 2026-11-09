@@ -46,13 +46,24 @@ describe('TS02 - Persistência de nova demanda urbana', () => {
       expect(res.status).toBe(401);
     });
 
-    it('rejeita gestor tentando criar demanda', async () => {
+    it('permite que o gestor crie e consulte uma ocorrência própria', async () => {
       const res = await request(app)
         .post('/demandas')
         .set('Authorization', `Bearer ${tokenGestor}`)
         .send(demandaValida);
-      expect(res.status).toBe(403);
-      expect(res.body.error).toBe('Acesso negado para este perfil');
+      expect(res.status).toBe(201);
+      idsParaLimpar.push(res.body.id_denuncia);
+
+      const propria = await request(app)
+        .get('/demandas/' + res.body.id_denuncia)
+        .set('Authorization', `Bearer ${tokenGestor}`);
+      expect(propria.status).toBe(200);
+      expect(propria.body.id_denuncia).toBe(res.body.id_denuncia);
+
+      const painel = await request(app)
+        .get('/demandas/gestor')
+        .set('Authorization', `Bearer ${token}`);
+      expect(painel.status).toBe(403);
     });
   });
 

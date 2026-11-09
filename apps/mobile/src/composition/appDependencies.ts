@@ -8,6 +8,12 @@ import { ApiOccurrenceService } from
 import { AuthenticatedFetchHttpClient } from
         '@/src/shared/http/AuthenticatedFetchHttpClient';
 
+import { ApiManagerOccurrenceService } from
+    '@/src/features/manager/services/ApiManagerOccurrenceService';
+
+import { PushNotificationService } from
+    '@/src/features/notifications/services/PushNotificationService';
+
 const authTokenStorage =
     new ExpoSecureAuthTokenStorage();
 
@@ -22,3 +28,6 @@ export const httpClient =
 
 export const occurrenceService =
     new ApiOccurrenceService(httpClient);
+
+export const managerOccurrenceService = new ApiManagerOccurrenceService(httpClient);
+export const pushNotificationService = new PushNotificationService(httpClient);

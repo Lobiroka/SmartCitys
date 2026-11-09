@@ -1,9 +1,18 @@
 import 'dotenv/config';
+import { isIP } from 'node:net';
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import rateLimit from 'express-rate-limit';
 
 const app = express();
+
+const trustedProxyAddress = process.env.TRUSTED_PROXY_ADDRESS?.trim();
+if (trustedProxyAddress) {
+  if (!isIP(trustedProxyAddress)) {
+    throw new Error('TRUSTED_PROXY_ADDRESS deve conter um único endereço IP.');
+  }
+  app.set('trust proxy', trustedProxyAddress);
+}
 
 
 const DEMAND_URL = process.env.DEMAND_SERVICE_URL ?? 'http://localhost:3002';

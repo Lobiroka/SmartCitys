@@ -8,6 +8,7 @@ import { prisma } from '../lib/prisma';
 import { httpError } from '../utils/httpError';
 import { buildPaginatedResult, PaginatedResult, PaginationParams } from '../utils/pagination';
 import { publishDenunciaStatusEvent } from '../config/redis';
+import { sendOccurrenceStatusNotification } from './pushNotificationService';
 
 
 export interface CreateDenunciaInput {
@@ -317,6 +318,12 @@ export async function updateDenunciaStatus(
     ]);
   } catch (err) {
     console.error('[demand] Falha ao publicação de evento:', err);
+  }
+
+  try {
+    await sendOccurrenceStatusNotification(resultado.denuncia.cidadao_id);
+  } catch (error) {
+    console.error('[demand] Falha ao enviar notificação de status:', error);
   }
 
   return resultado;

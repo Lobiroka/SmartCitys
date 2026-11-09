@@ -20,6 +20,7 @@ import type { IconSymbolName } from
 const MAPPING = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
+  'briefcase.fill': 'work',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
 } as const satisfies Record<

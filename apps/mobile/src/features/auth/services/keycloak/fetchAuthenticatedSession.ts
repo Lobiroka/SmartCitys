@@ -8,6 +8,9 @@ import type { AuthSession } from
 import { mapUserInfoToAuthSession } from
         '@/src/features/auth/services/keycloak/mapUserInfoToAuthSession';
 
+import { hasManagerRole } from
+    '@/src/features/auth/services/keycloak/hasManagerRole';
+
 export async function fetchAuthenticatedSession(
     accessToken: string,
     discovery: DiscoveryDocument,
@@ -17,5 +20,10 @@ export async function fetchAuthenticatedSession(
         discovery,
     );
 
-    return mapUserInfoToAuthSession(userInfo);
+    const session = mapUserInfoToAuthSession(userInfo);
+    if (session.status === 'authenticated' && hasManagerRole(accessToken)) {
+        return { ...session, user: { ...session.user, isManager: true } };
+    }
+
+    return session;
 }

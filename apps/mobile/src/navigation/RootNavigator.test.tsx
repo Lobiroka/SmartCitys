@@ -11,17 +11,25 @@ import { useAuthSessionViewModel } from '@/src/features/auth/viewmodels/useAuthS
 // Simula somente o roteador; restauração e decisão de acesso usam código real.
 jest.mock('expo-router', () => {
     const React = jest.requireActual<typeof import('react')>('react');
-    const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+    const { Text, View } = jest.requireActual<typeof import('react-native')>('react-native');
     const { LoginScreen: Login } = jest.requireActual<{
         LoginScreen: typeof LoginScreen;
     }>('@/src/features/auth/screens/LoginScreen');
     function Stack({ children }: PropsWithChildren) { return children; }
-    Stack.Protected = ({ guard, children }: PropsWithChildren<{ guard: boolean }>) =>
-        guard ? children : null;
-    Stack.Screen = ({ name }: { name: string }) => name === '(auth)'
-        ? React.createElement(Login)
-        : React.createElement(Text, { testID: name }, name);
-    return { Stack };
+    Stack.Protected = function Protected({ guard, children }: PropsWithChildren<{ guard: boolean }>) {
+        return guard ? children : null;
+    };
+    Stack.Screen = function Screen({ name }: { name: string }) {
+        if (name === '(auth)') return React.createElement(Login);
+        if (name === '(tabs)') {
+            const { default: TabLayout } = jest.requireActual<typeof import('../../app/(tabs)/_layout')>(
+                '../../app/(tabs)/_layout',
+            );
+            return React.createElement(View, { testID: name }, React.createElement(TabLayout));
+        }
+        return React.createElement(Text, { testID: name }, name);
+    };
+    return { Stack, Tabs: Stack };
 });
 
 function Harness({ service }: { service: AuthSessionService }) {
@@ -73,6 +81,30 @@ describe('RootNavigator e restauração da sessão', () => {
             status: 'authenticated', user: { id: 'citizen-test' },
         }));
         await waitFor(() => expect(screen.getByTestId('(tabs)')).toBeTruthy());
+        expect(screen.queryByTestId('login-button')).toBeNull();
+        expect(screen.getByTestId('index')).toBeTruthy();
+        expect(screen.getByTestId('explore')).toBeTruthy();
+        expect(screen.queryByTestId('gestor')).toBeNull();
+    });
+
+    it('oferece a aba Gestão junto às abas comuns quando a sessão é de gestor', async () => {
+        let finishRestore!: (session: AuthSession) => void;
+        const pendingSession = new Promise<AuthSession>((resolve) => {
+            finishRestore = resolve;
+        });
+        const service: AuthSessionService = {
+            restoreSession: jest.fn(() => pendingSession),
+            signIn: jest.fn(),
+            signOut: jest.fn(),
+        };
+        const screen = render(<Harness service={service} />);
+        await act(async () => finishRestore({
+            status: 'authenticated', user: { id: 'manager-test', isManager: true },
+        }));
+
+        expect(screen.getByTestId('index')).toBeTruthy();
+        expect(screen.getByTestId('explore')).toBeTruthy();
+        expect(screen.getByTestId('gestor')).toBeTruthy();
         expect(screen.queryByTestId('login-button')).toBeNull();
     });
 });
