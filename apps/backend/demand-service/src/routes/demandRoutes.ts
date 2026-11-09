@@ -16,6 +16,7 @@ import {
   getDenunciaDetalhesGestor,
 } from '../controllers/gestorController';
 import { createDemand } from '../controllers/demandController';
+import { registerPushDevice, unregisterPushDevice } from '../controllers/pushDeviceController';
 
 const router = Router();
 
@@ -26,16 +27,20 @@ router.get('/gestor/:id', authMiddleware, roleMiddleware('gestor'), getDenunciaD
 router.patch('/gestor/:id/status', authMiddleware, roleMiddleware('gestor'), atualizarStatusDenuncia);
 router.patch('/gestor/:id/prioridade', authMiddleware, roleMiddleware('gestor'), atualizarPrioridadeDenuncia);
 
-// 2. ROTAS DO CIDADÃO (Estáticas e depois as dinâmicas)
-router.post('/', authMiddleware, roleMiddleware('cidadao'), createDenuncia);
-router.get('/my-demands', authMiddleware, roleMiddleware('cidadao'), listMinhasDenuncias);
-router.get('/feed', authMiddleware, roleMiddleware('cidadao'), listarFeedDenuncias);
+// As rotas de ocorrências próprias mantêm as mesmas regras para os dois papéis.
+const canUseCitizenFeatures = roleMiddleware('cidadao', 'gestor');
+router.put('/devices/push', authMiddleware, canUseCitizenFeatures, registerPushDevice);
+router.delete('/devices/push', authMiddleware, canUseCitizenFeatures, unregisterPushDevice);
+
+router.post('/', authMiddleware, canUseCitizenFeatures, createDenuncia);
+router.get('/my-demands', authMiddleware, canUseCitizenFeatures, listMinhasDenuncias);
+router.get('/feed', authMiddleware, canUseCitizenFeatures, listarFeedDenuncias);
 
 // 3. ROTA DINÂMICA COMPLETA (Sempre por ÚLTIMO no arquivo)
 // Se essa rota ficar em cima, ela tenta "comer" o /gestor/:id achando que "gestor" é o ID da denúncia.
-router.get('/:id', authMiddleware, roleMiddleware('cidadao'), getDenunciaDetalhes);
-router.patch('/:id', authMiddleware, roleMiddleware('cidadao'), updateDenuncia);
-router.delete('/:id', authMiddleware, roleMiddleware('cidadao'), deleteDenuncia);
+router.get('/:id', authMiddleware, canUseCitizenFeatures, getDenunciaDetalhes);
+router.patch('/:id', authMiddleware, canUseCitizenFeatures, updateDenuncia);
+router.delete('/:id', authMiddleware, canUseCitizenFeatures, deleteDenuncia);
 
 
 export default router;

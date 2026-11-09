@@ -9,6 +9,15 @@ generator client {
   previewFeatures = ["multiSchema"]
 }
 
+model PushDevice {
+  token       String @id
+  keycloakSub String @map("keycloak_sub")
+
+  @@index([keycloakSub])
+  @@map("push_devices")
+  @@schema("demand")
+}
+
 model Cidadao {
   id_cidadao   Int        @id @default(autoincrement())
   keycloak_sub String     @unique

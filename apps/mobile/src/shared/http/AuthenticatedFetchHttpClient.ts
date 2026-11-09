@@ -34,6 +34,7 @@ export class AuthenticatedFetchHttpClient
                 `${this.baseUrl}${path}`,
                 {
                     method: options.method ?? 'GET',
+                    signal: options.signal,
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         ...(hasBody

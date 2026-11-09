@@ -133,12 +133,12 @@ describe('TS02 [BDD] - Persistência de nova demanda urbana', () => {
 
   // ────────────────────────────────────────────────────────────────────────────
 
-  describe('Cenário: Gestor tenta criar demanda', () => {
+  describe('Cenário: Gestor autenticado cria uma demanda válida', () => {
 
     it(
       'Given um gestor autenticado, ' +
         'When envia POST /demandas, ' +
-        'Then retorna 403 com mensagem "Acesso restrito a cidadãos"',
+        'Then retorna 201 e a demanda fica aberta',
 
       async () => {
         const res = await request(app)
@@ -146,8 +146,8 @@ describe('TS02 [BDD] - Persistência de nova demanda urbana', () => {
           .set('Authorization', `Bearer ${tokenGestor}`)
           .send(demandaValida);
 
-        expect(res.status).toBe(403);
-        expect(res.body.error).toBe('Acesso negado para este perfil');
+        expect(res.status).toBe(201);
+        expect(res.body.status).toBe('ABERTA');
       }
     );
 

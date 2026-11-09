@@ -7,6 +7,7 @@ export type AuthSession =
     status:'authenticated';
     user:{
         id:string;
+        isManager?: boolean;
         name?: string;
         email?: string;
 
