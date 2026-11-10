@@ -19,7 +19,7 @@ $env:GOOGLE_MAPS_ANDROID_API_KEY = node --env-file=.env.local -p "process.env.GO
 
 Antes do APK, publique a API HTTPS e valide o fluxo do cidadão e do gestor. Na EC2, mantenha o gateway publicado apenas em `127.0.0.1:8080` e configure `TRUSTED_PROXY_ADDRESS` no container do gateway com o IP exato que ele vê para o Caddy. Na rede bridge padrão do Compose, confira o gateway da rede com `docker network inspect` e confirme o endereço observado antes de liberar as rotas. O proxy deve sobrescrever os cabeçalhos encaminhados vindos do cliente. Aplique a migration `20261109000000_add_push_devices` pelo Prisma e atualize o Demand Service. Habilite a segurança de push no painel Expo e injete `EXPO_PUSH_ACCESS_TOKEN` no container do Demand Service. Esse token fica apenas no servidor.
 
-No app, o cidadão pode ativar ou desativar notificações pelo menu do perfil. Depois de ativá-las em um celular, mude o status de uma ocorrência dele com a conta gestora. Confira a entrega com o app em primeiro e segundo plano. O logout remove a inscrição desse aparelho quando a API está acessível.
+O Android pede a permissão de notificações depois do aviso de localização. O cidadão pode mudar essa escolha nas configurações do celular. Depois de ativá-las, mude o status de uma ocorrência dele com a conta gestora. Confira a entrega com o app em primeiro e segundo plano. O logout remove a inscrição desse aparelho quando a API está acessível.
 
 ## APK e OTA
 
@@ -31,3 +31,11 @@ npx eas-cli@latest update --channel preview --environment preview --message "Atu
 ```
 
 O segundo comando é usado depois que o primeiro APK compatível estiver instalado. Valide a OTA com uma mudança visual pequena no canal `preview`. A configuração usa `appVersion` como política de runtime. Quando houver mudança de código ou configuração nativa, aumente `expo.version` e gere outro APK. Mantenha a mesma versão para atualizações JavaScript e de assets compatíveis com o APK existente.
+
+## Publicação automática pela main
+
+Cadastre no GitHub Actions o secret `EXPO_TOKEN`, gerado na conta do Expo com acesso ao projeto. O token de publicação é separado da credencial usada pelo Demand Service para enviar notificações.
+
+Depois de um push na `main`, o job **Publicar OTA Android preview** espera os testes unitários e compara o commit com a base validada do APK e da API. A execução manual da mesma workflow na `main` permite repetir uma publicação. O destino é apenas Android no canal `preview`.
+
+Se houver mudanças de backend, dependências ou configuração nativa desde a base, o job pausa a publicação. Conclua o deploy da API ou gere e valide o novo APK antes de definir a variável de Actions `EXPO_PREVIEW_BASE_SHA` para o commit que representa o ambiente validado. A base inicial é a publicação de Android validada na PR #9. A verificação de caminhos é conservadora e a revisão da PR deve confirmar a compatibilidade com o APK.

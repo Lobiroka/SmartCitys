@@ -64,3 +64,75 @@ jobs:
         env:
           MOBILE_OUTCOME: ${{ steps.unitarios.outcome }}
         run: test "$MOBILE_OUTCOME" = success
+
+  publicar-preview:
+    name: Publicar OTA Android preview
+    needs: unitarios
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: expo-android-preview
+      cancel-in-progress: false
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_NO_DOTENV: '1'
+    steps:
+      - name: Checkout do commit aprovado
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Conferir compatibilidade com o preview instalado
+        id: ota
+        env:
+          BASE_SHA: ${{ vars.EXPO_PREVIEW_BASE_SHA || '645b1df1a73736454708a833198e62b2ee71f233' }}
+        run: |
+          if [[ ! "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || ! git merge-base --is-ancestor "$BASE_SHA" "$GITHUB_SHA"; then
+            echo "::error::Informe o SHA completo de um commit validado da main como base do preview."
+            exit 1
+          fi
+
+          changed_files=$(git diff --name-only --no-renames "$BASE_SHA" "$GITHUB_SHA")
+          has_app_changes=false
+          while IFS= read -r path; do
+            case "$path" in
+              ''|README.md|.github/*|.maestro/*|apps/mobile/*.md) ;;
+              apps/mobile/app/*|apps/mobile/src/*|apps/mobile/assets/*|apps/mobile/components/*|apps/mobile/constants/*|apps/mobile/hooks/*|apps/mobile/global.css)
+                has_app_changes=true
+                ;;
+              *)
+                echo "::notice::OTA automático pausado por alteração fora do escopo: $path. Valide o deploy da API ou o APK antes de atualizar a base do preview."
+                exit 0
+                ;;
+            esac
+          done <<< "$changed_files"
+
+          echo "publish=$has_app_changes" >> "$GITHUB_OUTPUT"
+      - name: Configurar Node.js
+        if: steps.ota.outputs.publish == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências
+        if: steps.ota.outputs.publish == 'true'
+        run: npm ci
+      - name: Publicar atualização Android no Expo
+        if: steps.ota.outputs.publish == 'true'
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          # Valor temporário para resolver o app config antes de carregar as variáveis do EAS.
+          GOOGLE_MAPS_ANDROID_API_KEY: ota-config-placeholder
+        run: |
+          if [[ -z "$EXPO_TOKEN" ]]; then
+            echo "::notice::Cadastre o secret EXPO_TOKEN para habilitar a publicação automática."
+            exit 0
+          fi
+          main_sha=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [[ "$main_sha" != "$GITHUB_SHA" ]]; then
+            echo "::notice::A main avançou. Esta execução não publicará um commit antigo."
+            exit 0
+          fi
+          npx --yes eas-cli@27.7.1 update --channel preview --environment preview \
+            --platform android --message "SmartCitys preview ${GITHUB_SHA:0:7}" --non-interactive
