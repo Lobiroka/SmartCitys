@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useRef } from 'react';
 import { pushNotificationService } from '@/src/composition/appDependencies';
-import { Text, View, Button,Linking,Alert,Pressable } from 'react-native';
+import { Alert, AppState, Button, Linking, Pressable, Text, View } from 'react-native';
 import MapView, { Callout, Marker } from 'react-native-maps';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -23,27 +26,33 @@ export function MainMapScreen() {
         locationError,
         loadLocation,
         isPermissionBlocked,
+        isLocationPermissionResolved,
         isProfileMenuOpen,
         toggleProfileMenu
     } = useMainMapViewModel();
 
     const { session, signOut } = useAuthSession();
     const { occurrences, occurrenceError } = useOccurrenceFeedViewModel();
-    const [isChangingNotifications, setIsChangingNotifications] = useState(false);
+    const mapRef = useRef<MapView>(null);
+    const controlsTop = Math.max(48, useSafeAreaInsets().top + 12);
+    const isAuthenticated = session.status === 'authenticated';
 
-    async function changeNotifications(enable: boolean) {
-        setIsChangingNotifications(true);
-        try {
-            if (enable) await pushNotificationService.enable();
-            else await pushNotificationService.disable();
-            Alert.alert(enable ? 'Notificações ativadas' : 'Notificações desativadas');
-        } catch (error) {
-            Alert.alert('Não foi possível alterar as notificações',
-                error instanceof Error ? error.message : 'Tente novamente.');
-        } finally {
-            setIsChangingNotifications(false);
+    useFocusEffect(useCallback(() => {
+        if (!isAuthenticated || !isLocationPermissionResolved) return;
+
+        function syncNotifications() {
+            void pushNotificationService.syncPermission().catch(() => {
+                if (__DEV__) console.warn('Não foi possível sincronizar as notificações.');
+            });
         }
-    }
+
+        if (AppState.currentState === 'active') syncNotifications();
+
+        const subscription = AppState.addEventListener('change', (state) => {
+            if (state === 'active') syncNotifications();
+        });
+        return () => subscription.remove();
+    }, [isAuthenticated, isLocationPermissionResolved]));
 
     async function handleOpenSettings() {
         try {
@@ -59,9 +68,11 @@ export function MainMapScreen() {
     return (
         <View style={styles.container}>
             <MapView
+                ref={mapRef}
                 style={styles.map}
                 region={region}
                 showsUserLocation
+                showsMyLocationButton={false}
                 onPress={() => {
                     if (isProfileMenuOpen) {
                         toggleProfileMenu();
@@ -96,7 +107,7 @@ export function MainMapScreen() {
             </MapView>
 
             {session.status === 'authenticated' && (
-                <ThemedView style={styles.sessionBox}>
+                <ThemedView style={[styles.sessionBox, { top: controlsTop }]}>
                     <Pressable style={styles.avatarButton}
                         onPress={ toggleProfileMenu }
                         accessibilityRole="button"
@@ -115,38 +126,39 @@ export function MainMapScreen() {
                 </Pressable>
 
                     {isProfileMenuOpen && (
-                        <>
-                        <Pressable
-                            style={styles.profileMenuItem}
-                            accessibilityRole="button"
-                            disabled={isChangingNotifications}
-                            onPress={() => void changeNotifications(true)}
-                        >
-                            <ThemedText>Ativar notificações</ThemedText>
-                        </Pressable>
-                        <Pressable
-                            style={styles.profileMenuItem}
-                            accessibilityRole="button"
-                            disabled={isChangingNotifications}
-                            onPress={() => void changeNotifications(false)}
-                        >
-                            <ThemedText>Desativar notificações</ThemedText>
-                        </Pressable>
                         <Pressable
                             style={({ pressed }) => [
                                 styles.profileMenuItem,
                                 { opacity: pressed ? 0.6 : 1 },
                             ]}
                             accessibilityRole="button"
-                            disabled={isChangingNotifications}
                             onPress={signOut}
                         >
                             <ThemedText>Sair</ThemedText>
                         </Pressable>
-                        </>
                     )}
                 </ThemedView>
             )}
+
+            <Pressable
+                style={({ pressed }) => [
+                    styles.recenterButton,
+                    { top: controlsTop, opacity: isLoading || pressed ? 0.6 : 1 },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Centralizar na minha localização"
+                accessibilityState={{ disabled: isLoading }}
+                disabled={isLoading}
+                onPress={() => {
+                    if (locationError) {
+                        void (isPermissionBlocked ? handleOpenSettings() : loadLocation());
+                        return;
+                    }
+                    mapRef.current?.animateToRegion(region);
+                }}
+            >
+                <MaterialIcons name="my-location" size={24} color="#2563eb" />
+            </Pressable>
 
             {isLoading && (
                 <View style={styles.messageBox}>

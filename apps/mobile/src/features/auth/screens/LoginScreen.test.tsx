@@ -24,6 +24,20 @@ describe('LoginScreen', () => {
         expect(signIn).toHaveBeenCalledTimes(1);
     });
 
+    it('abre o cadastro no provedor de autenticação', async () => {
+        const signIn = jest.fn();
+        useAuthSessionMock.mockReturnValue({
+            session: { status: 'anonymous' },
+            signIn,
+            signOut: jest.fn(),
+        });
+        const screen = await render(<LoginScreen />);
+
+        fireEvent.press(screen.getByRole('button', { name: 'Criar conta' }));
+
+        expect(signIn).toHaveBeenCalledWith('register');
+    });
+
     it('mostra a mensagem de erro recebida da camada de sessão', async () => {
         useAuthSessionMock.mockReturnValue({
             session: { status: 'error', message: 'Falha ao autenticar.' },

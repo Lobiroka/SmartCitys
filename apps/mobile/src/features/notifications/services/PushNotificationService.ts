@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 import type { HttpClient } from '@/src/shared/http/HttpClient';
 
 const tokenKey = 'smartcitys.push-token';
+const permissionPromptKey = 'smartcitys.push-permission-requested';
 const channelId = 'occurrence-status';
 const devicePath = '/demands/devices/push';
 
@@ -23,15 +24,29 @@ export async function configureForegroundNotifications() {
 }
 
 export class PushNotificationService {
-    constructor(private readonly httpClient: HttpClient) {}
+    private permissionSync: Promise<void> | null = null;
+    private isDisabling = false;
 
-    async enable(): Promise<void> {
+    constructor(
+        private readonly httpClient: HttpClient,
+        private readonly loadNotifications: () => Promise<typeof import('expo-notifications')> =
+            () => import('expo-notifications'),
+    ) {}
+
+    syncPermission(): Promise<void> {
+        if (this.isDisabling) return Promise.resolve();
+
+        this.permissionSync ??= this.syncDevice().finally(() => {
+            this.permissionSync = null;
+        });
+        return this.permissionSync;
+    }
+
+    private async syncDevice(): Promise<void> {
         const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-        if (typeof projectId !== 'string' || !projectId) {
-            throw new Error('Este build ainda não está conectado ao projeto de notificações.');
-        }
+        if (typeof projectId !== 'string' || !projectId) return;
 
-        const notifications = await import('expo-notifications');
+        const notifications = await this.loadNotifications();
         if (Platform.OS === 'android') {
             await notifications.setNotificationChannelAsync(channelId, {
                 name: 'Atualizações de ocorrências',
@@ -39,10 +54,22 @@ export class PushNotificationService {
             });
         }
 
-        const current = await notifications.getPermissionsAsync();
-        const permission = current.granted ? current : await notifications.requestPermissionsAsync();
+        let permission = await notifications.getPermissionsAsync();
+        if (
+            !permission.granted &&
+            permission.canAskAgain &&
+            !(await SecureStore.getItemAsync(permissionPromptKey)) &&
+            !this.isDisabling
+        ) {
+            // No Android, a primeira consulta já pode retornar "denied".
+            permission = await notifications.requestPermissionsAsync();
+            await SecureStore.setItemAsync(permissionPromptKey, 'true');
+        }
+
+        if (this.isDisabling) return;
         if (!permission.granted) {
-            throw new Error('Permita notificações nas configurações do celular para continuar.');
+            await this.unregisterDevice();
+            return;
         }
 
         const { data: token } = await notifications.getExpoPushTokenAsync({ projectId });
@@ -56,6 +83,16 @@ export class PushNotificationService {
     }
 
     async disable(): Promise<void> {
+        this.isDisabling = true;
+        try {
+            await this.permissionSync?.catch(() => undefined);
+            await this.unregisterDevice();
+        } finally {
+            this.isDisabling = false;
+        }
+    }
+
+    private async unregisterDevice(): Promise<void> {
         const token = await SecureStore.getItemAsync(tokenKey);
         if (token) {
             await this.request('DELETE', token);

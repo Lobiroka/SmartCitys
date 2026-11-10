@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import type { AuthSession } from
         '@/src/features/auth/models/AuthSession';
-import type { AuthSessionService } from
+import type { AuthIntent, AuthSessionService } from
         '@/src/features/auth/services/AuthSessionService';
 import type { AuthSessionViewModel } from
         '@/src/features/auth/viewmodels/AuthSessionViewModel';
@@ -38,18 +38,20 @@ export function useAuthSessionViewModel(
         };
     }, [service]);
 
-    async function signIn() {
+    async function signIn(intent: AuthIntent = 'login') {
         setSession({ status: 'loading' });
 
         try {
             const authenticatedSession =
-                await service.signIn();
+                await service.signIn(intent);
 
             setSession(authenticatedSession);
         } catch {
             setSession({
                 status: 'error',
-                message: 'Não foi possível realizar o login.',
+                message: intent === 'register'
+                    ? 'Não foi possível concluir o cadastro.'
+                    : 'Não foi possível realizar o login.',
             });
         }
     }
