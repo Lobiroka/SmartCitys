@@ -30,6 +30,7 @@ export async function watchCoordinates(
         {
             accuracy: Location.Accuracy.High,
             distanceInterval: 10,
+            mayShowUserSettingsDialog: false,
         },
         (location) => {
             onUpdate({
