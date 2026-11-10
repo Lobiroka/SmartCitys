@@ -6,6 +6,7 @@ import {
     type DiscoveryDocument,
 } from 'expo-auth-session';
 
+import type { AuthIntent } from '@/src/features/auth/services/AuthSessionService';
 import type { AuthTokens } from
         '@/src/features/auth/models/AuthTokens';
 import { mapTokenResponseToAuthTokens } from
@@ -15,6 +16,7 @@ export async function requestKeycloakTokens(
     clientId: string,
     redirectScheme: string,
     discovery: DiscoveryDocument,
+    intent: AuthIntent = 'login',
 ): Promise<AuthTokens | null> {
     const redirectUri = makeRedirectUri({
         scheme: redirectScheme,
@@ -27,6 +29,7 @@ export async function requestKeycloakTokens(
         responseType: ResponseType.Code,
         scopes: ['openid', 'profile', 'email'],
         usePKCE: true,
+        ...(intent === 'register' ? { extraParams: { prompt: 'create' } } : {}),
     });
 
     const result = await request.promptAsync(discovery);

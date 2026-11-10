@@ -19,6 +19,7 @@ export function useMainMapViewModel(){
     const [isLoading, setIsLoading] = useState(true);
     const[locationError, setLocationError] = useState<string|null>(null);
     const [isPermissionBlocked, setIsPermissionBlocked] = useState(false);
+    const [isLocationPermissionResolved, setIsLocationPermissionResolved] = useState(false);
     const locationSubscriptionRef = useRef<{
         remove: () => void; } | null>(null);
     const locationRequestIdRef = useRef(0);
@@ -68,6 +69,7 @@ export function useMainMapViewModel(){
                         "Não foi possível acompanhar sua localização."
                     );
                     setIsLoading(false);
+                    setIsLocationPermissionResolved(true);
                     stopLocationTracking();
                 }
             );
@@ -78,6 +80,7 @@ export function useMainMapViewModel(){
             }
 
             locationSubscriptionRef.current = subscription;
+            setIsLocationPermissionResolved(true);
         } catch (error) {
             if (requestId !== locationRequestIdRef.current) {
                 return;
@@ -104,6 +107,7 @@ export function useMainMapViewModel(){
             }
 
             setIsLoading(false);
+            setIsLocationPermissionResolved(true);
             stopLocationTracking();
         }
     }, [stopLocationTracking]);
@@ -146,6 +150,7 @@ export function useMainMapViewModel(){
         isLoading,
         locationError,
         isPermissionBlocked,
+        isLocationPermissionResolved,
         loadLocation,
         isProfileMenuOpen,
         toggleProfileMenu,

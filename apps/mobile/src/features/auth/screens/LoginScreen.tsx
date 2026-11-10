@@ -33,7 +33,7 @@ export function LoginScreen() {
                 accessibilityState={{ disabled: isLoading, busy: isLoading }}
                 testID="login-button"
                 accessibilityRole="button"
-                onPress={signIn}
+                onPress={() => void signIn()}
             >
                 {isLoading ? (
                     <ActivityIndicator color="#fff" />
@@ -42,6 +42,18 @@ export function LoginScreen() {
                         Entrar
                     </ThemedText>
                 )}
+            </Pressable>
+
+            <Pressable
+                style={({ pressed }) => [styles.registerButton, { opacity: pressed ? 0.7 : 1 }]}
+                disabled={isLoading}
+                accessibilityState={{ disabled: isLoading }}
+                accessibilityRole="button"
+                onPress={() => void signIn('register')}
+            >
+                <ThemedText type="defaultSemiBold" lightColor="#1d4ed8" darkColor="#93c5fd">
+                    Criar conta
+                </ThemedText>
             </Pressable>
 
             {session.status === 'error' && (
@@ -72,6 +84,11 @@ const styles = StyleSheet.create({
     },
     error: {
         color: '#b00020',
+    },
+    registerButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     button: {
         paddingVertical: 14,

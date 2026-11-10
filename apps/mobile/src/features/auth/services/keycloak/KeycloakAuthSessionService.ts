@@ -9,7 +9,7 @@ import { keycloakConfig } from
         '@/src/features/auth/config/keycloakConfig';
 import type { AuthSession } from
         '@/src/features/auth/models/AuthSession';
-import type { AuthSessionService } from
+import type { AuthIntent, AuthSessionService } from
         '@/src/features/auth/services/AuthSessionService';
 import { fetchAuthenticatedSession } from
         '@/src/features/auth/services/keycloak/fetchAuthenticatedSession';
@@ -80,13 +80,14 @@ export class KeycloakAuthSessionService
         );
     }
 
-    async signIn(): Promise<AuthSession> {
+    async signIn(intent: AuthIntent = 'login'): Promise<AuthSession> {
         const discovery = await this.getDiscovery();
 
         const tokens = await requestKeycloakTokens(
             keycloakConfig.clientId,
             keycloakConfig.redirectScheme,
             discovery,
+            intent,
         );
 
         if (!tokens) {
