@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { isIP } from 'node:net';
 import express from 'express';
+import helmet from 'helmet';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import rateLimit from 'express-rate-limit';
 
@@ -18,15 +19,7 @@ if (trustedProxyAddress) {
 const DEMAND_URL = process.env.DEMAND_SERVICE_URL ?? 'http://localhost:3002';
 const METRICS_URL = process.env.METRICS_SERVICE_URL ?? 'http://localhost:3003';
 
-// Configuração de CORS
-app.use((_req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
-  next();
-});
-
-app.options('*', (_req, res) => res.sendStatus(204));
+app.use(helmet());
 
 // Rate Limiter para segurança da API
 app.use(

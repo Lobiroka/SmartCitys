@@ -1,6 +1,16 @@
-"""Permite HTTP somente no localhost do APK gerado para o emulador CI."""
+"""Configura a rede e a JVM do APK gerado para o emulador da CI."""
 from pathlib import Path
 import xml.etree.ElementTree as ET
+
+gradle_properties = Path('android/gradle.properties')
+properties = gradle_properties.read_text(encoding='utf-8').splitlines()
+properties = [
+    line for line in properties if not line.strip().startswith('org.gradle.jvmargs=')
+]
+properties.append(
+    'org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8'
+)
+gradle_properties.write_text('\n'.join(properties) + '\n', encoding='utf-8')
 
 android = Path('android/app/src/main')
 namespace = 'http://schemas.android.com/apk/res/android'
