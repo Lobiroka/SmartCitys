@@ -6,6 +6,7 @@ name: MVP - autenticação e criação de ocorrência
     permissions:
       location: allow
       camera: allow
+      notifications: allow
 
 - runFlow:
     when:
@@ -56,7 +57,7 @@ name: MVP - autenticação e criação de ocorrência
     direction: DOWN
 - tapOn:
     id: "occurrence-save-button"
-- assertVisible: "Preencha título, descrição e endereço."
+- assertVisible: "Preencha título e descrição."
 
 - scrollUntilVisible:
     element:
