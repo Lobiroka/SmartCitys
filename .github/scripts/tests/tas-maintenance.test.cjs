@@ -32,7 +32,7 @@ test('demanda nova recebe classificação pendente, responsável e prazo explíc
   const f = fixture(); await maintainIssue(f);
   assert.deepEqual(f.calls.find(c => c.method === 'addLabels').labels,
     ['tas:manutencao', 'tas:triagem', 'tas:p2']);
-  assert.deepEqual(f.calls.find(c => c.method === 'addAssignees').assignees, ['example']);
+  assert.deepEqual(f.calls.find(c => c.method === 'addAssignees').assignees, ['DarkArtsBM']);
   assert.match(f.calls.find(c => c.method === 'createComment').body, /2026-11-20T12:00:00.000Z/);
 });
 

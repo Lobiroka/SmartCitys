@@ -32,11 +32,11 @@ module.exports = async function register({ github, context, core }) {
   });
   const existing = issues.find(issue => !issue.pull_request && issue.body?.includes(marker));
   if (!existing) {
-    const { ensureLabels, maintainIssue } = require('./tas-maintenance.cjs');
+    const { MAINTAINER, ensureLabels, maintainIssue } = require('./tas-maintenance.cjs');
     await ensureLabels(github, context.repo);
     const created = await github.rest.issues.create({ ...context.repo,
       title: `[Qualidade] Falha em ${run.name}`, body,
-      labels: ['tas:manutencao', 'tas:triagem', 'tas:p2'], assignees: [context.repo.owner] });
+      labels: ['tas:manutencao', 'tas:triagem', 'tas:p2'], assignees: [MAINTAINER] });
     await maintainIssue({ github, context, issue: created.data });
     core.info(`Issue criada: ${created.data.html_url}`);
     return;

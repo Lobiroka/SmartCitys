@@ -33,7 +33,7 @@ test('cria issue com rastreabilidade e artefatos', async () => {
   assert.match(f.calls[0][1].body, /Executar testes/);
   assert.match(f.calls[0][1].body, /qualidade-unitarios-42-1/);
   assert.deepEqual(f.calls[0][1].labels, ['tas:manutencao', 'tas:triagem', 'tas:p2']);
-  assert.deepEqual(f.calls[0][1].assignees, ['example']);
+  assert.deepEqual(f.calls[0][1].assignees, ['DarkArtsBM']);
   assert.match(f.calls[1][1].body, /tas-prazos:tas:p2/);
 });
 test('nova falha atualiza issue existente', async () => {

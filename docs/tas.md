@@ -1,6 +1,6 @@
 # Política de manutenção da TAS — SmartCitys
 
-Versão 1.0 · 18/11/2026 · Responsável inicial: Robson (GitHub `Lobiroka`).
+Versão 1.0 · 18/11/2026 · Responsável inicial: Robson (GitHub `DarkArtsBM`; organização `Lobiroka`).
 
 ## Objetivo e contexto
 
@@ -39,7 +39,7 @@ Mais de uma causa pode ser registrada quando comprovada. Nunca ajustar a asserç
 | P2 — normal | Problema localizado, instabilidade sem perda total de cobertura ou melhoria necessária da TAS | 5 dias úteis |
 | P3 — baixa | Refatoração ou documentação sem efeito imediato na confiança do resultado | 10 dias úteis |
 
-Triagem: até um dia útil da abertura, com atuação imediata em P0. Os prazos contam da criação da issue, em UTC, mantendo a hora; dias úteis são segunda a sexta, sem calendário de feriados. A equipe pode antecipar qualquer prazo. Atribuição inicial: dono do repositório (`Lobiroka` neste projeto); ele encaminha ao implementador da causa e registra um revisor. Alterações de responsável não reiniciam o prazo.
+Triagem: até um dia útil da abertura, com atuação imediata em P0. Os prazos contam da criação da issue, em UTC, mantendo a hora; dias úteis são segunda a sexta, sem calendário de feriados. A equipe pode antecipar qualquer prazo. Atribuição inicial: Robson (`DarkArtsBM`), que encaminha ao implementador da causa e registra um revisor. `Lobiroka` é uma organização e não deve ser usada como assignee. Alterações de responsável não reiniciam o prazo. Para trocar o mantenedor inicial, atualizar a constante `MAINTAINER` em `tas-maintenance.cjs` por PR e este documento.
 
 A automação começa com `tas:p2`, que é provisória. Na triagem, ajustar para exatamente uma label de prioridade. Se houver conflito, o cálculo usa a mais urgente e a revisão deve remover o conflito. Alterar a prioridade recalcula o prazo a partir da abertura; justificar no histórico, sem apagar o atraso anterior. Prazos são metas operacionais e não garantias de disponibilidade.
 

@@ -1,4 +1,5 @@
 // Trabalha apenas com metadados de issues; nunca executa conteúdo informado nelas.
+const MAINTAINER = 'DarkArtsBM'; // Pessoa responsável; Lobiroka é a organização do projeto.
 const LABELS = {
   'tas:manutencao': ['5319e7', 'Demanda de manutenção da automação de testes'],
   'tas:triagem': ['ededed', 'Causa ainda em investigação'],
@@ -56,7 +57,7 @@ async function maintainIssue({ github, context, issue, now = new Date() }) {
   if (missing.length) await github.rest.issues.addLabels({ ...context.repo, issue_number: issue.number, labels: missing });
   if (!issue.assignees?.length) {
     await github.rest.issues.addAssignees({ ...context.repo, issue_number: issue.number,
-      assignees: [context.repo.owner] });
+      assignees: [MAINTAINER] });
   }
   const due = deadlines(issue);
   const comments = await github.paginate(github.rest.issues.listComments, {
@@ -67,7 +68,7 @@ async function maintainIssue({ github, context, issue, now = new Date() }) {
     await github.rest.issues.createComment({ ...context.repo, issue_number: issue.number,
       body: `${marker}\nPolítica: [docs/tas.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/tas.md).\n` +
         `Prioridade: **${due.priority}**. Triagem até **${due.triage.toISOString()}**; correção até **${due.correction.toISOString()}**.\n` +
-        'Prazos contados da abertura, em UTC; dias úteis excluem sábado e domingo. O responsável inicial é o mantenedor do repositório, que deve encaminhar ao dono da causa.\n' +
+        'Prazos contados da abertura, em UTC; dias úteis excluem sábado e domingo. O responsável inicial é DarkArtsBM, que deve encaminhar ao dono da causa.\n' +
         '- [ ] Registrar classificação, diagnóstico e responsável\n- [ ] Vincular requisito/jornada, PR e evidências da correção\n- [ ] Revisar risco residual antes de encerrar' });
   }
   const triagePending = !names.some(name => /^tas:(sut|automacao|ambiente|variacao-esperada)$/.test(name));
@@ -101,7 +102,7 @@ async function run({ github, context, now = new Date() }) {
   if (!reviews.some(issue => issue.body?.includes(marker))) {
     await github.rest.issues.create({ ...context.repo,
       title: `[TAS] Revisão semanal — ${monday.toISOString().slice(0, 10)}`,
-      labels: ['tas:revisao'], assignees: [context.repo.owner],
+      labels: ['tas:revisao'], assignees: [MAINTAINER],
       body: `${marker}\nAplicar [a política da TAS](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/tas.md). Concluir até sexta-feira desta semana.\n\n` +
         '- [ ] Revisar falhas, reexecuções, instáveis e quarentenas; abrir demandas com evidências\n' +
         '- [ ] Comparar duração das últimas 10 execuções equivalentes (atenção: aumento acima de 20%)\n' +
@@ -113,4 +114,4 @@ async function run({ github, context, now = new Date() }) {
   }
 }
 
-module.exports = { businessDays, deadlines, ensureLabels, maintainIssue, run };
+module.exports = { MAINTAINER, businessDays, deadlines, ensureLabels, maintainIssue, run };
