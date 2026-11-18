@@ -1,0 +1,36 @@
+name: Manutenção da automação de testes
+description: Investigar uma falha, instabilidade ou necessidade de evolução da TAS.
+title: '[TAS] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Consulte docs/tas.md. A automação atribuirá triagem, prioridade P2 e responsável inicial, com prazos em comentário. O triador deve ajustar a prioridade e a classificação conforme o impacto. Não inclua senhas, tokens ou dados pessoais.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Identificação e evidências
+      description: Workflow, commit, tentativa, links dos logs/relatórios e resultado observado versus esperado.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Jornada ou requisito afetado e impacto
+      description: Identifique os testes e explique se a falha bloqueia validação ou distribuição do MVP.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnosis
+    attributes:
+      label: Hipótese e reprodução
+      description: SUT, TAS, ambiente ou variação esperada? Registre evidências e tentativas, inclusive as que passaram.
+    validations:
+      required: true
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Encaminhamento e critério de encerramento
+      description: Responsável proposto, prioridade sugerida, correção esperada e validação necessária. Para quarentena ou remoção, incluir justificativa, risco, prazo e aprovador.
+    validations:
+      required: true
