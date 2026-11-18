@@ -2,6 +2,14 @@
 
 O perfil `preview` do EAS Build gera um APK assinado para distribuição interna. O mesmo APK recebe atualizações compatíveis do canal `preview`.
 
+## Preview 1.0.1
+
+A versão 1.0.1 incorpora no próprio APK as correções já presentes na `main`: menu do perfil somente com Sair, controles do mapa alinhados e afastados da barra do sistema, e sincronização das permissões de notificações pelas configurações do Android. Uma instalação nova não precisa buscar uma OTA anterior para receber essas correções.
+
+O runtime acompanha a versão do app (`appVersion`), portanto passa a ser 1.0.1. OTAs do runtime 1.0.0 não são aplicadas a este APK. O EAS gerencia o `versionCode` remotamente e o incrementa a cada build preview; a assinatura e o identificador Android são mantidos para permitir atualizar uma instalação existente.
+
+Para distribuir, compartilhar o link do build 1.0.1 concluído no Expo. O link de um build 1.0.0 continua servindo o APK antigo e não é atualizado por uma OTA. Validar a primeira abertura com instalação limpa e também a atualização sobre o preview anterior antes de considerar a distribuição homologada.
+
 ## Projeto Expo e Firebase
 
 1. Na pasta `apps/mobile`, carregue a chave do Maps do ambiente local e use `npx eas-cli@latest login` e `npx eas-cli@latest project:init`. Se a CLI pedir para informar o ID manualmente por causa do app config dinâmico, salve-o em `EXPO_PUBLIC_EAS_PROJECT_ID` ou em `expo.extra.eas.projectId`.
