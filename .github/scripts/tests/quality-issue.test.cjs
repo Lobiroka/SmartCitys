@@ -16,19 +16,25 @@ function fixture() {
   const github = { rest: {
     actions: { listJobsForWorkflowRunAttempt: methods.jobs, listWorkflowRunArtifacts: methods.artifacts },
     issues: { listForRepo: methods.issues, listComments: methods.comments,
-      create: async value => { calls.push(['create', value]); return {data: {html_url: 'issue-url'}}; },
+      listLabelsForRepo: { key: 'labels' },
+      createLabel: async () => {},
+      create: async value => { calls.push(['create', value]); return {data: { ...value, number: 9, state: 'open',
+        created_at: new Date().toISOString(), assignees: [{login: 'example'}], html_url: 'issue-url'}}; },
       createComment: async value => { calls.push(['comment', value]); } }
-  }, paginate: async (method) => data[method.key] };
+  }, paginate: async (method) => data[method.key] || [] };
   return { github, context, core: {info() {}}, data, calls };
 }
 
 test('cria issue com rastreabilidade e artefatos', async () => {
   const f = fixture(); await register(f);
-  assert.equal(f.calls.length, 1);
+  assert.equal(f.calls.length, 2);
   assert.equal(f.calls[0][0], 'create');
   assert.match(f.calls[0][1].body, /execution:42:1/);
   assert.match(f.calls[0][1].body, /Executar testes/);
   assert.match(f.calls[0][1].body, /qualidade-unitarios-42-1/);
+  assert.deepEqual(f.calls[0][1].labels, ['tas:manutencao', 'tas:triagem', 'tas:p2']);
+  assert.deepEqual(f.calls[0][1].assignees, ['example']);
+  assert.match(f.calls[1][1].body, /tas-prazos:tas:p2/);
 });
 test('nova falha atualiza issue existente', async () => {
   const f = fixture(); f.data.issues = [{number: 8, body: '<!-- smartcitys-quality:3:default-branch -->'}];

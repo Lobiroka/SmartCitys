@@ -1,5 +1,7 @@
 # Pipeline de qualidade: operação e evidências
 
+A política de manutenção, os prazos, responsáveis e procedimentos de instabilidade, revisão e remoção estão em [docs/tas.md](../../docs/tas.md). Ela complementa esta documentação operacional.
+
 ## Fluxo implementado
 
 `Jest/Vitest/Maestro → JSON/XML + logs → normalização → métricas JSON → HTML técnico e negócio → artefatos → notificação de falha`.

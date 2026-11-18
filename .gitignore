@@ -53,7 +53,9 @@ AGENTS.md
 # generated native folders
 /ios
 /android
-/docs
+/docs/*
+!/docs/tas.md
+!/docs/tas-evidencias.md
 
 # generated native folders for mobile workspace
 /apps/mobile/android

@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: '22'
       - name: Validar registro de issues
-        run: node --test .github/scripts/tests/quality-issue.test.cjs
+        run: node --test .github/scripts/tests/*.test.cjs
       - name: Instalar dependências
         run: npm ci
       - name: Executar todos os testes unitários e de componentes
