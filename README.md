@@ -7,6 +7,14 @@ Aplicativo mobile para registro e acompanhamento de ocorrências urbanas. O proj
 Quadro de acompanhamento: [Projeto 5 SmartCity no Trello](https://trello.com/b/KaOhR9dk/projeto-5-smartcity).
 Esta revisão reflete o código local e as evidências já registradas; não representa uma nova execução dos testes nem uma auditoria da infraestrutura.
 
+## Engenharia de dados no monorepo
+
+A pipeline em [`apps/etl`](apps/etl/README.md) reúne dados públicos do IBGE e da
+Prefeitura com dados do SmartCity. Ela usa MongoDB, Spark, Neon e Prefect.
+O [guia para atualizar a VPS](apps/backend/DADOS.md) explica onde adicionar as
+conexões, como atualizar o backend em execução e como disparar a primeira
+carga de alagamentos.
+
 ## Backend no monorepo
 
 O aplicativo permanece em `apps/mobile`; os serviços Express estão em

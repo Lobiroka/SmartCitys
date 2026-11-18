@@ -1,0 +1,48 @@
+x-etl-service: &etl-service
+  build:
+    context: ../etl
+    dockerfile: Dockerfile
+    target: etl
+  restart: unless-stopped
+  init: true
+  env_file:
+    - ../etl/.env
+  environment:
+    PREFECT_API_URL: http://prefect-server:4200/api
+  depends_on:
+    prefect-server:
+      condition: service_healthy
+
+services:
+  prefect-server:
+    build:
+      context: ../etl
+      dockerfile: Dockerfile
+      target: prefect-server
+    restart: unless-stopped
+    init: true
+    command: ["prefect", "server", "start", "--host", "0.0.0.0"]
+    environment:
+      PREFECT_HOME: /var/lib/prefect
+    volumes:
+      - prefect-data:/var/lib/prefect
+    ports:
+      - "127.0.0.1:4200:4200"
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:4200/api/health', timeout=3).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  etl-alagamentos:
+    <<: *etl-service
+    command: ["python", "run_etl.py", "--dataset", "alagamentos", "--engine", "spark", "--serve"]
+
+  etl-integrado:
+    <<: *etl-service
+    profiles: [dados-ibge]
+    command: ["python", "run_etl.py", "--dataset", "integrado", "--engine", "spark", "--serve"]
+
+volumes:
+  prefect-data:

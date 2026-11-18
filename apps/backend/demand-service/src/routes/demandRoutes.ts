@@ -18,6 +18,8 @@ import {
 import { createDemand } from '../controllers/demandController';
 import { registerPushDevice, unregisterPushDevice } from '../controllers/pushDeviceController';
 
+import { getFloodPoints } from '../controllers/floodPointController';
+
 const router = Router();
 
 // 1. ROTAS DO GESTOR (Sempre primeiro, porque são mais específicas)
@@ -35,6 +37,7 @@ router.delete('/devices/push', authMiddleware, canUseCitizenFeatures, unregister
 router.post('/', authMiddleware, canUseCitizenFeatures, createDenuncia);
 router.get('/my-demands', authMiddleware, canUseCitizenFeatures, listMinhasDenuncias);
 router.get('/feed', authMiddleware, canUseCitizenFeatures, listarFeedDenuncias);
+router.get('/analytics/flood-points', authMiddleware, canUseCitizenFeatures, getFloodPoints);
 
 // 3. ROTA DINÂMICA COMPLETA (Sempre por ÚLTIMO no arquivo)
 // Se essa rota ficar em cima, ela tenta "comer" o /gestor/:id achando que "gestor" é o ID da denúncia.

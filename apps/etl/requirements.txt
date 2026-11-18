@@ -1,0 +1,5 @@
+-r requirements-prefect.txt
+-r requirements-pipeline.txt
+streamlit
+fastmcp>=2.0,<3
+openai>=1.0,<3

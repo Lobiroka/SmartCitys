@@ -1,5 +1,7 @@
 # RESOLVE — Backend
 
+Para agendar a camada de alagamentos junto ao backend, veja [ETL de alagamentos com Docker Compose](DADOS.md).
+
 API REST construída com **Express**, **PostgreSQL**, **Redis** e arquitetura de **microsserviços**.
 
 ---

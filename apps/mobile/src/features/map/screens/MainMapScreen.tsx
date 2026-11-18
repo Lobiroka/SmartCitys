@@ -1,15 +1,17 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { pushNotificationService } from '@/src/composition/appDependencies';
-import { Alert, AppState, Button, Linking, Pressable, Text, View } from 'react-native';
-import MapView, { Callout, Marker } from 'react-native-maps';
+import { Alert, AppState, Button, Linking, Platform, Pressable, Text, View } from 'react-native';
+import MapView, { Callout, Heatmap, Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuthSession } from
     '@/src/features/auth/hooks/useAuthSession';
+import { FloodLayerControls } from '../components/FloodLayerControls';
+import { useFloodLayer } from '../viewmodels/useFloodLayer';
 import { useMainMapViewModel } from '../viewmodels/useMainMapViewModel';
 import {styles} from "@/src/features/map/styles/MainMapScreen.styles";
 import { useOccurrenceFeedViewModel } from
@@ -36,6 +38,10 @@ export function MainMapScreen() {
     const mapRef = useRef<MapView>(null);
     const controlsTop = Math.max(48, useSafeAreaInsets().top + 12);
     const isAuthenticated = session.status === 'authenticated';
+    const canShowFloodLayer = Platform.OS === 'android' && isAuthenticated;
+    const [floodLayerEnabled, setFloodLayerEnabled] = useState(false);
+    const showFloodLayer = canShowFloodLayer && floodLayerEnabled;
+    const floodLayer = useFloodLayer(showFloodLayer);
 
     useFocusEffect(useCallback(() => {
         if (!isAuthenticated || !isLocationPermissionResolved) return;
@@ -79,6 +85,9 @@ export function MainMapScreen() {
                     }
                 }}
             >
+                {showFloodLayer && floodLayer.points.length > 0 && (
+                    <Heatmap points={floodLayer.points} radius={35} opacity={0.65} />
+                )}
                 {occurrences.map((occurrence) => {
                     if (occurrence.latitude === null || occurrence.longitude === null) {
                         return null;
@@ -181,6 +190,14 @@ export function MainMapScreen() {
                             disabled={isLoading}
                     />
                 </View>
+            )}
+
+            {canShowFloodLayer && (
+                <FloodLayerControls
+                    enabled={showFloodLayer}
+                    toggle={() => setFloodLayerEnabled((current) => !current)}
+                    layer={floodLayer}
+                />
             )}
 
             {occurrenceError && !locationError && (
