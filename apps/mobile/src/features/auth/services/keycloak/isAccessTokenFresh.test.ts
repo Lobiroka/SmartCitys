@@ -1,6 +1,15 @@
 import { isAccessTokenFresh } from './isAccessTokenFresh';
 
 describe('isAccessTokenFresh', () => {
+    beforeEach(() => {
+        jest.spyOn(Date, 'now').mockReturnValue(
+            Date.UTC(2026, 0, 1, 12, 0, 0),
+        );
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
     it('considera recente um token que vence daqui a 1 hora', () => {
         const agora = Math.floor(Date.now() / 1000);
 
@@ -13,7 +22,7 @@ describe('isAccessTokenFresh', () => {
         expect(resultado).toBe(true);
     });
 
-    it('considera expirado um token que vence daqui a 1 minuto', () => {
+    it('considera necessária a renovação quando faltam exatamente 60 segundos', () => {
         const agora = Math.floor(Date.now() / 1000);
 
         const resultado = isAccessTokenFresh({
