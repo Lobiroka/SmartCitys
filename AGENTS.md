@@ -50,7 +50,7 @@ O isolamento dos secrets da CI ainda depende da ativação descrita na PR #24 e 
 
 Execute testes relevantes ao comportamento alterado e os checks exigidos pelo repositório. Não desative testes, autorização ou validações para obter aprovação. Registre comandos, resultados e limitações, incluindo falhas preexistentes; a declaração TypeScript de `global.css` é uma limitação já documentada.
 
-Trabalhe em branch própria; agentes Codex usam o prefixo `codex/` salvo instrução explícita diferente. Faça commits, pushes e PRs somente quando autorizados pela tarefa ou pelo fluxo já combinado com o integrante.
+Trabalhe em branch própria. Os nomes das branches e a organização dos commits seguem o fluxo escolhido pelo integrante e sua ferramenta, sem prefixo obrigatório por agente. Faça commits, pushes e PRs somente quando autorizados pela tarefa ou pelo fluxo já combinado com o integrante.
 
 As contribuições dos colegas exigem revisão do responsável (`@DarkArtsBM`, conforme CODEOWNERS) e checks. Não contorne os rulesets, use credenciais do responsável ou integre PRs de colegas por conta própria.
 
