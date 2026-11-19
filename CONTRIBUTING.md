@@ -42,7 +42,7 @@ git fetch origin
 git switch -c feature/nome-da-tarefa origin/main
 ```
 
-Use `fix/nome-do-problema` para correções e `codex/nome-da-tarefa` para trabalho de agentes Codex, salvo convenção explicitamente combinada na tarefa. Cada tarefa deve ter um objetivo claro e uma PR focada.
+Os nomes nos comandos são exemplos. Os nomes das branches e a organização dos commits ficam a critério do integrante e da ferramenta utilizada, sem prefixo obrigatório por agente. Cada tarefa deve ter um objetivo claro e uma PR focada.
 
 Se houver alterações locais, identifique a quem pertencem antes de trocar de branch. Preserve alterações e stashes de outras pessoas. Não use `reset --hard`, `clean`, exclusão de branches ou remoção de worktrees para resolver um conflito sem autorização específica. Se a main estiver aberta em outro worktree, trabalhe a partir de `origin/main`; não force sua abertura no checkout errado.
 
