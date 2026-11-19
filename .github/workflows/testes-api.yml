@@ -18,6 +18,8 @@ permissions:
 jobs:
   regressao-completa:
     name: Regressão completa
+    # Configurar ci-main e mover os secrets antes de integrar esta alteração.
+    environment: ci-main
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
