@@ -54,7 +54,8 @@ services:
       PORT: 3002
       DATABASE_URL: postgresql://smartcitys:${TEAM_DB_PASSWORD}@postgres:5432/smartcitys_dev?schema=demand
       REDIS_URL: redis://redis:6379
-      # EXPO_PUSH_ACCESS_TOKEN não é fornecido: push real é validado na integração.
+      # Vazio explicitamente: nem um .env pessoal montado deve habilitar push real.
+      EXPO_PUSH_ACCESS_TOKEN: ''
     volumes:
       - ./demand-service:/app
       - /app/node_modules
