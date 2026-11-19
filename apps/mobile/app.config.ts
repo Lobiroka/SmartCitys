@@ -6,24 +6,30 @@ import type {
 export default function defineExpoConfig({
     config,
 }: ConfigContext): ExpoConfig {
+    // Configuração executada no Node; não transformar variáveis em imports do cliente.
+    const environment = process.env;
     const googleMapsApiKey =
-        process.env.GOOGLE_MAPS_ANDROID_API_KEY;
+        environment.GOOGLE_MAPS_ANDROID_API_KEY;
+    const publicApiUrl = environment.EXPO_PUBLIC_API_URL;
+    const isNativeBuild = environment.EAS_BUILD === 'true' || Boolean(environment.EAS_BUILD_PROFILE);
+    const usesPrebuiltClient = environment.SMARTCITYS_PREBUILT_CLIENT === '1' && !isNativeBuild;
 
-    if (!googleMapsApiKey) {
+    if (!googleMapsApiKey && !usesPrebuiltClient) {
         throw new Error(
-            'A variável GOOGLE_MAPS_ANDROID_API_KEY não foi configurada.',
+            'Configure GOOGLE_MAPS_ANDROID_API_KEY para compilar ou use npm run team:android com o cliente de desenvolvimento já instalado.',
         );
     }
 
-    const projectId = process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? config.extra?.eas?.projectId;
-    const googleServicesFile = process.env.GOOGLE_SERVICES_JSON ?? config.android?.googleServicesFile;
+    const projectId = environment.EXPO_PUBLIC_EAS_PROJECT_ID ?? config.extra?.eas?.projectId;
+    const googleServicesFile = environment.GOOGLE_SERVICES_JSON ?? config.android?.googleServicesFile;
 
-    if (process.env.EAS_BUILD_PROFILE === 'preview') {
+    if (['preview', 'development'].includes(environment.EAS_BUILD_PROFILE ?? '')) {
         if (!projectId || !googleServicesFile) {
-            throw new Error('Configure o projeto Expo e o arquivo google-services.json antes do build preview.');
+            throw new Error('Configure o projeto Expo e o arquivo google-services.json antes do build.');
         }
-        if (!process.env.EXPO_PUBLIC_API_URL?.startsWith('https://')) {
-            throw new Error('O APK preview precisa da URL HTTPS pública da API.');
+        // Este arquivo é avaliado no Node; manter a leitura de ambiente dinâmica.
+        if (!publicApiUrl?.startsWith('https://')) {
+            throw new Error('O APK distribuído precisa da URL HTTPS pública da API.');
         }
     }
 
@@ -44,9 +50,7 @@ export default function defineExpoConfig({
             googleServicesFile,
             config: {
                 ...config.android?.config,
-                googleMaps: {
-                    apiKey: googleMapsApiKey,
-                },
+                ...(googleMapsApiKey ? { googleMaps: { apiKey: googleMapsApiKey } } : {}),
             },
         },
     };

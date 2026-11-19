@@ -1,0 +1,12 @@
+FROM node:22-alpine
+
+RUN apk add --no-cache openssl libc6-compat
+WORKDIR /app
+ARG SERVICE
+COPY ${SERVICE}/package*.json ./
+RUN npm ci
+COPY ${SERVICE}/ ./
+RUN if [ -f prisma/schema.prisma ]; then ./node_modules/.bin/prisma generate; fi
+
+# O código é montado pelo Compose; o client Prisma acompanha o schema da branch.
+CMD ["sh", "-ec", "if [ -f prisma/schema.prisma ]; then ./node_modules/.bin/prisma generate; fi; exec npm run dev"]
