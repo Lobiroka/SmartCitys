@@ -33,6 +33,8 @@ Android é a plataforma validada para o piloto. A configuração iOS existe, mas
 
 ## Início rápido para a equipe
 
+Antes da primeira tarefa, leia [como contribuir e orientar seu agente](CONTRIBUTING.md). O [AGENTS.md](AGENTS.md) reúne as instruções comuns para agentes de código; o [guia técnico](docs/team-development.md) detalha instalação e operação.
+
 Instale Git, **Node.js 22 LTS**, Android Studio/SDK e um emulador com Google Play ou celular Android com depuração USB. Para executar a API local, instale e inicie o **Docker Desktop com containers Linux**.
 
 Na primeira vez:

@@ -49,6 +49,7 @@ app-example
 
 #Agents
 AGENTS.md
+!/AGENTS.md
 
 # generated native folders
 /ios
