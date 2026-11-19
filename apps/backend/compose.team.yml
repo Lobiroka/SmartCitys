@@ -1,0 +1,155 @@
+# Ambiente LOCAL: nenhuma conexão com RDS, Valkey, SSH ou credenciais AWS.
+x-auth: &auth
+  KEYCLOAK_ISSUER: https://auth.darkartsbm.com/realms/smartcitys-test
+  KEYCLOAK_AUDIENCE: smartcitys-api-test
+
+x-demand-image: &demand-image
+  image: smartcitys-team-demand:dev
+  build:
+    context: .
+    dockerfile: Dockerfile.team
+    args:
+      SERVICE: demand-service
+
+x-pg-health: &pg-health
+  test: ["CMD-SHELL", "pg_isready -U smartcitys -d $$POSTGRES_DB"]
+  interval: 3s
+  timeout: 3s
+  retries: 30
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: smartcitys
+      POSTGRES_PASSWORD: ${TEAM_DB_PASSWORD:?Use npm run team:backend para gerar credenciais locais}
+      POSTGRES_DB: smartcitys_dev
+    ports: ["127.0.0.1:5433:5432"]
+    volumes:
+      - team-dev-db:/var/lib/postgresql/data
+      - ./dev/init-schema.sql:/docker-entrypoint-initdb.d/01-demand.sql:ro
+    healthcheck: *pg-health
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  migrate:
+    <<: *demand-image
+    profiles: [tools]
+    command: ["./node_modules/.bin/prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: postgresql://smartcitys:${TEAM_DB_PASSWORD}@postgres:5432/smartcitys_dev?schema=demand
+    volumes:
+      - ./demand-service/prisma:/app/prisma
+
+  demand-service:
+    <<: *demand-image
+    environment:
+      <<: *auth
+      PORT: 3002
+      DATABASE_URL: postgresql://smartcitys:${TEAM_DB_PASSWORD}@postgres:5432/smartcitys_dev?schema=demand
+      REDIS_URL: redis://redis:6379
+      # Vazio explicitamente: nem um .env pessoal montado deve habilitar push real.
+      EXPO_PUSH_ACCESS_TOKEN: ''
+    volumes:
+      - ./demand-service:/app
+      - /app/node_modules
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 30
+
+  metrics-service:
+    image: smartcitys-team-metrics:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.team
+      args:
+        SERVICE: metrics-service
+    environment:
+      <<: *auth
+      PORT: 3003
+      DATABASE_URL_DEMAND: postgresql://smartcitys:${TEAM_DB_PASSWORD}@postgres:5432/smartcitys_dev?schema=demand
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./metrics-service:/app
+      - /app/node_modules
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 30
+
+  api-gateway:
+    image: smartcitys-team-gateway:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.team
+      args:
+        SERVICE: api-gateway
+    environment:
+      PORT: 8080
+      DEMAND_SERVICE_URL: http://demand-service:3002
+      METRICS_SERVICE_URL: http://metrics-service:3003
+    ports: ["127.0.0.1:8080:8080"]
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+    depends_on:
+      demand-service: { condition: service_healthy }
+      metrics-service: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 30
+
+  postgres-test:
+    image: postgres:16-alpine
+    profiles: [test]
+    environment:
+      POSTGRES_USER: smartcitys
+      POSTGRES_PASSWORD: ${TEAM_TEST_DB_PASSWORD:?Use npm run team:backend para gerar credenciais locais}
+      POSTGRES_DB: smartcitys_test
+    ports: ["127.0.0.1:5434:5432"]
+    volumes:
+      - team-test-db:/var/lib/postgresql/data
+      - ./dev/init-schema.sql:/docker-entrypoint-initdb.d/01-demand.sql:ro
+    healthcheck: *pg-health
+
+  redis-test:
+    image: redis:7-alpine
+    profiles: [test]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  tests:
+    <<: *demand-image
+    profiles: [test]
+    command: ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && npm test"]
+    environment:
+      DATABASE_URL: postgresql://smartcitys:${TEAM_TEST_DB_PASSWORD}@postgres-test:5432/smartcitys_test?schema=demand
+      TEST_DATABASE_URL: postgresql://smartcitys:${TEAM_TEST_DB_PASSWORD}@postgres-test:5432/smartcitys_test?schema=demand
+      REDIS_URL: redis://redis-test:6379
+    depends_on:
+      postgres-test: { condition: service_healthy }
+      redis-test: { condition: service_healthy }
+
+volumes:
+  team-dev-db:
+  team-test-db:

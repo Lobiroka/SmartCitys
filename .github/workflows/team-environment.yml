@@ -1,0 +1,35 @@
+name: Ambiente local da equipe
+
+on:
+  pull_request:
+    paths:
+      - 'apps/backend/**'
+      - 'scripts/team-backend.mjs'
+      - '.github/workflows/team-environment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar configuração sem exibir credenciais
+        run: node scripts/team-backend.mjs check
+      - name: Subir backend local com banco novo
+        run: node scripts/team-backend.mjs up
+      - name: Conferir saúde e migrações idempotentes
+        run: |
+          curl --fail http://127.0.0.1:8080/health
+          node scripts/team-backend.mjs migrate
+      - name: Testar API em banco e Redis separados
+        run: node scripts/team-backend.mjs test
+      - name: Encerrar serviços preservando evidência de falha nos logs do job
+        if: always()
+        run: node scripts/team-backend.mjs down

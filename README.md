@@ -2,6 +2,8 @@
 
 Aplicativo mobile para registro e acompanhamento de ocorrências urbanas. O projeto utiliza React Native com Expo, autenticação pelo Keycloak e arquitetura MVVM.
 
+Para desenvolver com a equipe usando contas individuais e sem distribuir credenciais privadas de nuvem, siga o [guia do ambiente da equipe](docs/team-development.md). Ele separa a API compartilhada, o backend local e os bancos de testes.
+
 > Status em 26/10/2026: MVP mobile funcional em Android no ambiente atual, com autenticação, sessão, mapa, GPS, câmera e CRUD integrados. Regressão de unitários, API e E2E aprovada e registrada em `.maestro/README.md`. Banco do Keycloak já migrado para RDS; banco de ocorrências ainda no Supabase, com migração para RDS planejada, conforme confirmação do responsável. Prioridade: preparar e publicar o backend na AWS, integrar Valkey e S3 e validar esse ambiente antes dos refinamentos visuais, iOS e distribuição.
 
 Quadro de acompanhamento: [Projeto 5 SmartCity no Trello](https://trello.com/b/KaOhR9dk/projeto-5-smartcity).
