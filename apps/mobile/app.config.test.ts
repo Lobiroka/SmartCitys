@@ -3,13 +3,16 @@ import type { ConfigContext } from 'expo/config';
 
 describe('configuração do cliente de desenvolvimento da equipe', () => {
     const originalEnv = process.env;
-    const context = {
+    const context: ConfigContext = {
+        projectRoot: '/test-project',
+        staticConfigPath: null,
+        packageJsonPath: '/test-project/package.json',
         config: {
             name: 'wb', slug: 'wb', version: '1.0.1',
             extra: { eas: { projectId: 'public-project-id' } },
             android: { package: 'com.darkartsbm.smartcitys' },
         },
-    } as ConfigContext;
+    };
 
     beforeEach(() => {
         process.env = { ...originalEnv };

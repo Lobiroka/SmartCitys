@@ -153,6 +153,8 @@ Este fluxo não cria sandboxes de backend por PR na AWS, novos usuários IAM ou 
 
 ## Pendências de ativação
 
+Validação local: 55 testes mobile passaram, incluindo cinco verificações da configuração do cliente. A checagem TypeScript ainda aponta uma declaração ausente para o import de `global.css` em `app/_layout.tsx`, anterior a este ambiente; não considerar a checagem de tipos integralmente aprovada. A validação de containers é executada na CI porque Docker não está instalado na máquina usada para preparar esta configuração.
+
 - Integrar os arquivos da configuração após os checks.
 - Gerar o APK development no EAS e registrar seu link.
 - Conferir certificado e mapa no Android antes de distribuir.
