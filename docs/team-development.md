@@ -40,6 +40,8 @@ Criar a própria conta pela tela de registro do Keycloak. Nunca reutilizar a con
 
 O responsável gera e distribui um APK pelo perfil EAS `development`. Esse APK contém o cliente Expo que carrega o JavaScript do computador de cada integrante. O APK `preview` 1.0.1 é para avaliar a aplicação pronta e não substitui esse cliente.
 
+Build development da equipe: [abrir no Expo e baixar o APK](https://expo.dev/accounts/dkartss-team/projects/wb/builds/103030d5-f0d1-4134-a6c2-5f0458cc7931). Conferir o estado **Finished** antes de instalar; o build foi solicitado a partir do commit `84ffdb9`, integrado pela PR #21.
+
 O perfil `development` usa as variáveis já cadastradas no ambiente EAS `preview` apenas para a compilação centralizada, com canal `development`. Isso evita copiar o arquivo Firebase ou a chave do Maps para a máquina dos colegas. O backend padrão e o Keycloak ainda são os de testes atuais; não foi criado outro ambiente AWS. O perfil `preview` continua separado.
 
 O pacote Android permanece `com.darkartsbm.smartcitys`. Um APK development pode ter certificado diferente do preview: use um emulador dedicado para não substituir o aplicativo de avaliação nem perder seus dados. Se desejar os dois apps no mesmo celular, uma variante com pacote e configuração Firebase próprios será uma evolução separada. Conferir o SHA-1 do APK development e autorizar somente esse certificado na chave Maps antes de distribuir. Não abrir a chave para todos os aplicativos.
@@ -153,10 +155,11 @@ Este fluxo não cria sandboxes de backend por PR na AWS, novos usuários IAM ou 
 
 ## Pendências de ativação
 
-Validação local: 55 testes mobile passaram, incluindo cinco verificações da configuração do cliente. A checagem TypeScript ainda aponta uma declaração ausente para o import de `global.css` em `app/_layout.tsx`, anterior a este ambiente; não considerar a checagem de tipos integralmente aprovada. A validação de containers é executada na CI porque Docker não está instalado na máquina usada para preparar esta configuração.
+Configuração integrada pela [PR #21](https://github.com/Lobiroka/SmartCitys/pull/21). Validação: 55 testes mobile passaram, incluindo cinco verificações da configuração do cliente. A [CI da stack local](https://github.com/Lobiroka/SmartCitys/actions/runs/44577588376) passou com banco novo, reaplicação de migrations, saúde dos três serviços e testes da API: 26 passaram e seis permanecem desativados pela suíte existente.
 
-- Integrar os arquivos da configuração após os checks.
-- Gerar o APK development no EAS e registrar seu link.
+A checagem TypeScript ainda aponta uma declaração ausente para o import de `global.css` em `app/_layout.tsx`, anterior a este ambiente; não considerar a checagem de tipos integralmente aprovada. Docker não está instalado na máquina usada para preparar esta configuração; a execução dos containers foi validada na CI.
+
+- Conferir a conclusão do APK development no link registrado acima.
 - Conferir certificado e mapa no Android antes de distribuir.
 - Cada integrante criar sua conta e instalar as ferramentas; gestor somente quando autorizado.
 - Fazer o primeiro ensaio em uma máquina da equipe: app com API compartilhada, app com API local e testes da API isolados.
