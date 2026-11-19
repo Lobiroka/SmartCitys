@@ -39,8 +39,9 @@ const adb = sdkCandidates.map(sdk => path.join(sdk, 'platform-tools', executable
 const probe = spawnSync(adb, ['devices'], { encoding: 'utf8', env });
 if (probe.error || probe.status !== 0) throw new Error('ADB indisponível. Configure o Android SDK e abra um emulador ou conecte o celular por USB.');
 const devices = probe.stdout.split(/\r?\n/).map(line => line.match(/^(\S+)\s+device$/)?.[1]).filter(Boolean);
-const serial = process.env.ANDROID_SERIAL ?? (devices.length === 1 ? devices[0] : undefined);
-if (!serial || !devices.includes(serial)) throw new Error('Conecte um único Android, ou defina ANDROID_SERIAL com o dispositivo desejado.');
+// O Expo abre o primeiro Android disponível; ANDROID_SERIAL não controla essa escolha.
+const serial = devices.length === 1 ? devices[0] : undefined;
+if (!serial) throw new Error('Mantenha apenas um Android conectado: feche outros emuladores ou desconecte os outros celulares.');
 env.ANDROID_SERIAL = serial;
 for (const port of args.includes('--local-api') ? [8080, 8081] : [8081]) {
   const reverse = spawnSync(adb, ['-s', serial, 'reverse', `tcp:${port}`, `tcp:${port}`], { stdio: 'inherit', env });
