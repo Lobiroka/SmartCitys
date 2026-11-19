@@ -69,7 +69,7 @@ O comando:
 3. Usa o cliente nativo já instalado: a configuração permite iniciar o Metro sem uma chave de compilação.
 4. Encaminha a porta 8081 por ADB e abre o desenvolvimento no Android conectado.
 
-Com vários dispositivos, definir `ANDROID_SERIAL`. O script não inicia ou baixa um emulador, não instala APK automaticamente e não conecta por túnel público. Para testar o carregamento da configuração sem iniciar o app: `npm.cmd run team:android -- --check`.
+Manter apenas um Android conectado: o Expo abre o primeiro dispositivo disponível e não usa `ANDROID_SERIAL` para essa escolha. O script interrompe se houver mais de um aparelho autorizado, não inicia ou baixa um emulador, não instala APK automaticamente e não conecta por túnel público. Para testar o carregamento da configuração sem iniciar o app: `npm.cmd run team:android -- --check`.
 
 O app chama `https://api.darkartsbm.com` e autentica em `https://auth.darkartsbm.com/realms/smartcitys-test`. Esses endereços e o client ID não são credenciais privadas. Dados e permissões desse ambiente são compartilhados: usar somente dados fictícios identificados pelo integrante. Uma conta gestora pode acessar outras ocorrências de teste conforme as regras do produto; esta API compartilhada não é um sandbox individual.
 
