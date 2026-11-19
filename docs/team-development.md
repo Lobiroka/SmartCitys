@@ -153,6 +153,22 @@ O workflow **Ambiente local da equipe** verifica a configuração, inicializa a 
 
 Este fluxo não cria sandboxes de backend por PR na AWS, novos usuários IAM ou acessos administrativos. Se a equipe precisar de deploys independentes em nuvem, será necessário projetar ambientes e dados isolados, além de um pipeline de publicação com permissões limitadas e aprovação. O acesso ao código da API não concede acesso administrativo à infraestrutura atual.
 
+## 7. Proteger também os secrets da automação
+
+Rodar o app e a API local não exige credenciais privadas. Isso não significa que acesso de escrita ao GitHub isole os secrets atuais da CI: um colaborador pode executar workflows de sua própria branch para usá-los. CODEOWNERS e os rulesets de merge protegem a integração na main, mas não impedem esse acesso a secrets de repositório. [Referência de segurança do GitHub](https://docs.github.com/en/actions/reference/security/secure-use).
+
+Na conferência de 19/11/2026, `E2E_USERNAME`, `E2E_PASSWORD`, `GOOGLE_MAPS_ANDROID_API_KEY` e `EXPO_TOKEN` estavam em **Repository secrets**, sem Environment configurado. A migração abaixo ainda precisa ser ativada pelo responsável; não considerar os secrets isolados antes de concluir o processo.
+
+1. Em **Settings → Environments**, criar `ci-main`. Em **Deployment branches and tags**, escolher **Selected branches and tags** e autorizar somente uma regra do tipo **Branch**, com nome exato `main`. Não autorizar todas as branches e não criar uma regra de tag `main`.
+2. Cadastrar os quatro valores em **Environment secrets** de `ci-main`. Usar os valores guardados ou recriar as credenciais com o responsável; o GitHub não permite ler os valores atuais. Não enviar tokens ou senhas pelo chat, commit ou logs.
+3. Integrar a PR que adiciona `environment: ci-main` aos jobs de regressão e publicação OTA, depois dos checks. Os jobs de testes locais e unitários continuam sem receber secrets.
+4. Executar a regressão pela **main** e confirmar que a automação usa os novos secrets. Depois, remover as quatro cópias de **Repository secrets**. Manter cópias no nível do repositório anularia o isolamento.
+5. Confirmar que os secrets aparecem somente no ambiente, que a política autoriza apenas a branch main e que uma execução manual da regressão em outra branch é rejeitada pela política de deployment. A validação deve conferir o bloqueio do job; não imprimir nem tentar extrair valores.
+
+A restrição pela branch conserva a regressão automática diária e a publicação após a integração na main. Não configurar aprovação humana obrigatória para a regressão caso ela deva continuar sem intervenção à meia-noite. Somente o responsável deve administrar as políticas do ambiente e suas credenciais. Não adicionar chaves AWS ou Firebase Admin como secrets de repositório para facilitar o desenvolvimento.
+
+Criar um Environment vazio ou adicionar apenas `environment:` no YAML não protege os secrets existentes: o ambiente deve estar restrito, os valores devem ser recadastrados e as cópias do nível do repositório devem ser removidas. [Configuração de ambientes no GitHub](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments).
+
 ## Pendências de ativação
 
 Configuração integrada pela [PR #21](https://github.com/Lobiroka/SmartCitys/pull/21). Validação: 55 testes mobile passaram, incluindo cinco verificações da configuração do cliente. A [CI da stack local](https://github.com/Lobiroka/SmartCitys/actions/runs/44577588376) passou com banco novo, reaplicação de migrations, saúde dos três serviços e testes da API: 26 passaram e seis permanecem desativados pela suíte existente.
@@ -160,6 +176,7 @@ Configuração integrada pela [PR #21](https://github.com/Lobiroka/SmartCitys/pu
 A checagem TypeScript ainda aponta uma declaração ausente para o import de `global.css` em `app/_layout.tsx`, anterior a este ambiente; não considerar a checagem de tipos integralmente aprovada. Docker não está instalado na máquina usada para preparar esta configuração; a execução dos containers foi validada na CI.
 
 - Conferir a conclusão do APK development no link registrado acima.
+- Concluir a migração dos secrets da CI para `ci-main` antes de considerar isolado o acesso de escrita dos integrantes.
 - Conferir certificado e mapa no Android antes de distribuir.
 - Cada integrante criar sua conta e instalar as ferramentas; gestor somente quando autorizado.
 - Fazer o primeiro ensaio em uma máquina da equipe: app com API compartilhada, app com API local e testes da API isolados.
