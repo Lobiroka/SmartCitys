@@ -44,9 +44,11 @@ name: MVP - autenticação e criação de ocorrência
 - extendedWaitUntil:
     visible: "Menu do Perfil"
     timeout: 60000
-- tapOn: "Ocorrências"
+- tapOn:
+    id: "tab-occurrences"
 - extendedWaitUntil:
-    visible: "Ocorrências"
+    visible:
+      id: "occurrence-create-button"
     timeout: 30000
 - tapOn:
     id: "occurrence-create-button"
@@ -104,13 +106,15 @@ name: MVP - autenticação e criação de ocorrência
     notVisible:
       id: "occurrence-save-button"
     timeout: 60000
-- tapOn: "Ocorrências"
+- tapOn:
+    id: "tab-occurrences"
 - extendedWaitUntil:
     visible: "${E2E_TITLE}"
     timeout: 60000
 
 # TC-03: sair e reabrir sem limpar dados comprova o logout local.
-- tapOn: "Home"
+- tapOn:
+    id: "tab-home"
 - extendedWaitUntil:
     visible: "Menu do Perfil"
     timeout: 30000
