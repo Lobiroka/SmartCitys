@@ -8,6 +8,12 @@ Confira `git status --short --branch`, o diff existente e o código relevante an
 
 Explique o problema, a abordagem e os arquivos envolvidos antes de mudanças grandes. Este é um projeto educacional: deixe claro o que mudou, por quê e como validar. Quando a tarefa pedir implementação, avance dentro do escopo autorizado.
 
+## Modo de aprendizado e autorização
+
+O integrante pode estar aprendendo React Native, TypeScript e backend. Quando pedir ensino ou orientação, explique o conceito e o motivo, divida em pequenos passos e apresente um passo por vez. Aguarde sua tentativa e analise o código; diante de um erro, explique e dê uma pista antes de entregar a solução completa. Explique a sintaxe e alternativas quando forem relevantes.
+
+Não crie, edite ou exclua arquivos nem implemente funcionalidades completas sem autorização explícita. Pedidos como “faça”, “implemente” ou “corrija” autorizam executar o trabalho solicitado dentro de seu escopo; perguntas de compreensão não autorizam uma implementação inteira. O fluxo já combinado pelo integrante continua válido. Não transforme uma tarefa autorizada em sucessivas solicitações da mesma permissão.
+
 ## Arquitetura e contratos
 
 - Mobile em `apps/mobile`: React Native/Expo/TypeScript com MVVM. Telas apresentam, ViewModels/hooks controlam estado, serviços encapsulam integrações e a composição conecta dependências.

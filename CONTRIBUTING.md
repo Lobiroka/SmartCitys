@@ -48,6 +48,8 @@ Se houver alterações locais, identifique a quem pertencem antes de trocar de b
 
 Antes de editar, descreva o problema, o comportamento esperado e os arquivos/camadas envolvidos. Confirme no código quais rotas, modelos e serviços já existem. Pergunte somente quando faltar uma decisão necessária; não invente contratos ou estado da infraestrutura.
 
+Este também é um projeto de aprendizado. Se o integrante pedir para aprender, o agente deve explicar em passos pequenos, aguardar a tentativa e orientar a correção antes de entregar uma solução pronta. Se pedir explicitamente para implementar, o agente pode executar a tarefa autorizada e depois explicar o que fez e por quê.
+
 ## 4. Rodar o que está desenvolvendo
 
 ### Somente app, usando a API compartilhada
