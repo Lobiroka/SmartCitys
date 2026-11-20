@@ -26,6 +26,33 @@ Não há retry global nem alteração do produto. A aprovação da correção de
 de nova regressão completa; uma execução aprovada não comprova a eliminação de
 outras causas de intermitência no login.
 
+### Validação do patch da PR #30
+
+As duas execuções abaixo validaram o commit
+`b7b05a2ed482a82510cfc77dabb5cc0019a77793`, com emuladores limpos:
+
+| Execução | APK | Resultado |
+|---|---|---|
+| [44742259462](https://github.com/Lobiroka/SmartCitys/actions/runs/44742259462) | Novo; build aprovado | 55 mobile, 26 API e 1 E2E aprovados; 6 testes existentes ignorados |
+| [44745443284](https://github.com/Lobiroka/SmartCitys/actions/runs/44745443284) | Reutilizado da primeira execução, na mesma branch e após a checagem de compatibilidade | Mesmos resultados; diagnóstico adicional registrado antes de executar |
+
+Os relatórios de ambas indicam 82 casos aprovados, zero reprovados e coleta
+completa. O indicador permanece **AMARELO** pelas lacunas já sinalizadas, com
+seis testes ignorados. Não comparar a duração total dessas execuções como
+tendência, pois somente a primeira compilou um APK novo.
+
+Os `commands.json` confirmam que a apresentação do Chrome e a espera por destino
+conhecido foram exercitadas. Nas duas execuções, o Chrome prosseguiu ao formulário
+e houve somente um toque inicial em `Entrar`; o ramo que reabre o login ficou
+sem cobertura dinâmica nesses ensaios. Isso limita a evidência: os fluxos
+completos passaram com a alteração, mas não se afirma reprodução do retorno ao
+app em uma execução aprovada nem estabilidade global do login.
+
+Relatórios: [primeira validação](https://github.com/Lobiroka/SmartCitys/actions/runs/44742259462/artifacts/14632951251)
+e [diagnóstico adicional](https://github.com/Lobiroka/SmartCitys/actions/runs/44745443284/artifacts/14632613626).
+A [PR #30](https://github.com/Lobiroka/SmartCitys/pull/30) permanece sujeita à
+revisão antes da integração, conforme o item 1.6 da política da TAS.
+
 ## Simulação reproduzível dos mecanismos novos
 
 Executado localmente:
