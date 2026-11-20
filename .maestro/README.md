@@ -15,6 +15,20 @@ Após o login, o fluxo aguarda o controle acessível `Menu do Perfil` no mapa.
 A opção `Sair` só aparece depois de abrir esse menu; o teste faz isso antes do logout.
 Esperar `Sair` imediatamente após autenticar não corresponde à interface atual.
 
+### Primeiro acesso do Chrome
+
+O emulador novo pode abrir a apresentação inicial do Chrome no lugar da Custom
+Tab do Keycloak. Ao dispensá-la, o navegador pode continuar no formulário ou
+retornar ao aplicativo, encerrando a tentativa de autenticação. Nesse segundo
+caso, o roteiro abre `Entrar` novamente uma única vez, somente dentro do ramo
+que tratou a apresentação do Chrome. Ele espera por `username` ou `login-button`
+antes de decidir e mantém obrigatória a espera pelo formulário Keycloak.
+
+Isso trata um estado de preparação do navegador, não repete todo o teste nem
+ignora falhas de autenticação. Sem apresentação do Chrome, esse ramo é pulado.
+A falha que motivou a correção está na [execução 44722827927](https://github.com/Lobiroka/SmartCitys/actions/runs/44722827927),
+acompanhada na [issue #29](https://github.com/Lobiroka/SmartCitys/issues/29).
+
 ## Pré-requisitos
 
 - APK de desenvolvimento ou preview instalado com o application ID

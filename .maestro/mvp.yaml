@@ -26,6 +26,19 @@ name: MVP - autenticação e criação de ocorrência
     commands:
       - tapOn:
           id: "com.android.chrome:id/signin_fre_dismiss_button"
+      # O primeiro acesso do Chrome pode encerrar a Custom Tab e voltar ao app.
+      # Aguarde um destino conhecido; reabra o login somente nesse retorno.
+      - extendedWaitUntil:
+          visible:
+            id: "username|login-button"
+          timeout: 60000
+      - runFlow:
+          when:
+            visible:
+              id: "login-button"
+          commands:
+            - tapOn:
+                id: "login-button"
 
 - extendedWaitUntil:
     visible:
