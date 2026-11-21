@@ -21,6 +21,7 @@
     "mobile:test": "npm run test --workspace @smart-city/mobile",
     "mobile:test:coverage": "npm run test:coverage --workspace @smart-city/mobile",
     "mobile:test:e2e": "npm run test:e2e --workspace @smart-city/mobile",
+    "mobile:test:e2e:e1": "python .github/scripts/run-e1.py",
     "backend:test": "npm --prefix apps/backend/demand-service test",
     "backend:build": "npm --prefix apps/backend/demand-service run build && npm --prefix apps/backend/metrics-service run build && npm --prefix apps/backend/api-gateway run build"
   },
