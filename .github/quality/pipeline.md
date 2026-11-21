@@ -19,6 +19,7 @@ Em **Actions → execução → Artifacts**, baixe `qualidade-unitarios-<run>-<t
 
 - `quality/technical.html`: relatório técnico, casos falhos, coleta, cobertura e links para arquivos existentes.
 - `quality/business.html`: indicadores, limites da evidência, riscos e recomendação determinística.
+- `quality/summary.md`: resumo em Markdown com status, contagens, taxa de aprovação e completude da coleta.
 - `quality/metrics.json`: dados estruturados para auditoria/comparações futuras.
 - `mobile/results.json`, `mobile/normalized.xml`, `mobile/tests.log`, `mobile/execution.json`.
 - `mobile/coverage/coverage-summary.json` e arquivos LCOV/HTML, quando gerados.
@@ -29,9 +30,21 @@ Em **Actions → execução → Artifacts**, baixe `qualidade-unitarios-<run>-<t
 Artefatos de qualidade: 14 dias. Evidências E2E separadas: 7 dias. APK diagnóstico: 2 dias, como antes.
 Os HTMLs são artefatos para download, não um site público. Não foi configurado Pages nem armazenamento permanente.
 
+Para apresentar o M1, abra **Actions → Testes unitários ou Regressão completa → execução → Artifacts**
+e baixe o artefato `qualidade-unitarios-<run>-<tentativa>` ou
+`qualidade-regressao-<run>-<tentativa>`. Extraia o ZIP e abra
+`quality/business.html`, `quality/technical.html` ou `quality/summary.md`.
+Os relatórios já estão gerados: não é necessário executar scripts localmente.
+O resumo Markdown também aparece na página da execução, pelo Job Summary.
+A geração e a publicação ocorrem nos workflows `testes-unitarios.yml` e
+`testes-api.yml`; `qualidade-issues.yml` registra as falhas em issues.
+
 ## Falhas e coleta
 
-Etapas de relatório/upload usam `!cancelled()` para executarem após falhas normais. Saída de testes não é convertida em sucesso pelo coletor.
+As etapas **Gerar relatórios de qualidade** e **Publicar relatórios HTML, Markdown e evidências**
+usam `if: always()` nos dois workflows de testes. Assim, a geração e o upload
+são solicitados mesmo após falha ou cancelamento, enquanto o runner puder executar essas etapas.
+Saída de testes não é convertida em sucesso pelo coletor.
 Falta de resultados gera relatório inconclusivo e falha do coletor, em vez de aprovação silenciosa.
 Preparação, build, teste ou upload com falha mantêm o job com falha.
 Cancelamento, encerramento abrupto do runner, timeout global ou falha antes do checkout podem impedir relatórios/artefatos; os logs do Actions e a notificação externa são a evidência restante. Nunca prometer coleta em todas as condições.
