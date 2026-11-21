@@ -56,3 +56,62 @@ O E2E aparece como suíte e os casos Maestro aparecem nos detalhes; não inventa
 | Flakiness e tendência de cobertura/duração | Uma execução não distingue instabilidade de regressão; exige histórico comparável. |
 
 Ausência de média histórica não impede atualização dos indicadores por execução: JSON, resumo e HTML são gerados automaticamente a cada run relevante.
+
+## M2 — interpretação dos resultados e riscos
+
+Os relatórios técnico e de negócio, o `summary.md` publicado no Job Summary e
+o `metrics.json` incluem a interpretação dos números e o diagnóstico por falha.
+
+- **Razão de aprovação:** o texto apresenta aprovados/executados e explica o
+  alcance dessa proporção. Uma taxa de 99% com uma falha mantém o resultado
+  vermelho; 100% com coleta parcial não aprova a validação. Ignorados ficam
+  fora do denominador. Sem execução, a razão permanece N/D.
+- **Falhas do SUT:** o relatório identifica cada caso classificado como defeito
+  do produto por parecer revisado, com diagnóstico, evidência e risco residual.
+  A mensagem de erro e o nome do teste não determinam a causa automaticamente.
+- **Risco que permanece:** o texto identifica falhas sem diagnóstico, casos
+  ignorados, suítes incompletas, cobertura insuficiente e jornadas fora do
+  escopo. Mesmo uma execução verde mantém explícitos os limites da evidência.
+
+### Registrar o diagnóstico após a triagem
+
+O arquivo versionado `failure-assessments.json` começa com `[]`, sem diagnósticos
+inventados. Após investigar uma falha conforme `docs/tas.md`, o mantenedor
+registra um parecer por PR, com revisão de um colega:
+
+```json
+[
+  {
+    "suite": "api",
+    "test": "Nome exato do teste no metrics.json",
+    "failure_sha256": "Copiar o failure_sha256 da falha no metrics.json",
+    "cause": "sut",
+    "diagnosis": "Descrever o requisito violado e a reprodução que confirmou a causa.",
+    "evidence": "https://github.com/Lobiroka/SmartCitys/issues/NUMERO",
+    "reviewer": "Login do colega que revisou o diagnóstico",
+    "residual_risk": "Descrever a jornada afetada e o risco até corrigir e validar."
+  }
+]
+```
+
+O exemplo contém campos a substituir; não deve ser copiado como diagnóstico real.
+O campo `cause` aceita `sut`, `automation`, `environment` ou `expected-change`.
+As suítes aceitas são `mobile`, `api` e `e2e`. Evidência HTTPS, diagnóstico,
+revisor e risco residual são obrigatórios em todas as classificações.
+
+O gerador lê o arquivo automaticamente nos workflows existentes. Aplica o
+parecer somente quando suíte, nome do teste e SHA-256 da mensagem sanitizada
+coincidem. O hash está em `failure_assessments` no `metrics.json` gerado e evita
+reutilizar um diagnóstico quando a mensagem da falha muda. Mudanças nos logs
+ou na stack podem exigir nova triagem; a coincidência do hash não substitui
+revisão humana nem comprova que todas as causas foram eliminadas.
+
+Falhas sem parecer correspondente aparecem como **Triagem pendente**. Pareceres
+incompletos, inválidos ou duplicados não são aplicados; o relatório registra o
+problema e mantém a classificação pendente. Nenhuma classificação transforma
+um teste reprovado em aprovado, encerra issues ou aceita riscos automaticamente.
+
+Para reprocessar evidências já coletadas com um arquivo de pareceres específico,
+o gerador também aceita `--assessments caminho/pareceres.json`. A coleta não
+consulta o GitHub para confirmar os diagnósticos; o nome do revisor e os links
+são registros humanos versionados e sujeitos à revisão da PR.
