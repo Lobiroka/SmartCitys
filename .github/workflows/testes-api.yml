@@ -227,7 +227,7 @@ jobs:
           fi
 
       - name: Gerar relatórios de qualidade
-        if: ${{ !cancelled() }}
+        if: always()
         env:
           MOBILE_OUTCOME: ${{ steps.unitarios.outcome }}
           API_OUTCOME: ${{ steps.api.outcome }}
@@ -238,8 +238,8 @@ jobs:
           GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
         run: python .github/scripts/quality-report.py
 
-      - name: Salvar resultados e relatórios
-        if: ${{ !cancelled() }}
+      - name: Publicar relatórios HTML, Markdown e evidências
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: qualidade-regressao-${{ github.run_id }}-${{ github.run_attempt }}
