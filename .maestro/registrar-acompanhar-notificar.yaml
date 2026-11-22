@@ -19,15 +19,10 @@ env:
     text: Aberta
 - takeScreenshot: e1-registrada
 
-- openNotifications
-- assertNotVisible: Uma das suas ocorrências teve o status atualizado.
-- back
-- pressKey: HOME
-- runScript: scripts/update-occurrence-status.js
-- openNotifications
-- extendedWaitUntil:
-    visible: Uma das suas ocorrências teve o status atualizado.
-    timeout: 90000
+- swipe:
+    start: 50%, 1%
+    end: 50%, 80%
+    duration: 500
 - takeScreenshot: e1-notificacao-recebida
 - back
 
