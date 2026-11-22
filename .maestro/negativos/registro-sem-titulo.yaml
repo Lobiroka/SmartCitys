@@ -39,6 +39,8 @@ name: E3 - rejeitar registro sem título obrigatório
     id: occurrence-create-button
 - takeScreenshot: e3-titulo-obrigatorio
 - back
+- tapOn:
+    id: tab-occurrences
 - extendedWaitUntil:
     visible:
       id: occurrence-search-input
