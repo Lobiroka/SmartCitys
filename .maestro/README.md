@@ -191,9 +191,12 @@ ambiente de testes dedicado; a limpeza posterior pertence ao responsável e
 não faz parte deste caso. O teste falha diante de título ausente/duplicado,
 credencial inválida, atualização recusada ou ausência da notificação/status.
 
-Este caso foi implementado para atender ao E1; sua execução integrada e a
-entrega real do push ainda precisam ser registradas. Ele não foi acrescentado
-à regressão agendada, que não possui os pré-requisitos de push real.
+O E1 teve duas execuções integradas consecutivas aprovadas em 22/11/2026, no commit `a156a38`,
+com cliente development, API compartilhada e push real. JUnit, modo utilizado
+e capturas revisadas estão em
+[evidências do E1](../docs/tas-evidence/e1-2026-11-22/README.md).
+Ele não foi acrescentado à regressão agendada, que não possui os
+pré-requisitos de push real.
 
 Validação no GitHub Actions: [execução 38479762930](https://github.com/Lobiroka/SmartCitys/actions/runs/38479762930)
 concluiu os três níveis com sucesso: 31 testes Jest, 24 testes de API e o fluxo
