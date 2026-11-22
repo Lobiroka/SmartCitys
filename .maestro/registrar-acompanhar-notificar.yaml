@@ -1,0 +1,64 @@
+appId: com.darkartsbm.smartcitys
+name: E1 - registrar, acompanhar e notificar
+env:
+  E2E_USERNAME: ${MAESTRO_E2E_USERNAME}
+  E2E_PASSWORD: ${MAESTRO_E2E_PASSWORD}
+  E2E_TITLE: ${MAESTRO_E2E_TITLE}
+---
+- runScript: scripts/validate-manager.js
+- runFlow: flows/register-occurrence.yaml
+
+- runScript: scripts/find-occurrence.js
+- tapOn:
+    id: occurrence-search-input
+- inputText: ${E2E_TITLE}
+- hideKeyboard
+- assertVisible: ${E2E_TITLE}
+- assertVisible:
+    id: occurrence-status-${output.e1OccurrenceId}
+    text: Aberta
+- takeScreenshot: e1-registrada
+
+- swipe:
+    start: 50%, 1%
+    end: 50%, 80%
+    duration: 500
+- assertNotVisible: Uma das suas ocorrências teve o status atualizado.
+- back
+
+- pressKey: HOME
+- runScript: scripts/update-occurrence-status.js
+
+- swipe:
+    start: 50%, 1%
+    end: 50%, 80%
+    duration: 500
+- extendedWaitUntil:
+    visible: Uma das suas ocorrências teve o status atualizado.
+    timeout: 90000
+- takeScreenshot: e1-notificacao-recebida
+- back
+
+- launchApp:
+    clearState: false
+- tapOn:
+    id: tab-home
+- tapOn:
+    id: tab-occurrences
+- tapOn:
+    id: occurrence-search-input
+- eraseText
+- inputText: ${E2E_TITLE}
+- hideKeyboard
+- extendedWaitUntil:
+    visible: ${E2E_TITLE}
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: occurrence-status-${output.e1OccurrenceId}
+      text: Em análise
+    timeout: 30000
+- assertNotVisible:
+    id: occurrence-status-${output.e1OccurrenceId}
+    text: Aberta
+- takeScreenshot: e1-status-atualizado

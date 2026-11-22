@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 
 values = set()
-for name in ('E2E_USERNAME', 'E2E_PASSWORD'):
+for name in ('E2E_USERNAME', 'E2E_PASSWORD', 'E2E_GESTOR_TOKEN',
+             'MAESTRO_E2E_USERNAME', 'MAESTRO_E2E_PASSWORD', 'MAESTRO_E2E_GESTOR_TOKEN'):
     value = os.environ.get(name, '')
     if value:
         values.update((value, html.escape(value),
