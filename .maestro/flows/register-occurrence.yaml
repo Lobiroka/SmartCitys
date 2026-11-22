@@ -10,10 +10,22 @@ name: Autenticar e registrar ocorrência
 
 - runFlow:
     when:
+      true: ${typeof MAESTRO_E2E_DEV_CLIENT !== 'undefined' && MAESTRO_E2E_DEV_CLIENT === '1'}
+    commands:
+      - extendedWaitUntil:
+          visible: Development Build
+          timeout: 30000
+      - openLink: "exp+wb://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081&disableOnboarding=1&disableFab=1&disableAutoLaunch=1"
+
+- runFlow:
+    when:
       visible: "Pixel Launcher isn't responding"
     commands:
       - tapOn:
           id: "android:id/aerr_close"
+- extendedWaitUntil:
+    visible: "Smart City"
+    timeout: 60000
 - assertVisible: "Smart City"
 - tapOn:
     id: "login-button"
@@ -36,7 +48,7 @@ name: Autenticar e registrar ocorrência
           commands:
             - tapOn:
                 id: "login-button"
-                
+
 - extendedWaitUntil:
     visible:
       id: "username|tab-occurrences"
@@ -127,4 +139,3 @@ name: Autenticar e registrar ocorrência
 - extendedWaitUntil:
     visible: "${E2E_TITLE}"
     timeout: 60000
-

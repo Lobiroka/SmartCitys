@@ -16,6 +16,9 @@ def main():
     missing = [key for key in required if not os.environ.get(key)]
     if missing:
         raise SystemExit('Configure no ambiente: ' + ', '.join(missing))
+    development_client = os.environ.get('E2E_DEV_CLIENT', '0')
+    if development_client not in ('0', '1'):
+        raise SystemExit('E2E_DEV_CLIENT deve ser 0 (APK independente) ou 1 (development + Metro).')
     url = urlparse(os.environ['E2E_API_URL'])
     if (not url.hostname or url.username or url.password or url.query or url.fragment or
         url.path not in ('', '/') or
@@ -30,6 +33,7 @@ def main():
     environment = os.environ.copy()
     for name in required:
         environment['MAESTRO_' + name] = environment[name]
+    environment['MAESTRO_E2E_DEV_CLIENT'] = development_client
     environment['MAESTRO_E2E_TITLE'] = 'E1 ' + uuid4().hex
     command = [maestro, 'test', '--format', 'junit', '--output', str(output / 'results.xml'),
                '--debug-output', str(output / 'debug'), '--test-output-dir', str(output),
@@ -52,6 +56,7 @@ def main():
         (output / 'execution.json').write_text(json.dumps({
             'exit_code': code, 'duration_seconds': round(time.monotonic() - started, 3),
             'title': environment['MAESTRO_E2E_TITLE'],
+            'development_client': development_client == '1',
         }), encoding='utf-8')
         runpy.run_path(str(root / '.github/scripts/sanitize-e2e.py'))
         print('Evidências E1: ' + str(output))

@@ -150,6 +150,34 @@ Executar:
 npm run mobile:test:e2e:e1
 ```
 
+Para o APK **development**, mantenha `npm.cmd run team:android` aberto em
+outro terminal e execute no PowerShell:
+
+```powershell
+$env:E2E_DEV_CLIENT = '1'
+npm.cmd run mobile:test:e2e:e1
+```
+
+Esse modo mantém a limpeza de dados e reabre a conexão ao Metro local na
+porta 8081. Usa os parâmetros do Expo SDK 57 `disableOnboarding=1`,
+`disableFab=1` e `disableAutoLaunch=1` para não exibir a apresentação inicial,
+o botão flutuante de ferramentas nem o menu automático. Isso evita que o
+botão do Expo cubra `Nova ocorrência`; as ações do app continuam obrigatórias.
+O encaminhamento ADB é preparado pelo
+comando `team:android`; o Metro precisa estar acessível em `127.0.0.1:8081`.
+Em máquinas que resolvem localhost apenas para IPv6, iniciar esse comando com
+`$env:NODE_OPTIONS = '--dns-result-order=ipv4first'`.
+
+Esses parâmetros são suportados pelo cliente development atual da equipe;
+no SDK 57, alteram preferências do cliente instalado. Se voltar ao uso manual,
+as ferramentas podem ser reativadas nas configurações do Expo. Referência:
+[execução do development client sem menu](https://github.com/expo/skills/blob/main/plugins/expo/expo-overview/references/launch-without-dev-menu.md).
+
+Para APK independente do Metro, usar `E2E_DEV_CLIENT=0` ou remover a variável.
+O padrão é `0`, preservando o fluxo da CI. As verificações da ocorrência e
+do push continuam obrigatórias nos dois modos; a preparação do Expo não é
+evidência de entrega de notificação. O modo utilizado fica em `execution.json`.
+
 O runner gera título aleatório e diretório exclusivo em
 `test-results/e2e/e1-<identificador>/`, contendo `results.xml` (JUnit), logs,
 diagnóstico do Maestro e screenshots das três etapas. Preserva o exit code e
