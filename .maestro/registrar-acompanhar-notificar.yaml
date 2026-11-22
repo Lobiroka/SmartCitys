@@ -23,6 +23,19 @@ env:
     start: 50%, 1%
     end: 50%, 80%
     duration: 500
+- assertNotVisible: Uma das suas ocorrências teve o status atualizado.
+- back
+
+- pressKey: HOME
+- runScript: scripts/update-occurrence-status.js
+
+- swipe:
+    start: 50%, 1%
+    end: 50%, 80%
+    duration: 500
+- extendedWaitUntil:
+    visible: Uma das suas ocorrências teve o status atualizado.
+    timeout: 90000
 - takeScreenshot: e1-notificacao-recebida
 - back
 
