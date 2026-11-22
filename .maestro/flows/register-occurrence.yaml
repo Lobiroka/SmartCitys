@@ -39,7 +39,7 @@ name: Autenticar e registrar ocorrência
 
 - extendedWaitUntil:
     visible:
-      id: "username"
+      id: "username|tab-occurrences"
     timeout: 60000
 - tapOn:
     id: "username"
