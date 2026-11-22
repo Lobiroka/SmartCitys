@@ -1,6 +1,18 @@
 name: Regressão completa
 
 on:
+  push:
+    branches:
+      - hayana-test-e3
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.maestro/**'
+      - '.github/scripts/e3-fixture.cjs'
+      - '.github/scripts/tests/e3-fixture.test.cjs'
+      - '.github/scripts/run-e2e.sh'
+      - '.github/workflows/testes-api.yml'
   schedule:
     # 03:00 UTC = 00:00 em America/Fortaleza (UTC-3).
     - cron: '0 3 * * *'
@@ -15,8 +27,13 @@ permissions:
   contents: read
   actions: read
 
+concurrency:
+  group: regressao-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+
 jobs:
   regressao-completa:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     name: Regressão completa
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -71,7 +88,7 @@ jobs:
           node-version: '22'
 
       - name: Validar registro de issues
-        run: node --test .github/scripts/tests/quality-issue.test.cjs
+        run: node --test .github/scripts/tests/*.test.cjs
 
       - name: Instalar dependências do mobile
         run: npm ci
@@ -227,7 +244,7 @@ jobs:
           fi
 
       - name: Gerar relatórios de qualidade
-        if: ${{ !cancelled() }}
+        if: always()
         env:
           MOBILE_OUTCOME: ${{ steps.unitarios.outcome }}
           API_OUTCOME: ${{ steps.api.outcome }}
@@ -238,8 +255,8 @@ jobs:
           GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
         run: python .github/scripts/quality-report.py
 
-      - name: Salvar resultados e relatórios
-        if: ${{ !cancelled() }}
+      - name: Publicar relatórios HTML, Markdown e evidências
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: qualidade-regressao-${{ github.run_id }}-${{ github.run_attempt }}

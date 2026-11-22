@@ -175,7 +175,7 @@ class QualityTests(unittest.TestCase):
         self.assertEqual(result['sut_failures'], 0)
         self.assertEqual(result['pending_failures'], 1)
         for name in ('technical.html', 'business.html', 'summary.md'):
-            content = (self.root / 'quality' / name).read_text()
+            content = (self.root / 'quality' / name).read_text(encoding="utf-8")
             self.assertIn('Triagem pendente' if name.endswith('.md') else 'Causa ainda em investigação', content)
             self.assertIn('99.00%' if name.endswith('.md') else '99,00%', content)
             if name.endswith('.html'):
@@ -189,7 +189,7 @@ class QualityTests(unittest.TestCase):
         result = self.report(outcomes={'mobile': 'failure'}, assessments=path)
         self.assertEqual(result['sut_failures'], 1)
         self.assertEqual(result['pending_failures'], 0)
-        content = (self.root / 'quality/business.html').read_text()
+        content = (self.root / 'quality/business.html').read_text(encoding="utf-8")
         self.assertIn('Defeito do aplicativo ou de seus serviços', content)
         self.assertIn('https://github.com/example/app/issues/42', content)
         self.assertIn('A criação permanece bloqueada', content)
@@ -223,7 +223,7 @@ class QualityTests(unittest.TestCase):
                 self.assertEqual(result['pending_failures'], 1)
                 self.assertTrue(result['assessment_problems'])
         path = self.assessment_file()
-        entries = json.loads(path.read_text())
+        entries = json.loads(path.read_text(encoding="utf-8"))
         path.write_text(json.dumps(entries * 2))
         result = self.report(outcomes={'mobile': 'failure'}, assessments=path)
         self.assertEqual(result['sut_failures'], 0)

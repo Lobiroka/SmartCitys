@@ -1,0 +1,24 @@
+appId: com.darkartsbm.smartcitys
+name: E3 - impedir acesso à edição de ocorrência de outro cidadão
+---
+- runFlow: subflows/autenticar.yaml
+- openLink: wb://edit-occurrence?id=${E3_FOREIGN_ID}
+- extendedWaitUntil:
+    visible:
+      id: occurrence-title-input
+    timeout: 30000
+- assertVisible: Editar ocorrência
+- assertNotVisible: ${E3_FOREIGN_TITLE}
+- assertNotVisible: ${E3_FOREIGN_DESCRIPTION}
+- scrollUntilVisible:
+    element: Denúncia não encontrada
+    direction: DOWN
+    timeout: 30000
+- assertVisible: Denúncia não encontrada
+- takeScreenshot: e3-acesso-negado
+- scrollUntilVisible:
+    element:
+      id: occurrence-title-input
+    direction: UP
+- assertNotVisible: ${E3_FOREIGN_TITLE}
+- assertNotVisible: ${E3_FOREIGN_DESCRIPTION}

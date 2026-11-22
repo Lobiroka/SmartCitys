@@ -95,6 +95,109 @@ salvos no artefato `evidencias-e2e-<run_id>`, inclusive quando o E2E falha.
 O banco é descartado ao terminar o job; o usuário e as sessões no realm de
 testes continuam no Keycloak.
 
+## E1 — registrar, acompanhar e notificar na mesma execução
+
+O caso `registrar-acompanhar-notificar.yaml` utiliza o app Android integrado
+ao backend, sem mocks de API ou de notificação. Na mesma execução:
+
+1. Autentica o cidadão e registra uma ocorrência pelo formulário do app.
+2. Localiza o registro pelo título exclusivo da execução e confirma `Aberta`
+   na listagem do cidadão.
+3. Confirma que a mensagem de atualização não estava presente na central de
+   notificações e coloca o app em segundo plano.
+4. Usa a rota real `PATCH /demands/gestor/:id/status`, com token Keycloak de
+   gestor, para alterar **somente esse registro** para `EM_ANALISE`.
+5. Aguarda a notificação real na central do Android. A ausência da mensagem
+   em até 90 segundos reprova o caso.
+6. Reabre o app, recarrega a listagem e pesquisa o mesmo título, confirmando
+   `Em análise` e ausência do status `Aberta`.
+
+O gestor atua pela API para manter o cidadão autenticado no aparelho durante
+o recebimento do push. A API continua validando assinatura e papel do token;
+o teste não cria papéis nem usa autenticação alternativa. O fluxo compartilha
+o subfluxo de registro com o MVP em `flows/register-occurrence.yaml`.
+
+### Preparação e execução do E1
+
+- Um único Android autorizado conectado por ADB, com Maestro no PATH e Python.
+- APK com Firebase/Expo push configurados e acesso ao backend de testes.
+  Usar o código desta alteração, que identifica o status por
+  `occurrence-status-<id>` para distingui-lo dos filtros da tela. Se for um
+  development client, iniciar também o Metro correspondente.
+- Backend de testes com envio Expo/FCM real habilitado pelo responsável.
+  O Compose local padrão desativa push; a regressão atual do runner também
+  não provisiona essas credenciais. Esses ambientes, sem configuração
+  adicional, não comprovam o E1.
+- Conta de cidadão exclusiva deste teste, sem alterações concorrentes por
+  outros gestores: a mensagem atual de push é genérica, sem ID da ocorrência.
+- Token de acesso Keycloak válido de **outro usuário gestor**, obtido pelo
+  fluxo de login autorizado, para o mesmo ambiente do APK. Não usar token
+  administrativo nem modificar o realm para executar este caso.
+
+Na raiz, disponibilizar as variáveis no ambiente local, sem versionar ou
+enviar credenciais pelo chat:
+
+| Variável | Valor esperado |
+|---|---|
+| `E2E_USERNAME` | Conta dedicada do cidadão |
+| `E2E_PASSWORD` | Senha da conta dedicada |
+| `E2E_API_URL` | Origem da API de testes, a mesma utilizada pelo APK |
+| `E2E_GESTOR_TOKEN` | Token de acesso Keycloak válido com papel gestor |
+
+Executar:
+
+```sh
+npm run mobile:test:e2e:e1
+```
+
+Para o APK **development**, mantenha `npm.cmd run team:android` aberto em
+outro terminal e execute no PowerShell:
+
+```powershell
+$env:E2E_DEV_CLIENT = '1'
+npm.cmd run mobile:test:e2e:e1
+```
+
+Esse modo mantém a limpeza de dados e reabre a conexão ao Metro local na
+porta 8081. Usa os parâmetros do Expo SDK 57 `disableOnboarding=1`,
+`disableFab=1` e `disableAutoLaunch=1` para não exibir a apresentação inicial,
+o botão flutuante de ferramentas nem o menu automático. Isso evita que o
+botão do Expo cubra `Nova ocorrência`; as ações do app continuam obrigatórias.
+O encaminhamento ADB é preparado pelo
+comando `team:android`; o Metro precisa estar acessível em `127.0.0.1:8081`.
+Em máquinas que resolvem localhost apenas para IPv6, iniciar esse comando com
+`$env:NODE_OPTIONS = '--dns-result-order=ipv4first'`.
+
+Esses parâmetros são suportados pelo cliente development atual da equipe;
+no SDK 57, alteram preferências do cliente instalado. Se voltar ao uso manual,
+as ferramentas podem ser reativadas nas configurações do Expo. Referência:
+[execução do development client sem menu](https://github.com/expo/skills/blob/main/plugins/expo/expo-overview/references/launch-without-dev-menu.md).
+
+Para APK independente do Metro, usar `E2E_DEV_CLIENT=0` ou remover a variável.
+O padrão é `0`, preservando o fluxo da CI. As verificações da ocorrência e
+do push continuam obrigatórias nos dois modos; a preparação do Expo não é
+evidência de entrega de notificação. O modo utilizado fica em `execution.json`.
+
+O runner gera título aleatório e diretório exclusivo em
+`test-results/e2e/e1-<identificador>/`, contendo `results.xml` (JUnit), logs,
+diagnóstico do Maestro e screenshots das três etapas. Preserva o exit code e
+sanitiza os arquivos textuais ao terminar, inclusive após falha. Screenshots
+precisam de revisão antes de compartilhar. O token não é passado na linha de
+comando. Python pode ser chamado por `python3` em instalações sem alias `python`:
+`python3 .github/scripts/run-e1.py`.
+
+O caso cria um registro real e o mantém para auditoria. Executar somente em
+ambiente de testes dedicado; a limpeza posterior pertence ao responsável e
+não faz parte deste caso. O teste falha diante de título ausente/duplicado,
+credencial inválida, atualização recusada ou ausência da notificação/status.
+
+O E1 teve duas execuções integradas consecutivas aprovadas em 22/11/2026, no commit `a156a38`,
+com cliente development, API compartilhada e push real. JUnit, modo utilizado
+e capturas revisadas estão em
+[evidências do E1](../docs/tas-evidence/e1-2026-11-22/README.md).
+Ele não foi acrescentado à regressão agendada, que não possui os
+pré-requisitos de push real.
+
 Validação no GitHub Actions: [execução 38479762930](https://github.com/Lobiroka/SmartCitys/actions/runs/38479762930)
 concluiu os três níveis com sucesso: 31 testes Jest, 24 testes de API e o fluxo
 MVP Maestro. Os seis filtros avançados fora da TAS continuam sinalizados como
@@ -106,3 +209,66 @@ Durante o diagnóstico do Maestro, é possível informar uma execução desta me
 branch que tenha o artefato `apk-e2e-<run_id>`. O workflow confere se o código mobile
 e a configuração de build são iguais antes de reutilizar o APK. Os três níveis de
 testes continuam executando. Se modificar secrets de build, gere um APK novo.
+
+## E3 — cenários negativos
+
+A execução está conectada ao workflow **Regressão completa**, em
+`.github/workflows/testes-api.yml`. Ele inicia automaticamente a cada push na
+branch `hayana-test-e3` e em PRs para `main` com alterações nos fluxos Maestro,
+nos scripts E3 ou no próprio workflow. O agendamento diário e o disparo manual
+continuam disponíveis. PRs de forks não executam esse job com credenciais E2E.
+
+Depois do commit e push, abra **GitHub → Actions → Regressão completa** e
+selecione a execução da branch. O job prepara PostgreSQL/Redis e os serviços,
+gera o APK e executa o MVP e os dois cenários negativos no emulador Android.
+Em **Artifacts**, consulte `evidencias-e2e-<run_id>` e
+`qualidade-regressao-<run_id>-<tentativa>`. O arquivo `negative-results.xml`
+registra os resultados dos dois casos. A execução usa os secrets E2E e Maps
+já exigidos pelo workflow; não é necessário colocá-los no código.
+
+Uma nova atualização de push/PR cancela a regressão anterior da mesma branch,
+para validar a versão mais recente. O acionamento só passa a existir no
+GitHub depois que a alteração do workflow for enviada.
+
+A regressão inclui dois casos independentes, com resultados JUnit separados:
+
+| Caso | Ação no app | Resultado obrigatório |
+|---|---|---|
+| `negativos/registro-sem-titulo.yaml` | Preenche descrição e endereço, deixa o título vazio e tenta salvar | Exibe `Preencha título e descrição.`, permanece no formulário e não cria ocorrência |
+| `negativos/acesso-ocorrencia-alheia.yaml` | Autentica o cidadão e abre por deep link a edição de um registro de outro dono | Exibe `Denúncia não encontrada`, sem apresentar título ou descrição privados |
+
+São testes de ponta a ponta com app, Keycloak e backend reais. O primeiro
+verifica a validação do formulário; o segundo passa pelo cliente HTTP
+autenticado do app e pelo controle de propriedade da API. A resposta 404
+oculta a existência da ocorrência para quem não é o dono.
+
+O script `e3-fixture.cjs` prepara um cidadão sintético e sua ocorrência no
+PostgreSQL temporário da regressão. Não cria conta Keycloak nem altera papéis.
+O banco deve se chamar `smartcitys_test` e estar em loopback; o script rejeita
+bancos de desenvolvimento e endereços remotos, inclusive RDS. O app deve usar
+o backend conectado a esse mesmo banco. Não executar estes casos contra a
+API compartilhada.
+
+`run-e2e.sh` executa primeiro o MVP e depois os dois negativos, mesmo se o MVP
+falhar. Antes e depois, confirma a existência e integridade da ocorrência
+alheia; ao final, verifica também que o registro sem título não foi persistido.
+A limpeza remove somente o registro sintético e seu dono. Falhas dos testes,
+das verificações ou da limpeza mantêm a etapa E2E reprovada.
+
+O fluxo de autenticação dos negativos aceita a sessão SSO da mesma conta
+dedicada ou preenche o formulário Keycloak quando necessário. Não depende de
+senha de outro usuário, token de gestor ou configuração de push real.
+
+Os artefatos E2E incluem `mvp-results.xml`, `negative-results.xml`, o agregado
+`results.xml`, screenshots e diagnósticos. A coleta existente publica esses
+arquivos e inclui os três casos nos relatórios de qualidade. A agregação
+reprova se não encontrar um caso MVP e dois negativos nos relatórios.
+
+Validação local dos mecanismos de preparação e limpeza, sem conectar ao banco:
+
+```sh
+node --test .github/scripts/tests/e3-fixture.test.cjs
+bash -n .github/scripts/run-e2e.sh
+```
+
+A execução integrada dos casos novos ainda precisa ser registrada na regressão.

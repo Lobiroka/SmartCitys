@@ -1,0 +1,52 @@
+appId: com.darkartsbm.smartcitys
+name: E3 - rejeitar registro sem título obrigatório
+---
+- runFlow: subflows/autenticar.yaml
+- tapOn:
+    id: tab-occurrences
+- extendedWaitUntil:
+    visible:
+      id: occurrence-create-button
+    timeout: 30000
+- tapOn:
+    id: occurrence-create-button
+- scrollUntilVisible:
+    element:
+      id: occurrence-description-input
+    direction: DOWN
+- tapOn:
+    id: occurrence-description-input
+- inputText: ${E3_INVALID_DESCRIPTION}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: occurrence-address-input
+    direction: DOWN
+- tapOn:
+    id: occurrence-address-input
+- inputText: Rua de testes E3, 100
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: occurrence-save-button
+    direction: DOWN
+- tapOn:
+    id: occurrence-save-button
+- assertVisible: Preencha título e descrição.
+- assertVisible:
+    id: occurrence-save-button
+- assertNotVisible:
+    id: occurrence-create-button
+- takeScreenshot: e3-titulo-obrigatorio
+- back
+- tapOn:
+    id: tab-occurrences
+- extendedWaitUntil:
+    visible:
+      id: occurrence-search-input
+    timeout: 30000
+- tapOn:
+    id: occurrence-search-input
+- inputText: ${E3_INVALID_DESCRIPTION}
+- hideKeyboard
+- assertVisible: Nenhuma ocorrência encontrada.

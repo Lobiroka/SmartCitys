@@ -98,7 +98,7 @@ export function OccurrenceListScreen() {
                     <ThemedView style={[styles.card, { borderColor: colors.icon }]}>
                         <View style={styles.cardHeader}>
                             <ThemedText type="subtitle" style={styles.cardTitle}>{item.title}</ThemedText>
-                            <ThemedText type="defaultSemiBold">
+                            <ThemedText type="defaultSemiBold" testID={`occurrence-status-${item.id}`}>
                                 {occurrenceLabel(occurrenceStatuses, item.status)}
                             </ThemedText>
                         </View>
