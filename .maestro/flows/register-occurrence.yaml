@@ -27,7 +27,7 @@ name: Autenticar e registrar ocorrência
           id: "com.android.chrome:id/signin_fre_dismiss_button"
       - extendedWaitUntil:
           visible:
-            id: "username|login-button"
+            id: "username|login-button|tab-occurrences"
           timeout: 60000
       - runFlow:
           when:
@@ -36,20 +36,26 @@ name: Autenticar e registrar ocorrência
           commands:
             - tapOn:
                 id: "login-button"
-
+                
 - extendedWaitUntil:
     visible:
       id: "username|tab-occurrences"
     timeout: 60000
-- tapOn:
-    id: "username"
-- inputText: "${E2E_USERNAME}"
-- tapOn:
-    id: "password"
-- inputText: "${E2E_PASSWORD}"
-- hideKeyboard
-- tapOn:
-    id: "kc-login"
+
+- runFlow:
+    when:
+      visible:
+        id: "username"
+    commands:
+      - tapOn:
+          id: "username"
+      - inputText: "${E2E_USERNAME}"
+      - tapOn:
+          id: "password"
+      - inputText: "${E2E_PASSWORD}"
+      - hideKeyboard
+      - tapOn:
+          id: "kc-login"
 
 - extendedWaitUntil:
     visible: "Menu do Perfil"
