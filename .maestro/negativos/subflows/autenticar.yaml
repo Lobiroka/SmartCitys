@@ -1,0 +1,61 @@
+appId: com.darkartsbm.smartcitys
+name: Autenticar para cenários negativos E3
+---
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+      camera: allow
+      notifications: allow
+
+- runFlow:
+    when:
+      visible: "Pixel Launcher isn't responding"
+    commands:
+      - tapOn:
+          id: "android:id/aerr_close"
+- assertVisible: "Smart City"
+- tapOn:
+    id: "login-button"
+
+- runFlow:
+    when:
+      visible:
+        id: "com.android.chrome:id/signin_fre_dismiss_button"
+    commands:
+      - tapOn:
+          id: "com.android.chrome:id/signin_fre_dismiss_button"
+      - extendedWaitUntil:
+          visible:
+            id: "username|login-button|tab-occurrences"
+          timeout: 60000
+      - runFlow:
+          when:
+            visible:
+              id: "login-button"
+          commands:
+            - tapOn:
+                id: "login-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "username|tab-occurrences"
+    timeout: 60000
+- runFlow:
+    when:
+      visible:
+        id: username
+    commands:
+      - tapOn:
+          id: "username"
+      - inputText: "${E2E_USERNAME}"
+      - tapOn:
+          id: "password"
+      - inputText: "${E2E_PASSWORD}"
+      - hideKeyboard
+      - tapOn:
+          id: "kc-login"
+
+- extendedWaitUntil:
+    visible: "Menu do Perfil"
+    timeout: 60000

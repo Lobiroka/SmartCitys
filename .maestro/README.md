@@ -209,3 +209,66 @@ Durante o diagnóstico do Maestro, é possível informar uma execução desta me
 branch que tenha o artefato `apk-e2e-<run_id>`. O workflow confere se o código mobile
 e a configuração de build são iguais antes de reutilizar o APK. Os três níveis de
 testes continuam executando. Se modificar secrets de build, gere um APK novo.
+
+## E3 — cenários negativos
+
+A execução está conectada ao workflow **Regressão completa**, em
+`.github/workflows/testes-api.yml`. Ele inicia automaticamente a cada push na
+branch `hayana-test-e3` e em PRs para `main` com alterações nos fluxos Maestro,
+nos scripts E3 ou no próprio workflow. O agendamento diário e o disparo manual
+continuam disponíveis. PRs de forks não executam esse job com credenciais E2E.
+
+Depois do commit e push, abra **GitHub → Actions → Regressão completa** e
+selecione a execução da branch. O job prepara PostgreSQL/Redis e os serviços,
+gera o APK e executa o MVP e os dois cenários negativos no emulador Android.
+Em **Artifacts**, consulte `evidencias-e2e-<run_id>` e
+`qualidade-regressao-<run_id>-<tentativa>`. O arquivo `negative-results.xml`
+registra os resultados dos dois casos. A execução usa os secrets E2E e Maps
+já exigidos pelo workflow; não é necessário colocá-los no código.
+
+Uma nova atualização de push/PR cancela a regressão anterior da mesma branch,
+para validar a versão mais recente. O acionamento só passa a existir no
+GitHub depois que a alteração do workflow for enviada.
+
+A regressão inclui dois casos independentes, com resultados JUnit separados:
+
+| Caso | Ação no app | Resultado obrigatório |
+|---|---|---|
+| `negativos/registro-sem-titulo.yaml` | Preenche descrição e endereço, deixa o título vazio e tenta salvar | Exibe `Preencha título e descrição.`, permanece no formulário e não cria ocorrência |
+| `negativos/acesso-ocorrencia-alheia.yaml` | Autentica o cidadão e abre por deep link a edição de um registro de outro dono | Exibe `Denúncia não encontrada`, sem apresentar título ou descrição privados |
+
+São testes de ponta a ponta com app, Keycloak e backend reais. O primeiro
+verifica a validação do formulário; o segundo passa pelo cliente HTTP
+autenticado do app e pelo controle de propriedade da API. A resposta 404
+oculta a existência da ocorrência para quem não é o dono.
+
+O script `e3-fixture.cjs` prepara um cidadão sintético e sua ocorrência no
+PostgreSQL temporário da regressão. Não cria conta Keycloak nem altera papéis.
+O banco deve se chamar `smartcitys_test` e estar em loopback; o script rejeita
+bancos de desenvolvimento e endereços remotos, inclusive RDS. O app deve usar
+o backend conectado a esse mesmo banco. Não executar estes casos contra a
+API compartilhada.
+
+`run-e2e.sh` executa primeiro o MVP e depois os dois negativos, mesmo se o MVP
+falhar. Antes e depois, confirma a existência e integridade da ocorrência
+alheia; ao final, verifica também que o registro sem título não foi persistido.
+A limpeza remove somente o registro sintético e seu dono. Falhas dos testes,
+das verificações ou da limpeza mantêm a etapa E2E reprovada.
+
+O fluxo de autenticação dos negativos aceita a sessão SSO da mesma conta
+dedicada ou preenche o formulário Keycloak quando necessário. Não depende de
+senha de outro usuário, token de gestor ou configuração de push real.
+
+Os artefatos E2E incluem `mvp-results.xml`, `negative-results.xml`, o agregado
+`results.xml`, screenshots e diagnósticos. A coleta existente publica esses
+arquivos e inclui os três casos nos relatórios de qualidade. A agregação
+reprova se não encontrar um caso MVP e dois negativos nos relatórios.
+
+Validação local dos mecanismos de preparação e limpeza, sem conectar ao banco:
+
+```sh
+node --test .github/scripts/tests/e3-fixture.test.cjs
+bash -n .github/scripts/run-e2e.sh
+```
+
+A execução integrada dos casos novos ainda precisa ser registrada na regressão.
