@@ -52,6 +52,7 @@ export function ManagerOccurrenceListScreen() {
                     ) : null}
                     renderItem={({ item }) => (
                         <Pressable
+                            testID={`manager-occurrence-${item.id}`}
                             accessibilityRole="button"
                             accessibilityHint="Abre os detalhes da ocorrência"
                             style={({ pressed }) => [

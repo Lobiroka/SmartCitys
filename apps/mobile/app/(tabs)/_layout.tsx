@@ -40,6 +40,7 @@ export default function TabLayout() {
           name="gestor"
           options={{
             title: 'Gestão',
+            tabBarButtonTestID: 'tab-manager',
             tabBarIcon: ({ color }) => <IconSymbol size={28} name="briefcase.fill" color={color} />,
           }}
         />

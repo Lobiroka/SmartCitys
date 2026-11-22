@@ -32,7 +32,7 @@ export function ManagerOccurrenceDetailScreen({ id }: { id: number }) {
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.header}>
                     <ThemedText>Ocorrência #{occurrence.id}</ThemedText>
-                    <ThemedText type="subtitle" accessibilityRole="header">{occurrence.title}</ThemedText>
+                    <ThemedText testID="manager-occurrence-title" type="subtitle" accessibilityRole="header">{occurrence.title}</ThemedText>
                     <ThemedText>{occurrence.description}</ThemedText>
                 </View>
 
@@ -41,12 +41,13 @@ export function ManagerOccurrenceDetailScreen({ id }: { id: number }) {
                     <ThemedText>Região: {occurrenceLabel(occurrenceRegions, occurrence.region)}</ThemedText>
                     {occurrence.address ? <ThemedText>Endereço: {occurrence.address}</ThemedText> : null}
                     {occurrence.latitude !== null && occurrence.longitude !== null ? (
-                        <ThemedText>GPS: {occurrence.latitude.toFixed(5)}, {occurrence.longitude.toFixed(5)}</ThemedText>
+                        <ThemedText testID="manager-occurrence-gps">GPS: {occurrence.latitude.toFixed(5)}, {occurrence.longitude.toFixed(5)}</ThemedText>
                     ) : null}
                 </View>
 
                 {occurrence.images.map((image) => (
                     <Image key={image.id} source={{ uri: image.path }}
+                        testID={`manager-occurrence-photo-${image.id}`}
                         accessibilityLabel="Foto da ocorrência"
                         style={{ width: '100%', height: 220, borderRadius: 12 }}
                         resizeMode="contain" />
@@ -97,6 +98,7 @@ function ChangeOptions<T extends string>({
                     return (
                         <Pressable
                             key={option.value}
+                            testID={`manager-${title === 'Status' ? 'status' : 'priority'}-${option.value}`}
                             accessibilityRole="button"
                             accessibilityLabel={`${title}: ${option.label}`}
                             accessibilityState={{ disabled: unavailable, selected }}

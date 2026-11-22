@@ -1,0 +1,16 @@
+appId: com.darkartsbm.smartcitys
+name: Pesquisar ou preservar a busca desta execução
+---
+- tapOn:
+    id: occurrence-search-input
+- runFlow:
+    when:
+      notVisible:
+        id: occurrence-search-input
+        text: ${MAESTRO_E2E_TITLE}
+    commands:
+      - inputText: ${MAESTRO_E2E_TITLE}
+- hideKeyboard
+- assertVisible:
+    id: occurrence-search-input
+    text: ${MAESTRO_E2E_TITLE}

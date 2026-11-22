@@ -1,0 +1,64 @@
+appId: com.darkartsbm.smartcitys
+name: Final 2 - gestor confere foto e GPS e altera status pela tela
+env:
+  E2E_USERNAME: ${MAESTRO_E2E_MANAGER_USERNAME}
+  E2E_PASSWORD: ${MAESTRO_E2E_MANAGER_PASSWORD}
+---
+- clearState: com.android.chrome
+- runFlow: ../flows/start-app.yaml
+- runFlow: ../flows/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-manager
+    timeout: 30000
+- tapOn:
+    id: tab-manager
+- scrollUntilVisible:
+    element: ".*${MAESTRO_E2E_TITLE}.*"
+    direction: DOWN
+    timeout: 60000
+- tapOn: ".*${MAESTRO_E2E_TITLE}.*"
+- extendedWaitUntil:
+    visible:
+      id: manager-occurrence-title
+      text: ${MAESTRO_E2E_TITLE}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: manager-occurrence-gps
+    direction: DOWN
+- assertVisible:
+    id: manager-occurrence-gps
+    text: "GPS: -?\\d+\\.\\d{5}, -?\\d+\\.\\d{5}"
+- scrollUntilVisible:
+    element:
+      id: manager-occurrence-photo-.*
+    direction: DOWN
+- assertVisible:
+    id: manager-occurrence-photo-.*
+- takeScreenshot: 04-gestor-foto-gps
+- scrollUntilVisible:
+    element:
+      id: manager-status-EM_ANALISE
+    direction: DOWN
+- tapOn:
+    id: manager-status-EM_ANALISE
+- assertVisible: "Alterar status\\?"
+- tapOn:
+    id: android:id/button1
+    text: Salvar
+- scrollUntilVisible:
+    element: Alteração salva.
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: manager-status-EM_ANALISE
+    direction: UP
+- assertVisible:
+    id: manager-status-EM_ANALISE
+    enabled: false
+- assertVisible:
+    id: manager-status-RESOLVIDA
+    enabled: true
+- takeScreenshot: 05-gestor-status-salvo

@@ -1,0 +1,54 @@
+appId: com.darkartsbm.smartcitys
+name: Conferir registro persistido, pesquisa e filtros do cidadão
+env:
+  E2E_TITLE: ${MAESTRO_E2E_TITLE}
+---
+- tapOn:
+    id: tab-occurrences
+- runFlow: search-occurrence.yaml
+- tapOn:
+    id: occurrence-filter-ABERTA
+- assertVisible:
+    id: occurrence-title-.*
+    text: ${E2E_TITLE}
+- assertVisible:
+    id: occurrence-status-.*
+    text: Aberta
+- tapOn:
+    id: occurrence-filter-EM_ANALISE
+- assertVisible: Nenhuma ocorrência encontrada.
+- assertNotVisible:
+    id: occurrence-title-.*
+    text: ${E2E_TITLE}
+- tapOn:
+    id: occurrence-filter-ABERTA
+- assertVisible:
+    id: occurrence-title-.*
+    text: ${E2E_TITLE}
+- tapOn:
+    id: occurrence-edit-.*
+- extendedWaitUntil:
+    visible:
+      id: occurrence-title-input
+    timeout: 30000
+- scrollUntilVisible:
+    element: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: occurrence-photo-preview
+    direction: DOWN
+- assertVisible:
+    id: occurrence-photo-preview
+- takeScreenshot: 03-foto-gps-recarregados
+- back
+- tapOn:
+    id: tab-occurrences
+- swipe:
+    start: 50%, 1%
+    end: 50%, 80%
+    duration: 500
+- assertNotVisible: Uma das suas ocorrências teve o status atualizado.
+- back
+- pressKey: HOME

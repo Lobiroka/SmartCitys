@@ -78,6 +78,9 @@ export function OccurrenceListScreen() {
                                 const selected = vm.status === value;
                                 return (
                                     <Pressable
+                                        testID={`occurrence-filter-${value ?? 'ALL'}`}
+                                        accessibilityRole="button"
+                                        accessibilityState={{ selected }}
                                         style={[styles.chip, { borderColor: colors.icon }, selected && styles.chipSelected]}
                                         onPress={() => vm.setStatus(value)}>
                                         <ThemedText lightColor={selected ? '#fff' : undefined}
@@ -97,7 +100,8 @@ export function OccurrenceListScreen() {
                 renderItem={({ item }) => (
                     <ThemedView style={[styles.card, { borderColor: colors.icon }]}>
                         <View style={styles.cardHeader}>
-                            <ThemedText type="subtitle" style={styles.cardTitle}>{item.title}</ThemedText>
+                            <ThemedText testID={`occurrence-title-${item.id}`}
+                                type="subtitle" style={styles.cardTitle}>{item.title}</ThemedText>
                             <ThemedText type="defaultSemiBold" testID={`occurrence-status-${item.id}`}>
                                 {occurrenceLabel(occurrenceStatuses, item.status)}
                             </ThemedText>

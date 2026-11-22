@@ -1,0 +1,24 @@
+appId: com.darkartsbm.smartcitys
+name: Final 1 - cadastro, login, foto, GPS, filtros e persistência
+env:
+  E2E_USERNAME: ${MAESTRO_E2E_USERNAME}
+  E2E_PASSWORD: ${MAESTRO_E2E_PASSWORD}
+  E2E_TITLE: ${MAESTRO_E2E_TITLE}
+  E2E_WITH_PHOTO: '1'
+---
+- clearState: com.android.chrome
+- runFlow: ../flows/start-app.yaml
+- runFlow: ../flows/register-account.yaml
+- takeScreenshot: 01-cadastro-concluido
+- tapOn: Menu do Perfil
+- tapOn: Sair
+- extendedWaitUntil:
+    visible:
+      id: login-button
+    timeout: 30000
+- runFlow: ../flows/login.yaml
+- assertNotVisible:
+    id: tab-manager
+- takeScreenshot: 02-login-cidadao
+- runFlow: ../flows/create-occurrence.yaml
+- runFlow: ../flows/verify-citizen-occurrence.yaml

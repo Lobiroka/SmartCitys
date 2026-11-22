@@ -1,5 +1,47 @@
 # Teste E2E do MVP
 
+## Jornada completa da entrega final
+
+`npm.cmd run mobile:test:e2e:final -- --citizen-device emulator-5554 --manager-device emulator-5556`
+executa os três roteiros em `final/`, em sequência, sem atalhos de criação ou atualização por API:
+
+1. cadastra um cidadão novo no formulário real do Keycloak, sai e entra novamente;
+2. confirma ausência de Gestão, valida campos obrigatórios e registra ocorrência com GPS e foto da câmera;
+3. pesquisa, alterna filtros e reabre o registro para conferir foto e GPS persistidos;
+4. em outro Android, autentica o gestor, confere o mesmo registro, foto e GPS e muda o status pela tela;
+5. no Android do cidadão, exige o push real na bandeja e confere o novo status e os filtros.
+
+São necessários **dois dispositivos distintos e exclusivos de testes**, com o mesmo APK da branch,
+Maestro e ADB no PATH, internet e API/Keycloak de testes com push configurado. O roteiro limpa
+os dados do app **e do Chrome** nesses dois dispositivos, removendo sessões SSO antigas.
+Não use um celular ou navegador com dados pessoais a preservar.
+Em emuladores, configure uma localização válida antes da execução. Para development, mantenha
+o Metro na porta 8081 e acrescente `--dev-client`; o executor prepara o encaminhamento ADB.
+Esse teste não valida um APK final quando executado com Metro.
+O atalho `team:android` exige apenas um Android conectado: inicie-o com o aparelho
+do cidadão e abra/conecte o segundo Android depois, mantendo o Metro em execução.
+Não execute esse atalho novamente com os dois conectados.
+
+Configure `E2E_MANAGER_USERNAME` e `E2E_MANAGER_PASSWORD` no ambiente do processo,
+ou acrescente `--credentials-file CAMINHO_LOCAL` apontando para JSON local ignorado pelo Git
+com essas duas propriedades. Não passe senhas na linha de comando nem as versione.
+O cidadão e a senha são gerados em memória a cada execução; o realm precisa permitir cadastro
+e atribuir apenas `cidadao` por padrão. Não são necessárias credenciais administrativas.
+
+O teste cria conta e ocorrência fictícias no ambiente compartilhado e envia notificação real.
+Não altera infraestrutura nem remove dados automaticamente. O responsável pode localizar os
+dados pelo identificador da execução. Por depender de push e de dois Androids, esta jornada é
+uma execução explícita de integração; não substitui nem passa a fazer parte automaticamente
+da regressão diária isolada.
+
+O resultado fica em `test-results/e2e/final-<id>/`: `execution.json`, JUnit agregado e logs,
+JUnit e screenshots por etapa. Aprovação exige as três etapas e os respectivos JUnits válidos;
+erro, timeout ou relatório ausente interrompe o fluxo. Logs de texto são sanitizados; revise
+visualmente screenshots antes de publicá-los. Execuções com falha também devem ser preservadas.
+
+Os fluxos antigos reutilizam `flows/start-app.yaml`, `flows/login.yaml` e
+`flows/create-occurrence.yaml`, mantendo suas validações originais.
+
 O fluxo `mvp.yaml` valida o caminho crítico em um build próprio do aplicativo:
 
 1. abre o app com estado limpo;

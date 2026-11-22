@@ -39,6 +39,7 @@ yarn-error.*
 *.tsbuildinfo
 
 # tests
+__pycache__/
 coverage/
 **/coverage/
 test-results/

@@ -50,6 +50,7 @@ export function LoginScreen() {
                 accessibilityState={{ disabled: isLoading }}
                 accessibilityRole="button"
                 onPress={() => void signIn('register')}
+                testID="register-button"
             >
                 <ThemedText type="defaultSemiBold" lightColor="#1d4ed8" darkColor="#93c5fd">
                     Criar conta
