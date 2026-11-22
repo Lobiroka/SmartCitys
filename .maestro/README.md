@@ -109,6 +109,24 @@ testes continuam executando. Se modificar secrets de build, gere um APK novo.
 
 ## E3 — cenários negativos
 
+A execução está conectada ao workflow **Regressão completa**, em
+`.github/workflows/testes-api.yml`. Ele inicia automaticamente a cada push na
+branch `hayana-test-e3` e em PRs para `main` com alterações nos fluxos Maestro,
+nos scripts E3 ou no próprio workflow. O agendamento diário e o disparo manual
+continuam disponíveis. PRs de forks não executam esse job com credenciais E2E.
+
+Depois do commit e push, abra **GitHub → Actions → Regressão completa** e
+selecione a execução da branch. O job prepara PostgreSQL/Redis e os serviços,
+gera o APK e executa o MVP e os dois cenários negativos no emulador Android.
+Em **Artifacts**, consulte `evidencias-e2e-<run_id>` e
+`qualidade-regressao-<run_id>-<tentativa>`. O arquivo `negative-results.xml`
+registra os resultados dos dois casos. A execução usa os secrets E2E e Maps
+já exigidos pelo workflow; não é necessário colocá-los no código.
+
+Uma nova atualização de push/PR cancela a regressão anterior da mesma branch,
+para validar a versão mais recente. O acionamento só passa a existir no
+GitHub depois que a alteração do workflow for enviada.
+
 A regressão inclui dois casos independentes, com resultados JUnit separados:
 
 | Caso | Ação no app | Resultado obrigatório |
