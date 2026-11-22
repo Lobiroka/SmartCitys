@@ -1,0 +1,76 @@
+<section id="app-context">
+  <h2>Onde cada coisa aparece no Smart City?</h2>
+  <p>Relaciono abaixo as partes do aplicativo com os comportamentos que os testes podem verificar. Este quadro explica o app; a aprovação de uma parte depende dos resultados dos testes correspondentes.</p>
+  <div class="feature-tools" data-js-only hidden>
+    <label for="feature-search">Encontre uma parte do app ou um assunto</label>
+    <div class="search-row">
+      <input id="feature-search" type="search" placeholder="Ex.: título, mapa, gestor, notificações" data-feature-search aria-controls="feature-cards" autocomplete="off">
+      <button type="button" data-clear-features>Limpar busca</button>
+    </div>
+    <p class="filter-count" data-feature-count role="status"></p>
+  </div>
+  <div class="feature-cards" id="feature-cards">
+    <article class="feature-card" data-feature>
+      <h3>Entrar e Criar conta</h3>
+      <p>Permitem que o cidadão acesse a própria conta e suas ocorrências.</p>
+      <details>
+        <summary>Como isso se relaciona aos testes?</summary>
+        <p>Procuro evidências de login, cadastro, restauração da sessão e proteção das áreas que exigem identificação. Um teste isolado de sessão não comprova todo o login no Android.</p>
+      </details>
+    </article>
+    <article class="feature-card" data-feature>
+      <h3>Nova ocorrência</h3>
+      <p>É o formulário para registrar um problema urbano, com título, descrição e endereço ou localização.</p>
+      <details>
+        <summary>Como isso se relaciona aos testes?</summary>
+        <p>Verifico, conforme os casos executados, regras como impedir o envio sem título e salvar os dados válidos. A tela, o envio e a gravação no banco são verificações diferentes.</p>
+      </details>
+    </article>
+    <article class="feature-card" data-feature>
+      <h3>Aba Ocorrências</h3>
+      <p>Mostra os registros do cidadão, permite pesquisar e consultar a situação da ocorrência, além de editar ou excluir quando permitido.</p>
+      <details>
+        <summary>Como isso se relaciona aos testes?</summary>
+        <p>Relaciono os resultados de listagem, pesquisa, edição e exclusão a essa área. Um teste de pesquisa local não comprova os filtros do servidor.</p>
+      </details>
+    </article>
+    <article class="feature-card" data-feature>
+      <h3>Home e mapa</h3>
+      <p>Mostram a localização e as ocorrências com coordenadas no mapa.</p>
+      <details>
+        <summary>Como isso se relaciona aos testes?</summary>
+        <p>Um teste pode verificar quais registros têm coordenadas para aparecer no mapa. Isso, sozinho, não comprova o GPS, as permissões ou a exibição do mapa no aparelho.</p>
+      </details>
+    </article>
+    <article class="feature-card" data-feature>
+      <h3>Aba Gestão</h3>
+      <p>Permite ao gestor consultar demandas e alterar status e prioridade.</p>
+      <details>
+        <summary>Como isso se relaciona aos testes?</summary>
+        <p>Procuro evidências de autorização e de confirmação das alterações nos serviços. O cidadão não deve receber permissão de gestor apenas por uma decisão da tela.</p>
+      </details>
+    </article>
+    <article class="feature-card" data-feature>
+      <h3>Notificações de ocorrências</h3>
+      <p>Avisam o cidadão sobre mudanças na situação de uma ocorrência.</p>
+      <details>
+        <summary>Como isso se relaciona aos testes?</summary>
+        <p>Testar a permissão ou o registro do aparelho não comprova a chegada da mensagem. Para afirmar a entrega real, preciso de evidência específica do aviso recebido no Android.</p>
+      </details>
+    </article>
+  </div>
+  <p class="empty-state" data-feature-empty hidden>Nenhuma parte do app corresponde à busca. Tente outro termo ou limpe a busca.</p>
+  <details>
+    <summary>Traduzir os termos técnicos do relatório</summary>
+    <dl class="glossary">
+      <div><dt>Aplicativo / testes unitários</dt><dd>São verificações de partes do app, como a regra que impede salvar uma ocorrência sem título. Podem usar serviços simulados; não equivalem a usar o app inteiro no celular.</dd></div>
+      <div><dt>API / backend / serviços</dt><dd>É a parte do Smart City que fica por trás das telas: recebe requisições, confere permissões e salva ou consulta ocorrências. Os testes dessa camada verificam respostas e dados, sem precisar tocar na tela do Android.</dd></div>
+      <div><dt>E2E / ponta a ponta</dt><dd>É um roteiro no app integrado aos serviços, como entrar, preencher uma ocorrência e conferir o resultado. Só considero as ações que aquele roteiro realmente executou.</dd></div>
+      <div><dt>SUT / sistema sob teste</dt><dd>É o produto que estou avaliando: o Smart City e os serviços envolvidos na execução. “Defeito do SUT” significa um problema confirmado no produto, não apenas um teste que falhou.</dd></div>
+      <div><dt>TAS / automação dos testes</dt><dd>É o conjunto de roteiros e ferramentas que verifica o Smart City. Um botão procurado pelo nome errado pode quebrar o roteiro mesmo quando o app funciona.</dd></div>
+      <div><dt>Cobertura do código</dt><dd>Mostra quanto do código selecionado foi percorrido pelos testes. Neste relatório, a medição se limita à parte de ocorrências do app; não é uma porcentagem de telas aprovadas ou de qualidade de todo o sistema.</dd></div>
+      <div><dt>Resultados completos / coleta completa</dt><dd>Significa que recebi os resultados esperados daquela execução. Não significa que todas as situações possíveis do Smart City foram testadas.</dd></div>
+      <div><dt>Artefato / JUnit XML</dt><dd>Artefato é o arquivo que a equipe baixa do Actions, com relatórios e evidências. JUnit XML é um resultado estruturado para outras ferramentas lerem; os HTML são a apresentação para as pessoas.</dd></div>
+    </dl>
+  </details>
+</section>

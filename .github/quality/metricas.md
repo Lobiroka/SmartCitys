@@ -57,6 +57,45 @@ O E2E aparece como suíte e os casos Maestro aparecem nos detalhes; não inventa
 
 Ausência de média histórica não impede atualização dos indicadores por execução: JSON, resumo e HTML são gerados automaticamente a cada run relevante.
 
+## Leitura dos relatórios HTML
+
+O `business.html` começa pela conclusão em linguagem simples, pelos números
+principais e pela recomendação de próximo passo. O `technical.html` apresenta
+os resultados por área: aplicativo, serviços do sistema e fluxos completos no
+Android. Os diagnósticos, testes não executados, riscos e limites da cobertura
+continuam disponíveis; mensagens de erro e arquivos de evidência ficam em
+áreas expansíveis para consulta.
+
+Os dois relatórios explicam os motivos da classificação daquela execução e
+apresentam próximos passos a partir das pendências encontradas. O resumo define
+cada indicador e as quatro classificações. A análise detalhada explica também a
+diferença entre resultados completos e funcionalidades cobertas, além de trazer
+um exemplo de leitura da cobertura. Falhas, resultados ausentes e testes
+ignorados permanecem distintos; nenhuma causa de falha é presumida.
+
+O quadro compartilhado `app-context.html` relaciona os termos do relatório às
+telas e funções do Smart City: acesso à conta, Nova ocorrência, Ocorrências,
+Home/mapa, Gestão e notificações. É uma explicação de contexto, sem atribuir
+aprovação a uma funcionalidade inteira. Os roteiros Android exibidos nos dois
+relatórios vêm dos casos E2E recebidos, com o status original de cada caso.
+Quando não há resultados E2E ou essa área não faz parte da rotina, o relatório
+informa essa ausência; não deduz aprovação a partir dos testes unitários ou da API.
+
+A navegação interna permite ir direto ao resumo, ao contexto do app e aos
+roteiros Android. Os cartões de funcionalidades podem ser pesquisados, e os
+roteiros podem ser filtrados por resultado, com contagem da lista visível e
+aviso quando não há correspondência. Os filtros não alteram as métricas ou a
+classificação geral. Há controles para abrir e recolher todas as explicações.
+O `report.js` é incorporado ao HTML e funciona sem internet; sem JavaScript,
+o conteúdo completo e os detalhes nativos do navegador continuam disponíveis.
+
+Datas, durações e indicadores de cobertura recebem nomes e formatos legíveis.
+O estilo de `report.css` é incorporado aos dois HTML durante a geração, sem
+depender de internet ou de um arquivo CSS separado no artefato. A apresentação
+não altera contagens, critérios de status, métricas JSON nem a publicação no
+Actions. Uma falha continua vermelha mesmo com aprovação alta; execução
+incompleta continua identificada como parcial.
+
 ## M2 — interpretação dos resultados e riscos
 
 Os relatórios técnico e de negócio, o `summary.md` publicado no Job Summary e

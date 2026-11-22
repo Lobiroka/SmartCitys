@@ -242,6 +242,178 @@ def markdown_text(value):
     return re.sub(r'([\\`*_{}\[\]()#+!|>])', r'\\\1', html.escape(str(value)).replace('\n', ' '))
 
 
+def display_duration(seconds):
+    if seconds is None or not math.isfinite(seconds) or seconds < 0:
+        return 'Não informada'
+    if seconds < 1:
+        return 'Menos de 1 s'
+    minutes, remaining = divmod(round(seconds), 60)
+    hours, minutes = divmod(minutes, 60)
+    parts = ([f'{hours} h'] if hours else []) + ([f'{minutes} min'] if minutes else [])
+    return ' '.join(parts + ([f'{remaining} s'] if remaining or not parts else []))
+
+
+def html_presentation(result):
+    labels = {'mobile': 'Aplicativo', 'api': 'Serviços do sistema', 'e2e': 'Fluxos completos no Android'}
+    states = {
+        'VERDE': ('passed', 'Sem pendências nos critérios medidos', 'Os testes desta execução passaram.'),
+        'AMARELO': ('attention', 'Precisa de atenção', 'Os testes passaram, mas ainda há pontos a verificar.'),
+        'VERMELHO': ('failed', 'Há falhas a investigar', 'Encontrei testes que não passaram.'),
+        'INCONCLUSIVO': ('incomplete', 'Resultado incompleto', 'Ainda não tenho informação suficiente para concluir.'),
+    }
+    state, label, headline = states[result['status']]
+    counts = result['counts']
+    pct = lambda value: 'Não calculada' if value is None else f'{value:.2f}%'.replace('.', ',')
+    quantity = lambda count, singular, plural: f'{count} {singular if count == 1 else plural}'
+    list_html = lambda items: ''.join(f'<li>{html.escape(item)}</li>' for item in items)
+    approval = (f"Observei {quantity(counts['passed'], 'aprovação', 'aprovações')} entre "
+                f"{quantity(result['executed'], 'teste executado', 'testes executados')}. "
+                f"Também registrei {quantity(counts['failed'], 'falha', 'falhas')} e "
+                f"{quantity(counts['skipped'], 'teste não executado', 'testes não executados')}.")
+    meaning = (f"A aprovação de {pct(result['success_rate'])} considera apenas os testes que chegaram a um resultado: "
+               f"{quantity(counts['passed'], 'aprovação', 'aprovações')} entre "
+               f"{quantity(result['executed'], 'teste executado', 'testes executados')}.") if result['executed'] else (
+               'Não calculei a aprovação porque não há testes executados com resultado disponível.')
+    if result['partial']:
+        approval += ' A preparação, a execução ou o recebimento dos resultados ficou incompleto.'
+        meaning += ' Essa leitura é parcial: resultados ausentes podem mudar a conclusão.'
+    coverage_labels = {'lines': 'Linhas de código', 'branches': 'Decisões do código',
+                       'functions': 'Funções', 'statements': 'Instruções'}
+    reasons, actions = [], []
+    if counts['failed']:
+        reasons.append(f"Registrei {quantity(counts['failed'], 'teste com falha', 'testes com falha')}; "
+                       'uma única falha já determina o resultado vermelho, mesmo que a aprovação seja alta.')
+        actions.append('Investigar as falhas, registrar se a causa está no produto, nos testes ou no ambiente e validar a correção.')
+    if result['partial']:
+        reasons.append('A preparação, a execução ou a leitura dos resultados ficou incompleta. '
+                       'Sem uma falha registrada, essa situação determina o resultado inconclusivo.')
+        actions.append('Conferir quais etapas ou resultados ficaram incompletos, resolver a causa e repetir a execução.')
+    if not result['executed']:
+        reasons.append('Não há testes executados com resultado disponível para calcular a aprovação.')
+    if counts['skipped']:
+        reasons.append(f"Registrei {quantity(counts['skipped'], 'teste não executado', 'testes não executados')}. "
+                       'Esses testes não confirmaram os comportamentos que deveriam verificar.')
+        actions.append('Revisar o motivo de cada teste não executado e validar os comportamentos que ficaram pendentes.')
+    if result['coverage_problem']:
+        reasons.append('Não recebi a medição de cobertura do código; por isso não considero a meta de cobertura atendida.')
+        actions.append('Restabelecer a medição de cobertura antes de concluir quanto do código foi exercitado.')
+    else:
+        below_target = [f'{coverage_labels[key]}: {pct(value)}'
+                        for key, value in result['coverage'].items() if value < 70]
+        if below_target:
+            reasons.append('A cobertura ficou abaixo da referência de 70% nos indicadores: ' + ', '.join(below_target) + '.')
+            actions.append('Revisar o código menos exercitado e complementar os testes dos comportamentos relevantes.')
+    if result['status'] == 'AMARELO':
+        reasons.insert(0, 'Os testes executados passaram e recebi os resultados esperados, '
+                       'mas as pendências abaixo impedem a classificação verde.')
+    if result['status'] == 'VERDE':
+        reasons.append('Recebi os resultados esperados, houve testes executados, nenhum falhou ou ficou ignorado '
+                       'e os quatro indicadores de cobertura atingiram pelo menos 70%.')
+    actions.append('Complementar os testes automatizados com a avaliação de uso do aplicativo e do ambiente em que ele será utilizado.')
+    next_steps = {
+        'VERDE': 'Recomendo complementar estes resultados com a avaliação de uso e a conferência do ambiente de destino.',
+        'AMARELO': 'Recomendo revisar as pendências abaixo antes de decidir pela entrega.',
+        'VERMELHO': 'Recomendo investigar cada falha, corrigir sua causa e repetir a validação antes de aprovar a entrega.',
+        'INCONCLUSIVO': 'Recomendo resolver o que impediu a validação completa e executar os testes novamente.',
+    }
+    risks = []
+    if counts['failed']:
+        risks.append(f"Há {quantity(counts['failed'], 'teste com falha', 'testes com falha')}. Uma taxa alta de aprovação não compensa esses problemas.")
+    if result['pending_failures']:
+        risks.append(f"Ainda preciso confirmar a causa de {quantity(result['pending_failures'], 'falha', 'falhas')}: pode estar no aplicativo, nos testes ou no ambiente.")
+    if result['partial']:
+        risks.append('Faltam resultados confiáveis de parte da execução; não considero essa ausência uma aprovação.')
+    if counts['skipped']:
+        risks.append(f"Há {quantity(counts['skipped'], 'teste não executado', 'testes não executados')}. Os comportamentos previstos nesses testes continuam sem verificação nesta tentativa.")
+    if result['coverage_problem']:
+        risks.append('Não recebi a medição de cobertura. Não consigo afirmar quanto do código foi exercitado.')
+    elif any(value < 70 for value in result['coverage'].values()):
+        risks.append('Parte da cobertura ficou abaixo da referência de 70%; recomendo revisar os trechos menos exercitados.')
+    if result['assessment_problems']:
+        risks.append('Não consegui aplicar os diagnósticos registrados; as causas das falhas permanecem sem confirmação.')
+    risks.append('Os comportamentos fora dos testes e o funcionamento do ambiente publicado ainda precisam de avaliação própria.')
+    if not counts['failed']:
+        fault = ('Não encontrei testes reprovados nos resultados disponíveis. Isso não garante ausência de problemas '
+                 'nas partes que não foram verificadas.')
+    else:
+        fault = (f"Identifiquei {quantity(result['sut_failures'], 'falha classificada', 'falhas classificadas')} "
+                 f"como defeito do aplicativo ou de seus serviços e "
+                 f"{quantity(result['pending_failures'], 'falha', 'falhas')} com causa ainda em investigação. "
+                 'Só apresento uma causa como identificada quando há um diagnóstico registrado com evidência e revisor.')
+    causes = {'sut': 'Defeito do aplicativo ou de seus serviços', 'automation': 'Problema na automação dos testes',
+              'environment': 'Problema no ambiente de testes', 'expected-change': 'Mudança esperada e aprovada',
+              'pending': 'Causa ainda em investigação'}
+    assessments = []
+    for failure in result['failure_assessments']:
+        evidence = (f'<a href="{html.escape(failure["evidence"], quote=True)}">Consultar evidência da análise</a>'
+                    if failure['evidence'] else 'Evidência ainda não registrada.')
+        diagnosis = failure['diagnosis'] if failure['cause'] != 'pending' else (
+            'Ainda preciso investigar se a falha está no produto, no roteiro do teste, no ambiente ou em uma mudança de requisito.')
+        assessments.append(
+            '<article class="assessment">'
+            f'<h3>{html.escape(labels.get(failure["suite"], failure["suite"]))}: {html.escape(failure["test"])}</h3>'
+            f'<p><strong>{causes[failure["cause"]]}</strong></p>'
+            f'<p>{html.escape(diagnosis)}</p>'
+            f'<p><strong>O que ainda preocupa:</strong> {html.escape(failure["residual_risk"])}</p>'
+            f'<p class="muted">Revisor registrado: {html.escape(failure["reviewer"])}. {evidence}</p></article>')
+    skipped = [f'{labels.get(suite["name"], suite["name"])}: {case["name"]}'
+               for suite in result['suites'] for case in suite['cases'] if case['status'] == 'skipped']
+    rows = ''.join(
+        f'<tr><th scope="row">{html.escape(labels.get(suite["name"], suite["name"]))}</th>'
+        f'<td>{suite["counts"]["passed"]}</td><td>{suite["counts"]["failed"]}</td>'
+        f'<td>{suite["counts"]["skipped"]}</td><td>{display_duration(suite["duration_seconds"])}</td>'
+        f'<td>{"Completos" if suite["complete"] else "Incompletos"}</td></tr>' for suite in result['suites'])
+    area_descriptions = {
+        'mobile': 'São as telas e regras do Smart City: por exemplo, o formulário Nova ocorrência e a lista da aba Ocorrências. Verifico partes isoladas do código; isso não comprova, por si só, a integração com os serviços.',
+        'api': 'São os bastidores do Smart City que recebem e salvam ocorrências e conferem permissões. Verifico requisições e respostas; esses testes não percorrem a tela do Android.',
+        'e2e': 'É o uso do Smart City no Android integrado aos serviços, como entrar e registrar uma ocorrência. Só considero as ações dos roteiros que aparecem nos resultados desta execução.',
+    }
+    android = next((suite for suite in result['suites'] if suite['name'] == 'e2e'), None)
+    case_states = {'passed': ('passed', 'Passou'), 'failed': ('failed', 'Falhou'),
+                   'skipped': ('attention', 'Não executado')}
+    android_cases = []
+    for case in android['cases'] if android else []:
+        css_class, case_label = case_states[case['status']]
+        android_cases.append(f'<li data-case-status="{case["status"]}"><span class="case-result {css_class}">{case_label}</span> '
+                             f'<span>{html.escape(case["name"])}</span></li>')
+    android_filters = (
+        '<div class="case-tools" data-js-only hidden>'
+        '<div class="filter-buttons" role="group" aria-label="Filtrar roteiros Android por resultado">' +
+        ''.join(f'<button type="button" data-case-filter="{status}" aria-controls="android-cases" '
+                f'aria-pressed="{"true" if status == "all" else "false"}">{label} '
+                '<span data-filter-total></span></button>'
+                for status, label in (('all', 'Todos'), ('passed', 'Passaram'), ('failed', 'Falharam'),
+                                      ('skipped', 'Não executados'))) +
+        '</div><p class="filter-count" data-case-count role="status"></p></div>')
+    no_android = ('Não recebi resultados de roteiros completos no Android. Não consigo confirmar esses fluxos nesta execução.'
+                  if android else 'Esta rotina não incluiu roteiros completos no Android. Os resultados das outras áreas não substituem essa verificação.')
+    return {
+        'REPORT_STYLES_HTML': (ROOT / '.github/quality/report.css').read_text(encoding='utf-8'),
+        'REPORT_SCRIPT_HTML': (ROOT / '.github/quality/report.js').read_text(encoding='utf-8'),
+        'APP_CONTEXT_HTML': (ROOT / '.github/quality/app-context.html').read_text(encoding='utf-8'),
+        'ANDROID_CASES_HTML': android_filters + '<ul class="android-cases" id="android-cases">' +
+                              ''.join(android_cases) + '</ul>' +
+                              '<p class="empty-state" data-case-empty hidden>Nenhum roteiro corresponde a este filtro.</p>'
+                              if android_cases else f'<p>{no_android}</p>',
+        'STATUS_CLASS': state, 'STATUS_LABEL': label, 'RESULT_HEADLINE': headline,
+        'APPROVAL_EXPLANATION': approval, 'APPROVAL_RATE': pct(result['success_rate']),
+        'RATE_MEANING': meaning, 'NEXT_STEP': next_steps[result['status']], 'FAULT_EXPLANATION': fault,
+        'MAIN_RISKS_HTML': list_html(risks), 'SUITES_HTML': rows,
+        'STATUS_REASONS_HTML': list_html(reasons), 'NEXT_STEPS_HTML': list_html(actions),
+        'AREAS_HTML': ''.join(f'<li><strong>{html.escape(labels.get(suite["name"], suite["name"]))}:</strong> '
+                              f'{html.escape(area_descriptions.get(suite["name"], "Consultar os resultados desta área."))}</li>'
+                              for suite in result['suites']),
+        'ASSESSMENTS_HTML': ''.join(assessments) or '<p>Não há testes reprovados para detalhar nos resultados disponíveis.</p>',
+        'SKIPPED_HTML': list_html(skipped or ['Nenhum teste foi registrado como não executado. Confira também se os resultados estão completos.']),
+        'COVERAGE_HTML': list_html([f'{label}: {pct(result["coverage"].get(key)) if key in result["coverage"] else "Não medida"}'
+                                    for key, label in coverage_labels.items()]),
+        'TEST_SCOPE': 'Esta execução reúne testes das seguintes áreas: ' +
+                      ', '.join(labels.get(suite['name'], suite['name']) for suite in result['suites']) + '.',
+        'READABLE_DURATION': display_duration(result['pipeline_seconds_until_report']),
+        'READABLE_DATE': datetime.fromisoformat(result['date']).strftime('%d/%m/%Y às %H:%M UTC'),
+    }
+
+
 def build(root, expected, outcomes, job_status="success", assessments_path=ASSESSMENTS):
     root.mkdir(parents=True, exist_ok=True)
     clean_artifacts(root)
@@ -282,7 +454,6 @@ def build(root, expected, outcomes, job_status="success", assessments_path=ASSES
         risks.append("Cobertura abaixo da meta inicial de 70%: " + ", ".join(below_target) + ".")
     result.update(interpret(result, suites, assessments_path, risks))
     list_html = lambda items: "".join(f"<li>{html.escape(str(item))}</li>" for item in items)
-    suite_rows = "".join(f"<tr><td>{x['name']}</td><td>{x['counts']['passed']}</td><td>{x['counts']['failed']}</td><td>{x['counts']['skipped']}</td><td>{x['duration_seconds'] if x['duration_seconds'] is not None else 'N/D'}</td><td>{'Completa' if x['complete'] else 'Incompleta'}</td></tr>" for x in suites)
     failures = [f"{x['name']}: {c['name']} — {c['message']}" for x in suites for c in x["cases"] if c["status"] == "failed"]
     failures += [f"{x['name']}: {p}" for x in suites for p in x["problems"]]
     pct = lambda value: "N/D" if value is None else f"{value:.2f}%"
@@ -292,17 +463,10 @@ def build(root, expected, outcomes, job_status="success", assessments_path=ASSES
               "FAILED": result["counts"]["failed"], "SKIPPED": result["counts"]["skipped"],
               "SUCCESS_RATE": pct(result["success_rate"]), "FAILURE_RATE": pct(result["failure_rate"]),
               "SCOPE": SCOPE, "RECOMMENDATION": result["recommendation"], "RUN_URL": result["run_url"],
-              "PIPELINE_SECONDS": result["pipeline_seconds_until_report"] if result["pipeline_seconds_until_report"] is not None else "N/D",
-              "SUITES_HTML": suite_rows, "FAILURES_HTML": list_html(failures or ["Nenhum caso reprovado registrado; conferir completude da execução."]),
+              "FAILURES_HTML": list_html(failures or ["Não há testes reprovados nos resultados disponíveis. Confira também se a execução foi completa."]),
               "RISKS_HTML": list_html(risks),
-              "APPROVAL_INTERPRETATION": result['approval_interpretation'],
-              "FAULT_INTERPRETATION": result['fault_interpretation'],
-              "ASSESSMENTS_HTML": list_html([
-                  f"{failure['suite']} / {failure['test']} — {CAUSES[failure['cause']]}. "
-                  f"Diagnóstico: {failure['diagnosis']} Parecer: {failure['reviewer']}. "
-                  f"Evidência: {failure['evidence'] or 'pendente'}. Risco residual: {failure['residual_risk']}"
-                  for failure in result['failure_assessments']] or ['Nenhum caso reprovado registrado; conferir a completude da execução.']),
-              "COVERAGE_HTML": list_html([f"{k}: {pct(coverage.get(k))}" for k in ("lines", "branches", "functions", "statements")])}
+              "APPROVAL_INTERPRETATION": result['approval_interpretation']}
+    values.update(html_presentation(result))
     for suite in suites:
         write_junit(suite, root / suite["name"] / "normalized.xml")
     output = root / "quality"

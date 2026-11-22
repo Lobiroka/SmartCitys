@@ -1,13 +1,114 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartCitys — Relatório de negócio</title>
-<style>body{font:17px/1.6 system-ui,sans-serif;max-width:900px;margin:32px auto;padding:0 20px;color:#17243a;background:#f5f7fb}section{background:white;border:1px solid #d7dfeb;border-radius:12px;padding:24px;margin:20px 0}h1,h2{line-height:1.2}li{overflow-wrap:anywhere}a{color:#164db4}</style></head>
-<body><h1>SmartCitys — Visão de negócio da qualidade</h1>
-<section><h2>{{STATUS}}</h2><p>{{RECOMMENDATION}}</p><p>Esta é uma avaliação da validação automatizada desta execução, não uma certificação de todo o produto.</p></section>
-<section><h2>Indicadores</h2><p>{{PASSED}} testes aprovados de {{EXECUTED}} executados.<br>Taxa de aprovação: <strong>{{SUCCESS_RATE}}</strong>.<br>Taxa de falha: {{FAILURE_RATE}}.<br>Testes reprovados: {{FAILED}}.<br>Testes ignorados: {{SKIPPED}} — funcionalidades não verificadas por esses casos.</p><p>Tempo até gerar o relatório: {{PIPELINE_SECONDS}} segundos. Duração maior não significa necessariamente pior produto.</p></section>
-<section><h2>Interpretação dos números</h2><p>{{APPROVAL_INTERPRETATION}}</p></section>
-<section><h2>Diagnóstico das falhas e risco residual</h2><p>{{FAULT_INTERPRETATION}}</p><ul>{{ASSESSMENTS_HTML}}</ul></section>
-<section><h2>Abrangência da validação</h2><p>{{SCOPE}}</p><p>Cobertura descreve código exercitado, não satisfação dos usuários ou ausência de defeitos.</p><ul>{{COVERAGE_HTML}}</ul></section>
-<section><h2>Riscos para a decisão</h2><ul>{{RISKS_HTML}}</ul><p>Verde: critérios medidos atendidos. Amarelo: cobertura ausente/abaixo da meta ou testes ignorados. Vermelho: pelo menos um teste reprovado. Inconclusivo: sem falhas registradas, mas execução/coleta incompleta.</p></section>
-<section><h2>Rastreabilidade</h2><p>{{WORKFLOW}} · Execução {{RUN}} · Tentativa {{ATTEMPT}}<br>Gerado em UTC: {{DATE}}</p><a href="{{RUN_URL}}">Consultar execução e evidências</a><p><a href="technical.html">Abrir relatório técnico</a></p></section>
-<footer>Relatório gerado automaticamente a partir dos resultados disponíveis na pipeline.</footer></body></html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SmartCitys — Resumo dos testes</title>
+  <style>{{REPORT_STYLES_HTML}}</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <p class="eyebrow">Smart City · Registro e acompanhamento de ocorrências urbanas</p>
+      <h1>Como foram os testes?</h1>
+      <p class="intro">Explico os resultados dos testes do app usado pelo cidadão para registrar ocorrências e pelo gestor para acompanhar o atendimento.</p>
+    </div>
+    <a class="nav-link" href="technical.html">Ver análise detalhada →</a>
+  </header>
+
+  <nav class="report-nav" aria-label="Navegação pelo relatório">
+    <a href="#resumo">Resumo</a>
+    <a href="#app-context">No aplicativo</a>
+    <a href="#roteiros-android">Roteiros Android</a>
+    <a href="#proximos-passos">Próximos passos</a>
+  </nav>
+  <div class="reading-tools" data-js-only hidden>
+    <span>Prefere consultar as explicações?</span>
+    <button type="button" data-details-action="open">Abrir todas</button>
+    <button type="button" data-details-action="close">Recolher todas</button>
+    <span class="sr-only" data-reading-status role="status"></span>
+  </div>
+
+  <section id="resumo" class="verdict {{STATUS_CLASS}}" aria-labelledby="verdict-title">
+    <span class="badge">{{STATUS_LABEL}} · {{STATUS}}</span>
+    <h2 id="verdict-title">{{RESULT_HEADLINE}}</h2>
+    <p>{{APPROVAL_EXPLANATION}}</p>
+    <p class="action"><strong>Minha recomendação:</strong> {{NEXT_STEP}}</p>
+  </section>
+
+  <dl class="metrics" aria-label="Resultados desta execução">
+    <div class="metric"><dt>Passaram</dt><dd>{{PASSED}}</dd><dd class="metric-help">O teste confirmou o comportamento esperado.</dd></div>
+    <div class="metric"><dt>Falharam</dt><dd>{{FAILED}}</dd><dd class="metric-help">O teste não confirmou o esperado. Ainda é preciso verificar a causa.</dd></div>
+    <div class="metric"><dt>Não foram executados</dt><dd>{{SKIPPED}}</dd><dd class="metric-help">Foram registrados como ignorados. Não contam como aprovados.</dd></div>
+    <div class="metric"><dt>Aprovação dos executados</dt><dd>{{APPROVAL_RATE}}</dd><dd class="metric-help">Passaram ÷ (passaram + falharam) × 100.</dd></div>
+  </dl>
+
+  <section>
+    <h2>Por que classifiquei assim?</h2>
+    <ul class="readable-list">{{STATUS_REASONS_HTML}}</ul>
+    <details>
+      <summary>Entender as quatro classificações</summary>
+      <ul>
+        <li><strong>Verde:</strong> os critérios medidos foram atendidos: execução completa, testes executados sem falhas ou ignorados e cobertura de pelo menos 70% em cada indicador.</li>
+        <li><strong>Amarelo:</strong> os testes executados passaram, mas há testes ignorados ou cobertura ausente ou abaixo da referência.</li>
+        <li><strong>Vermelho:</strong> pelo menos um teste falhou. Isso exige investigação; a falha não comprova, sozinha, um defeito do aplicativo.</li>
+        <li><strong>Inconclusivo:</strong> não há falha registrada, mas a validação ficou incompleta ou não há testes executados com resultado disponível.</li>
+      </ul>
+      <p>Se houver falha e resultados incompletos ao mesmo tempo, mantenho o vermelho e o aviso de informação parcial.</p>
+    </details>
+  </section>
+
+  <div class="columns">
+    <section>
+      <h2>O que esses números significam?</h2>
+      <p>{{RATE_MEANING}}</p>
+      <p class="muted">Os testes que não foram executados ficam fora dessa porcentagem. Uma aprovação alta não elimina uma falha nem garante que todo o aplicativo esteja correto.</p>
+    </section>
+    <section>
+      <h2>O que ainda precisa de atenção?</h2>
+      <ul class="readable-list">{{MAIN_RISKS_HTML}}</ul>
+    </section>
+  </div>
+
+  <section>
+    <h2>Encontrei algum problema no aplicativo?</h2>
+    <p>{{FAULT_EXPLANATION}}</p>
+    <p class="muted">Uma falha pode vir do próprio aplicativo ou de seus serviços, do roteiro automatizado ou do ambiente de testes. Até investigar, mantenho a causa como desconhecida.</p>
+    <details>
+      <summary>Consultar a análise de cada falha</summary>
+      {{ASSESSMENTS_HTML}}
+    </details>
+  </section>
+
+  <section>
+    <h2>Como as áreas testadas se relacionam ao app?</h2>
+    <p>{{TEST_SCOPE}}</p>
+    <ul class="readable-list">{{AREAS_HTML}}</ul>
+    <p class="muted">Este resultado vale para os testes desta execução. Ele não substitui a avaliação de uso do aplicativo nem verifica todo o ambiente publicado.</p>
+    <p><a href="technical.html">Consultar resultados por área, testes pendentes e cobertura →</a></p>
+  </section>
+
+  {{APP_CONTEXT_HTML}}
+
+  <section id="roteiros-android">
+    <h2>Quais roteiros do Smart City aparecem nesta execução?</h2>
+    <p>Mostro os resultados dos roteiros completos no Android. O nome de cada roteiro indica o comportamento verificado; ele não representa a aprovação de todo o aplicativo.</p>
+    {{ANDROID_CASES_HTML}}
+    <p class="muted">Para conferir mensagens, capturas e registros, consulte os arquivos de evidência no relatório detalhado.</p>
+  </section>
+
+  <section id="proximos-passos">
+    <h2>O que recomendo fazer depois?</h2>
+    <ol class="readable-list">{{NEXT_STEPS_HTML}}</ol>
+    <p class="muted">Este relatório apoia a decisão da equipe. A cor e a porcentagem não são uma autorização automática para publicar o aplicativo.</p>
+  </section>
+
+  <footer>
+    <p>{{WORKFLOW}} · Execução {{RUN}} · Tentativa {{ATTEMPT}}<br>Relatório gerado em {{READABLE_DATE}}.</p>
+    <p><a href="{{RUN_URL}}">Abrir esta execução no GitHub Actions</a></p>
+  </footer>
+</main>
+<script type="module">{{REPORT_SCRIPT_HTML}}</script>
+</body>
+</html>
