@@ -12,7 +12,8 @@ executa os três roteiros em `final/`, em sequência, sem atalhos de criação o
 5. no Android do cidadão, exige o push real na bandeja e confere o novo status e os filtros.
 
 São necessários **dois dispositivos distintos e exclusivos de testes**, com o mesmo APK da branch,
-Maestro e ADB no PATH, internet e API/Keycloak de testes com push configurado. O roteiro limpa
+Maestro e ADB no PATH, Python 3.10 ou superior, internet e API/Keycloak de testes com push
+configurado. O executor usa somente a biblioteca padrão do Python. O roteiro limpa
 os dados do app **e do Chrome** nesses dois dispositivos, removendo sessões SSO antigas.
 Não use um celular ou navegador com dados pessoais a preservar.
 Em emuladores, configure uma localização válida antes da execução. Para development, mantenha
@@ -41,6 +42,8 @@ visualmente screenshots antes de publicá-los. Execuções com falha também dev
 
 Os fluxos antigos reutilizam `flows/start-app.yaml`, `flows/login.yaml` e
 `flows/create-occurrence.yaml`, mantendo suas validações originais.
+
+## Jornada básica do MVP
 
 O fluxo `mvp.yaml` valida o caminho crítico em um build próprio do aplicativo:
 

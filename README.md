@@ -7,6 +7,7 @@ valida cadastro/login, ocorrência com foto e GPS, acompanhamento e filtros, alt
 pela interface do gestor e push real ao cidadão. Exige dois Androids de testes com o mesmo app
 da branch e credenciais dedicadas de gestor. Para development com Metro, acrescente `--dev-client`.
 Preparação, cuidados com dados e relatórios: [guia da jornada completa](.maestro/README.md#jornada-completa-da-entrega-final).
+Execução aprovada em 22/11/2026: [evidências e limites](docs/tas-evidence/final-2026-11-22/README.md).
 
 Aplicativo mobile para registro e acompanhamento de ocorrências urbanas, com mapa, autenticação Keycloak e acesso para cidadãos e gestores. O monorepo reúne o aplicativo React Native/Expo e os serviços Express da API.
 
