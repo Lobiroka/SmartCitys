@@ -1,5 +1,5 @@
 import { useTheme } from 'expo-router/react-navigation';
-import { ActivityIndicator, Alert, Button, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, Image, Pressable, ScrollView, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -44,6 +44,13 @@ export function ManagerOccurrenceDetailScreen({ id }: { id: number }) {
                         <ThemedText>GPS: {occurrence.latitude.toFixed(5)}, {occurrence.longitude.toFixed(5)}</ThemedText>
                     ) : null}
                 </View>
+
+                {occurrence.images.map((image) => (
+                    <Image key={image.id} source={{ uri: image.path }}
+                        accessibilityLabel="Foto da ocorrência"
+                        style={{ width: '100%', height: 220, borderRadius: 12 }}
+                        resizeMode="contain" />
+                ))}
 
                 <ChangeOptions
                     title="Status"

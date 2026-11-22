@@ -5,13 +5,24 @@ import { useOccurrenceFormViewModel } from
     '@/src/features/occurrences/viewmodels/useOccurrenceFormViewModel';
 
 const mockBack = jest.fn();
+const mockTakePicture = jest.fn();
 
 jest.mock('expo-router', () => ({
     router: { back: (...args: unknown[]) => mockBack(...args) },
 }));
 
 jest.mock('expo-camera', () => ({
-    CameraView: 'CameraView',
+    CameraView: jest.requireActual<typeof import('react')>('react').forwardRef(
+        function MockCamera(props: { onCameraReady?: () => void }, ref) {
+            jest.requireActual<typeof import('react')>('react').useEffect(() => {
+                props.onCameraReady?.();
+            }, [props.onCameraReady]);
+            jest.requireActual<typeof import('react')>('react').useImperativeHandle(ref, () => ({
+                takePictureAsync: (...args: unknown[]) => mockTakePicture(...args),
+            }));
+            return null;
+        },
+    ),
     useCameraPermissions: () => [
         { granted: true },
         jest.fn().mockResolvedValue({ granted: true }),
@@ -89,6 +100,35 @@ describe('OccurrenceFormScreen', () => {
         expect(mockBack).not.toHaveBeenCalled();
         expect(screen.getByText('Confirme a localização da ocorrência.'))
             .toBeTruthy();
+    });
+
+    it('captura a foto e entrega o base64 ao formulário', async () => {
+        mockTakePicture.mockResolvedValueOnce({ base64: 'imagem' });
+        const vm = viewModel();
+        useViewModelMock.mockReturnValue(vm as never);
+        const screen = await render(<OccurrenceFormScreen />);
+        fireEvent.press(screen.getByTestId('occurrence-camera-button'));
+        await waitFor(() => expect(screen.getByTestId('occurrence-capture-button')).toBeTruthy());
+        fireEvent.press(screen.getByTestId('occurrence-capture-button'));
+
+        await waitFor(() => expect(vm.setPhoto).toHaveBeenCalledWith('data:image/jpeg;base64,imagem'));
+        expect(screen.queryByTestId('occurrence-capture-button')).toBeNull();
+    });
+
+    it('permite tentar novamente depois de falha na captura', async () => {
+        mockTakePicture.mockRejectedValueOnce(new Error('Camera indisponível'))
+            .mockResolvedValueOnce({ base64: 'nova-imagem' });
+        const vm = viewModel();
+        useViewModelMock.mockReturnValue(vm as never);
+        const screen = await render(<OccurrenceFormScreen />);
+        fireEvent.press(screen.getByTestId('occurrence-camera-button'));
+        await waitFor(() => expect(screen.getByTestId('occurrence-capture-button')).toBeTruthy());
+        fireEvent.press(screen.getByTestId('occurrence-capture-button'));
+
+        await waitFor(() => expect(screen.getByText('Não foi possível capturar a foto. Tente novamente.')).toBeTruthy());
+        expect(vm.setPhoto).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByTestId('occurrence-capture-button'));
+        await waitFor(() => expect(vm.setPhoto).toHaveBeenCalledWith('data:image/jpeg;base64,nova-imagem'));
     });
 
     it('diferencia visualmente criação de edição', async () => {

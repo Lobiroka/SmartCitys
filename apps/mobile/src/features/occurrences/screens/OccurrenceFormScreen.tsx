@@ -33,9 +33,13 @@ export function OccurrenceFormScreen({ id }: Props) {
     const [permission, requestPermission] = useCameraPermissions();
     const [cameraOpen, setCameraOpen] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
+    const [isCapturing, setIsCapturing] = useState(false);
+    const [isCameraReady, setIsCameraReady] = useState(false);
+    const captureInProgress = useRef(false);
 
     async function openCamera() {
         setCameraError(null);
+        setIsCameraReady(false);
         if (!permission?.granted) {
             const result = await requestPermission();
             if (!result.granted) {
@@ -47,10 +51,20 @@ export function OccurrenceFormScreen({ id }: Props) {
     }
 
     async function capturePhoto() {
-        const result = await cameraRef.current?.takePictureAsync({ base64: true, quality: 0.35 });
-        if (result?.base64) {
+        if (!isCameraReady || captureInProgress.current) return;
+        captureInProgress.current = true;
+        setIsCapturing(true);
+        setCameraError(null);
+        try {
+            const result = await cameraRef.current?.takePictureAsync({ base64: true, quality: 0.35 });
+            if (!result?.base64) throw new Error('Não foi possível capturar a foto. Tente novamente.');
             vm.setPhoto(`data:image/jpeg;base64,${result.base64}`);
             setCameraOpen(false);
+        } catch {
+            setCameraError('Não foi possível capturar a foto. Tente novamente.');
+        } finally {
+            captureInProgress.current = false;
+            setIsCapturing(false);
         }
     }
 
@@ -65,13 +79,24 @@ export function OccurrenceFormScreen({ id }: Props) {
     if (cameraOpen) {
         return (
             <View style={styles.cameraContainer}>
-                <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+                <CameraView ref={cameraRef} style={styles.camera} facing="back"
+                    onCameraReady={() => setIsCameraReady(true)}
+                    onMountError={() => {
+                        setCameraError('Não foi possível abrir a câmera. Tente novamente.');
+                        setCameraOpen(false);
+                    }} />
                 <View style={styles.cameraActions}>
-                    <Pressable style={styles.cameraButton} onPress={() => setCameraOpen(false)}>
+                    <Pressable style={styles.cameraButton} disabled={isCapturing}
+                        onPress={() => setCameraOpen(false)}>
                         <ThemedText lightColor="#fff" darkColor="#fff">Cancelar</ThemedText>
                     </Pressable>
                     <Pressable accessibilityLabel="Capturar foto" style={styles.captureButton}
+                        testID="occurrence-capture-button" disabled={isCapturing || !isCameraReady}
+                        accessibilityRole="button"
+                        accessibilityState={{ disabled: isCapturing || !isCameraReady, busy: isCapturing }}
                         onPress={() => { void capturePhoto(); }} />
+                    {cameraError && <ThemedText lightColor="#fff" darkColor="#fff"
+                        accessibilityRole="alert">{cameraError}</ThemedText>}
                 </View>
             </View>
         );
@@ -120,7 +145,8 @@ export function OccurrenceFormScreen({ id }: Props) {
                     value={vm.priority} onChange={vm.setPriority} />
 
                 <Field label="Foto">
-                    {vm.photo && <Image source={{ uri: vm.photo }} style={styles.preview} />}
+                    {vm.photo && <Image testID="occurrence-photo-preview" accessibilityLabel="Foto da ocorrência"
+                        source={{ uri: vm.photo }} style={styles.preview} />}
                     <View style={styles.row}>
                         <Pressable testID="occurrence-camera-button"
                             style={styles.secondaryButton} onPress={() => { void openCamera(); }}>

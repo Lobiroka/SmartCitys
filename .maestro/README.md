@@ -209,3 +209,15 @@ Durante o diagnóstico do Maestro, é possível informar uma execução desta me
 branch que tenha o artefato `apk-e2e-<run_id>`. O workflow confere se o código mobile
 e a configuração de build são iguais antes de reutilizar o APK. Os três níveis de
 testes continuam executando. Se modificar secrets de build, gere um APK novo.
+
+## Registro com foto e GPS
+
+O fluxo `registro-com-foto.yaml` habilita captura real da câmera no subfluxo de registro, salva a demanda e reabre Editar para verificar que foto e coordenadas vieram da API. O fluxo padrão existente mantém seu escopo; a captura adicional é habilitada apenas quando `E2E_WITH_PHOTO=1` é fornecido pelo novo fluxo.
+
+Defina `MAESTRO_E2E_USERNAME`, `MAESTRO_E2E_PASSWORD` e um `MAESTRO_E2E_TITLE` exclusivo no ambiente, sem versionar valores. No development com Metro, defina também `MAESTRO_E2E_DEV_CLIENT=1`. Com um Android conectado, execute na raiz:
+
+```bash
+maestro test .maestro/registro-com-foto.yaml
+```
+
+Esse fluxo precisa de câmera/GPS funcionais e cria dados no ambiente real do aplicativo. Ainda não foi executado em Android nesta revisão. Não faz cadastro de conta nova, gestão nem verificação de push. Essas etapas e a homologação do APK preview ainda precisam ser verificadas no Android.

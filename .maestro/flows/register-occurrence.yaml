@@ -123,6 +123,34 @@ name: Autenticar e registrar ocorrência
     element: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
     direction: DOWN
     timeout: 30000
+- runFlow:
+    when:
+      true: ${typeof E2E_WITH_PHOTO !== 'undefined' && E2E_WITH_PHOTO === '1'}
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: occurrence-camera-button
+          direction: DOWN
+      - tapOn:
+          id: occurrence-camera-button
+      - extendedWaitUntil:
+          visible:
+            id: occurrence-capture-button
+          timeout: 30000
+      - tapOn:
+          id: occurrence-capture-button
+      - extendedWaitUntil:
+          notVisible:
+            id: occurrence-capture-button
+          timeout: 30000
+      - scrollUntilVisible:
+          element:
+            id: occurrence-photo-preview
+          direction: DOWN
+          timeout: 30000
+      - assertVisible:
+          id: occurrence-photo-preview
+
 - scrollUntilVisible:
     element:
       id: "occurrence-save-button"

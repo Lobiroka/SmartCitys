@@ -1,0 +1,27 @@
+appId: com.darkartsbm.smartcitys
+name: Registrar demanda com foto e GPS e conferir persistência
+env:
+  E2E_USERNAME: ${MAESTRO_E2E_USERNAME}
+  E2E_PASSWORD: ${MAESTRO_E2E_PASSWORD}
+  E2E_TITLE: ${MAESTRO_E2E_TITLE}
+  E2E_WITH_PHOTO: '1'
+---
+- runFlow: flows/register-occurrence.yaml
+- tapOn:
+    id: occurrence-search-input
+- inputText: ${E2E_TITLE}
+- hideKeyboard
+- assertVisible: ${E2E_TITLE}
+- tapOn:
+    id: occurrence-edit-.*
+- scrollUntilVisible:
+    element: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: occurrence-photo-preview
+    direction: DOWN
+- assertVisible:
+    id: occurrence-photo-preview
+- takeScreenshot: demanda-foto-gps-persistidos

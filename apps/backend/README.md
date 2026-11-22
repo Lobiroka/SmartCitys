@@ -1,294 +1,92 @@
-# RESOLVE — Backend
+# SmartCitys — API
 
-API REST construída com **Express**, **PostgreSQL**, **Redis** e arquitetura de **microsserviços**.
+Backend Express/TypeScript com PostgreSQL/Prisma, Redis e identidade Keycloak. O Gateway encaminha `/demands` para `/demandas` no Demand Service e `/metrics` para o Metrics Service.
 
----
+## Executar no Linux
 
-## Tecnologias
-
-| Tecnologia | Versão | Papel |
-|---|---|---|
-| Express | 4.18.2 | Framework web |
-| TypeScript | 5.3.2 | Tipagem estática |
-| Prisma | 5.0.0 | ORM e migrations |
-| jsonwebtoken | 9.0.2 | Geração e verificação de JWT |
-| bcryptjs | 2.4.3 | Hash de senhas |
-| Redis | 4.6.10 | Cache de métricas |
-| node-cron | 3.0.3 | Agendamento de jobs |
-| dotenv | 16.3.1 | Variáveis de ambiente |
-
----
-
-## Arquitetura
-
-O projeto segue uma arquitetura de **microsserviços**, onde cada serviço é independente, possui suas próprias dependências e responsabilidades bem definidas.
-
-```
-backend/
-├── api-gateway/
-│   ├── src/
-│   │   ├── middlewares/
-│   │   │   └── .gitkeep
-│   │   ├── routes/
-│   │   │   └── .gitkeep
-│   │   └── server.ts
-│   ├── .dockerignore
-│   ├── Dockerfile
-│   ├── package-lock.json
-│   ├── package.json
-│   └── tsconfig.json
-├── auth-service/
-│   ├── prisma/
-│   │   ├── migrations/
-│   │   └── schema.prisma
-│   ├── src/
-│   │   ├── controllers/
-│   │   │   └── authController.ts
-│   │   ├── middlewares/
-│   │   │   ├── authMiddleware.ts
-│   │   │   └── errorMiddleware.ts
-│   │   ├── repository/
-│   │   ├── routes/
-│   │   │   ├── authRoutes.ts
-│   │   │   └── healthRoutes.ts
-│   │   ├── services/
-│   │   │   └── authService.ts
-│   │   ├── tests/
-│   │   │   └── TS01_autenticacao.test.ts
-│   │   ├── app.ts
-│   │   └── server.ts
-│   ├── .dockerignore
-│   ├── Dockerfile
-│   ├── package-lock.json
-│   ├── package.json
-│   └── tsconfig.json
-├── demand-service/
-│   ├── prisma/
-│   │   ├── migrations/
-│   │   └── schema.prisma
-│   ├── src/
-│   │   ├── config/
-│   │   │   └── redis.ts
-│   │   ├── controllers/
-│   │   │   ├── cidadaoController.ts
-│   │   │   ├── demandController.ts
-│   │   │   └── gestorController.ts
-│   │   ├── lib/
-│   │   │   └── prisma.ts
-│   │   ├── middlewares/
-│   │   │   ├── authMiddleware.ts
-│   │   │   ├── errorMiddleware.ts
-│   │   │   └── roleMiddleware.ts
-│   │   ├── repositories/
-│   │   │   └── DenunciaRepository.ts
-│   │   ├── routes/
-│   │   │   ├── demandRoutes.ts
-│   │   │   └── healthRoutes.ts
-│   │   ├── services/
-│   │   │   ├── demandService.ts
-│   │   │   └── denunciaService.ts
-│   │   ├── tests/
-│   │   │   ├── setup.ts
-│   │   │   ├── TS02_persistencia_demanda.bdd.test.ts
-│   │   │   ├── TS02_persistencia_demanda.test.ts
-│   │   │   └── TS04_filtros_avancados.test.ts
-│   │   ├── utils/
-│   │   │   ├── httpError.ts
-│   │   │   ├── pagination.ts
-│   │   │   └── retry.ts
-│   │   ├── app.ts
-│   │   └── server.ts
-│   ├── .dockerignore
-│   ├── Dockerfile
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── vitest.config.ts
-├── metrics-service/
-│   ├── prisma/
-│   │   └── schema.prisma
-│   ├── src/
-│   │   ├── config/
-│   │   │   ├── cron.ts
-│   │   │   └── redis.ts
-│   │   ├── controllers/
-│   │   │   └── metricsController.ts
-│   │   ├── lib/
-│   │   │   └── prisma.ts
-│   │   ├── middlewares/
-│   │   │   ├── authMiddleware.ts
-│   │   │   └── errorMiddleware.ts
-│   │   ├── routes/
-│   │   │   ├── healthRoutes.ts
-│   │   │   └── metricsRoutes.ts
-│   │   ├── services/
-│   │   │   └── metricsService.ts
-│   │   ├── utils/
-│   │   │   └── retry.ts
-│   │   ├── workers/
-│   │   │   └── eventWorker.ts
-│   │   └── server.ts
-│   ├── .dockerignore
-│   ├── Dockerfile
-│   ├── package-lock.json
-│   └── package.json
-├── docs/
-└── docker-compose.yml         # PostgreSQL + Redis + 3 serviços
-```
----
-
-## Responsabilidades de cada serviço
-
-### auth-service (porta 3001)
-Responsável por cadastro, autenticação e geração de tokens JWT. Nenhum outro serviço realiza login ou registro — tudo passa por aqui.
-
-### demand-service (porta 3002)
-Responsável pelo CRUD completo de demandas. Valida o JWT recebido consultando a chave secreta compartilhada. Acessa o PostgreSQL via Prisma ORM.
-
-### metrics-service (porta 3003)
-Responsável por agregar e servir KPIs e estatísticas. Usa Redis para cache das métricas e node-cron para atualização periódica dos dados.
-
----
-
-## Fluxo de uma requisição
-
-```
-Cliente HTTP
-    │
-    ▼
-Serviço correspondente (auth / demand / metrics)
-    │  valida o JWT via authMiddleware (demand e metrics)
-    ▼
-Controller
-    │  valida o corpo da requisição
-    ▼
-Service
-    │  aplica regras de negócio
-    ▼
-Repository (apenas demand-service)
-    │  executa queries via Prisma
-    ▼
-PostgreSQL / Redis
-```
-
----
-
-## Endpoints
-
-### auth-service — porta 3001
-
-| Método | Rota | Descrição | Auth |
-|---|---|---|---|
-| POST | `/auth/register` | Cadastra novo usuário | ❌ |
-| POST | `/auth/login` | Autentica e retorna JWT | ❌ |
-
-### demand-service — porta 3002
-
-| Método | Rota | Descrição | Auth |
-|---|---|---|---|
-| GET | `/demands` | Lista todas as demandas | ✅ |
-| POST | `/demands` | Cria nova demanda | ✅ |
-| GET | `/demands/:id` | Detalha uma demanda | ✅ |
-| PUT | `/demands/:id` | Atualiza uma demanda | ✅ |
-| DELETE | `/demands/:id` | Remove uma demanda | ✅ |
-
-### metrics-service — porta 3003
-
-| Método | Rota | Descrição | Auth |
-|---|---|---|---|
-| GET | `/metrics` | Retorna KPIs e estatísticas | ✅ |
-
----
-
-## Como rodar localmente
-
-### Pré-requisitos
-- Docker e Docker Compose
-- Node.js 20+ (apenas para o frontend)
-
-### Backend (Docker)
-
-Na pasta `backend/`, copie o `.env.example` para `.env.local`.
+Requisitos: Node.js 22 LTS, npm e Docker com containers Linux. Execute na raiz do repositório:
 
 ```bash
-cd backend
-
-docker compose --env-file .env.local up -d --build
-
-docker compose --env-file .env.local exec auth-service npx prisma migrate deploy
-docker compose --env-file .env.local exec demand-service npx prisma migrate deploy
+npm ci
+npm run team:backend -- up
+curl http://127.0.0.1:8080/health
 ```
 
-> Use sempre `migrate deploy`. **Não** rode `prisma migrate dev` em produção.
-
-Serviços:
-- API Gateway → http://localhost:8080
-- Auth → http://localhost:3001
-- Demand → http://localhost:3002
-- Metrics → http://localhost:3003
-
-### Arquitetura assíncrona
-
-- **Filas (Redis):** `demand-service` publica eventos em `smartcity:event-queue` ao alterar status
-- **Eventos (pub/sub):** canal `smartcity:denuncia-status` notifica o `metrics-service`
-- **Processamento paralelo:** KPIs agregados com `Promise.all` no `metrics-service`
-- **Cron:** atualização de cache a cada 5 minutos
-- **Cache Redis:** KPIs em `smartcity:metrics:kpis` (TTL 5 min)
-- **Paginação:** `GET /demands?page=1&limit=20`
-- **Health:** `GET /health` em cada serviço + gateway agregado
-
-### Frontend
+O atalho cria `apps/backend/.env.team.local` com senhas locais, inicia PostgreSQL e Redis, aplica migrations e inicia os três serviços. Não copie a senha do RDS. No Windows/PowerShell, use `npm.cmd` e `curl.exe`.
 
 ```bash
-cd frontend
-cp .env.local.example .env.local
-npm install
-npm run dev
+npm run team:backend -- logs
+npm run team:backend -- migrate
+npm run team:backend -- test
+npm run team:backend -- down
 ```
 
-Acesse http://localhost:3000
+`down` preserva os volumes. Preserve também o arquivo de senhas enquanto os volumes existirem. Depois de trocar de branch ou dependências, execute `up` novamente. O [guia da equipe](../../docs/team-development.md) detalha a operação.
 
-### Desenvolvimento sem Docker (opcional)
+## Banco de dados
+
+| Ambiente | PostgreSQL no host | Banco | Schema |
+|---|---|---|---|
+| Desenvolvimento | `127.0.0.1:5433` | `smartcitys_dev` | `demand` |
+| Testes | `127.0.0.1:5434` | `smartcitys_test` | `demand` |
+
+O Compose inicializa o schema por `dev/init-schema.sql`. Demand mantém as migrations em `demand-service/prisma/migrations`; Metrics usa um modelo de leitura compatível. Em uma instalação PostgreSQL manual, crie o schema `demand` antes de aplicar as migrations. Não use `db push` nem edite migrations já aplicadas.
 
 ```bash
-# auth-service
-cd auth-service
-npm install
-npm run dev
-
-# demand-service (outro terminal)
-cd demand-service
-npm install
-npx prisma migrate deploy
-npm run dev
+npm run team:backend -- migration nome_da_mudanca
+npm run team:backend -- migrate
+npm run team:backend -- test
 ```
-
-Use os arquivos `.env` dentro de cada serviço com URLs apontando para `localhost`.
-
----
 
 ## Variáveis de ambiente
 
-Cada serviço tem seu próprio arquivo `.env.local`.
+O caminho recomendado usa `compose.team.yml` e o atalho, que já fornecem as variáveis de cada serviço. `.env.example` é referência para execução manual, não contém credenciais do ambiente compartilhado e não é carregado automaticamente pelo atalho.
 
-### auth-service
-| Variável | Descrição | Exemplo |
+| Variável | Consumidor | Finalidade |
 |---|---|---|
-| `PORT` | Porta do serviço | `3001` |
-| `SECRET_KEY` | Chave secreta para assinar o JWT | `uma-chave-longa-e-aleatoria` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Tempo de expiração do token | `1440` |
+| `DATABASE_URL` | Demand/Prisma | PostgreSQL com `?schema=demand` |
+| `DATABASE_URL_DEMAND` | Metrics/Prisma | Leitura do mesmo banco/schema |
+| `TEST_DATABASE_URL` | Testes Demand | Banco exclusivo; a suíte cria e remove dados |
+| `REDIS_URL` | Demand e Metrics | Cache/eventos; testes usam Redis separado |
+| `KEYCLOAK_ISSUER` | Demand e Metrics | URL exata do realm que emite os tokens |
+| `KEYCLOAK_AUDIENCE` | Demand e Metrics | Audience esperada no access token |
+| `PORT` | Cada serviço | Gateway 8080, Demand 3002, Metrics 3003 |
+| `DEMAND_SERVICE_URL` | Gateway | URL interna do Demand |
+| `METRICS_SERVICE_URL` | Gateway | URL interna do Metrics |
+| `TRUSTED_PROXY_ADDRESS` | Gateway | IP exato do proxy HTTPS confiável; omitir no acesso local direto |
+| `EXPO_PUSH_ACCESS_TOKEN` | Demand | Credencial privada de envio, somente no servidor de integração |
 
-### demand-service
-| Variável | Descrição | Exemplo |
-|---|---|---|
-| `PORT` | Porta do serviço | `3002` |
-| `DATABASE_URL` | Connection string do PostgreSQL | `postgresql://user:pass@localhost:5432/smartcity` |
-| `SECRET_KEY` | Mesma chave do auth-service para validar JWT | `uma-chave-longa-e-aleatoria` |
+O backend local mantém `EXPO_PUSH_ACCESS_TOKEN` vazio. Push real exige o ambiente de integração configurado pelo responsável. Não coloque tokens, senhas, credenciais Firebase Admin ou arquivos de assinatura no Git.
 
-### metrics-service
-| Variável | Descrição | Exemplo |
+## Autenticação
+
+Cadastro, login e recuperação de senha pertencem ao Keycloak. O app usa Authorization Code com PKCE e não tem `client_secret`. Esta API não oferece `/auth/login` nem `/auth/register`.
+
+Rotas protegidas recebem `Authorization: Bearer <access_token>`. O servidor valida assinatura, issuer, audience, validade e papéis. `cidadao` e `gestor` usam as funções de ocorrência própria; as rotas `/gestor` e métricas exigem `gestor`. Ocultar uma aba no app não substitui essa autorização.
+
+## Documentação de endpoints
+
+O contrato importável está em [OpenAPI 3.0.3](../../docs/api/openapi.json). Importe esse arquivo no Postman ou Insomnia, ou abra no Swagger Editor. Selecione o servidor local e forneça um access token da sua conta. Não salve o token na especificação nem em coleções versionadas.
+
+| Método | Rota externa | Acesso |
 |---|---|---|
-| `PORT` | Porta do serviço | `3003` |
-| `DATABASE_URL` | Connection string do PostgreSQL | `postgresql://user:pass@localhost:5432/smartcity` |
-| `REDIS_URL` | Connection string do Redis | `redis://localhost:6379` |
-| `SECRET_KEY` | Mesma chave do auth-service para validar JWT | `uma-chave-longa-e-aleatoria` |
+| GET | `/ping`, `/warmup`, `/health` | Sem autenticação |
+| POST | `/demands` | Cidadão ou gestor |
+| GET | `/demands/my-demands`, `/demands/feed` | Cidadão ou gestor |
+| GET, PATCH, DELETE | `/demands/{id}` | Proprietário |
+| GET | `/demands/gestor`, `/demands/gestor/{id}` | Gestor |
+| PATCH | `/demands/gestor/{id}/status` | Gestor |
+| PATCH | `/demands/gestor/{id}/prioridade` | Gestor |
+| PUT, DELETE | `/demands/devices/push` | Aparelho do usuário autenticado |
+| GET | `/metrics` | Gestor |
+| POST | `/metrics/refresh` | Gestor |
+
+As listagens aceitam `page` (padrão 1) e `limit` (padrão 20, máximo 100), retornando `data` e `pagination`. O servidor ainda não aplica `search`, `status` ou filtros avançados. A lista do cidadão no app percorre as páginas e filtra localmente. O feed do mapa continua limitado aos 100 registros mais recentes.
+
+Criação exige título (até 50 caracteres), categoria, região, descrição e endereço ou par de coordenadas. O fluxo Android envia foto como data URI JPEG/base64 em `imagens`; o corpo completo é limitado a 5 MB. Fotos ficam no PostgreSQL como texto, sem S3. `PATCH /demands/{id}` exige os mesmos campos do cadastro e substitui as fotos. Apenas ocorrências próprias em `ABERTA` podem ser editadas/excluídas.
+
+A alteração de status grava histórico e tenta enviar push. Uma resposta HTTP de sucesso confirma a alteração persistida, mas não comprova a entrega da notificação ao Android.
+
+## Testes
+
+Use `npm run team:backend -- test`, que aplica migrations e executa Vitest com banco e Redis exclusivos. Não execute a suíte no RDS ou em banco com dados pessoais. [Detalhes dos testes](demand-service/README-TEST.md).
