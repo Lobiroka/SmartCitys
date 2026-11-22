@@ -11,6 +11,12 @@ executa os três roteiros em `final/`, em sequência, sem atalhos de criação o
 4. em outro Android, autentica o gestor, confere o mesmo registro, foto e GPS e muda o status pela tela;
 5. no Android do cidadão, exige o push real na bandeja e confere o novo status e os filtros.
 
+Antes das capturas de cadastro e login, aguarda o evento nativo `onMapLoaded`
+(tiles renderizados) e a localização resolvida, por até 90 segundos. Mostrar o
+menu do perfil ou emitir `onMapReady` não basta para liberar essas capturas.
+Essa exigência pertence à jornada final com serviços reais, sem ser adicionada
+ao fluxo básico da regressão isolada.
+
 São necessários **dois dispositivos distintos e exclusivos de testes**, com o mesmo APK da branch,
 Maestro e ADB no PATH, Python 3.10 ou superior, internet e API/Keycloak de testes com push
 configurado. O executor usa somente a biblioteca padrão do Python. O roteiro limpa

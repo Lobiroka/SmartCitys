@@ -1,0 +1,8 @@
+appId: com.darkartsbm.smartcitys
+name: Aguardar tiles do mapa e localização antes da captura
+---
+- extendedWaitUntil:
+    visible:
+      id: main-map-loaded
+    timeout: 90000
+- assertNotVisible: Buscando localização...

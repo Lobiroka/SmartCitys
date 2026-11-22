@@ -9,6 +9,7 @@ env:
 - clearState: com.android.chrome
 - runFlow: ../flows/start-app.yaml
 - runFlow: ../flows/register-account.yaml
+- runFlow: ../flows/wait-map-loaded.yaml
 - takeScreenshot: 01-cadastro-concluido
 - tapOn: Menu do Perfil
 - tapOn: Sair
@@ -19,6 +20,7 @@ env:
 - runFlow: ../flows/login.yaml
 - assertNotVisible:
     id: tab-manager
+- runFlow: ../flows/wait-map-loaded.yaml
 - takeScreenshot: 02-login-cidadao
 - runFlow: ../flows/create-occurrence.yaml
 - runFlow: ../flows/verify-citizen-occurrence.yaml
