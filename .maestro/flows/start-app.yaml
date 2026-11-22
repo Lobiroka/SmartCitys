@@ -12,9 +12,6 @@ name: Iniciar app limpo no APK ou development
     when:
       true: ${typeof MAESTRO_E2E_DEV_CLIENT !== 'undefined' && MAESTRO_E2E_DEV_CLIENT === '1'}
     commands:
-      - extendedWaitUntil:
-          visible: Development Build
-          timeout: 30000
       - openLink: "exp+wb://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081&disableOnboarding=1&disableFab=1&disableAutoLaunch=1"
 
 - runFlow:
