@@ -1,6 +1,7 @@
 """Normaliza Jest/Vitest/JUnit e gera indicadores e HTML, sem pacotes externos."""
 import argparse
 import html
+import hashlib
 import json
 import math
 import os
@@ -12,6 +13,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCOPE = "Mobile: src/features/occurrences; exclui testes e ApiOccurrenceService.ts. Não representa todo o aplicativo. API e E2E sem cobertura instrumentada."
+ASSESSMENTS = ROOT / '.github/quality/failure-assessments.json'
+CAUSES = {
+    'sut': 'Defeito do SUT',
+    'automation': 'Defeito da TAS',
+    'environment': 'Problema de ambiente',
+    'expected-change': 'Variação esperada aprovada',
+    'pending': 'Triagem pendente',
+}
 
 
 def load_json(path):
@@ -124,7 +133,7 @@ def calculate(suites, coverage, job_status):
     coverage_ok = all(coverage.get(k) is not None and coverage[k] >= 70 for k in ("lines", "branches", "functions", "statements"))
     if counts["failed"]:
         status = "VERMELHO"
-        recommendation = "Corrigir os testes reprovados antes de aprovar a entrega."
+        recommendation = "Investigar as falhas e corrigir sua causa antes de aprovar a entrega."
     elif incomplete:
         status = "INCONCLUSIVO"
         recommendation = "Restabelecer a execução/coleta e repetir a validação; não há evidência suficiente para aprovar."
@@ -147,7 +156,93 @@ def render(template, values):
     return re.sub(r"\{\{([A-Z_]+)\}\}", replace, template)
 
 
-def build(root, expected, outcomes, job_status="success"):
+def load_assessments(path):
+    try:
+        entries = load_json(path)
+        if not isinstance(entries, list):
+            raise ValueError('Formato inválido')
+        indexed = {}
+        for entry in entries:
+            required = ('suite', 'test', 'failure_sha256', 'cause', 'diagnosis', 'evidence', 'reviewer', 'residual_risk')
+            if not isinstance(entry, dict) or any(not isinstance(entry.get(key), str) or not entry[key].strip() for key in required):
+                raise ValueError('Parecer incompleto')
+            if entry['cause'] not in CAUSES or entry['cause'] == 'pending':
+                raise ValueError('Causa inválida')
+            if entry['suite'] not in ('mobile', 'api', 'e2e'):
+                raise ValueError('Suíte inválida')
+            if not re.fullmatch(r'[a-f0-9]{64}', entry['failure_sha256']) or not re.match(r'https://[^/\s]+/', entry['evidence']):
+                raise ValueError('Evidência inválida')
+            key = (entry['suite'], entry['test'], entry['failure_sha256'])
+            if key in indexed:
+                raise ValueError('Parecer conflitante')
+            indexed[key] = entry
+        return indexed, []
+    except (OSError, ValueError, TypeError):
+        return {}, ['Não apliquei os pareceres: arquivo ausente ou inválido. Mantive as falhas como triagem pendente.']
+
+
+def interpret(result, suites, assessments_path, risks):
+    assessments, problems = load_assessments(assessments_path)
+    failures = []
+    for suite in suites:
+        for case in suite['cases']:
+            if case['status'] != 'failed':
+                continue
+            fingerprint = hashlib.sha256(case['message'].encode('utf-8')).hexdigest()
+            assessment = assessments.get((suite['name'], case['name'], fingerprint))
+            failures.append({
+                'suite': suite['name'], 'test': case['name'], 'failure_sha256': fingerprint,
+                'cause': assessment['cause'] if assessment else 'pending',
+                'diagnosis': assessment['diagnosis'] if assessment else
+                    'Causa não confirmada. Investigar SUT, automação, ambiente e requisito antes de classificar.',
+                'evidence': assessment['evidence'] if assessment else '',
+                'reviewer': assessment['reviewer'] if assessment else 'Não registrado',
+                'residual_risk': assessment['residual_risk'] if assessment else
+                    'O comportamento validado por este teste permanece sem aprovação; a causa da falha ainda é desconhecida.',
+            })
+    if result['executed']:
+        approval = (f"Observei {result['counts']['passed']} aprovações em {result['executed']} casos executados "
+                    f"({result['success_rate']:.2f}%). A razão mede o resultado dos casos disponíveis nesta tentativa; "
+                    'não mede a probabilidade de o produto estar livre de defeitos nem sua estabilidade histórica.')
+    else:
+        approval = 'Não obtive casos executados para calcular a razão de aprovação: N/D. Não considero ausência de execução como aprovação.'
+    if result['partial']:
+        approval += ' Interpreto essa leitura como parcial, pois a preparação, execução ou coleta não foi concluída.'
+    if result['counts']['skipped']:
+        approval += f" Excluí {result['counts']['skipped']} casos ignorados do denominador; eles não validaram o produto."
+    if result['counts']['failed']:
+        approval += ' Mantenho a entrega sem aprovação enquanto as falhas forem investigadas e sua causa for corrigida, mesmo com taxa alta.'
+    sut_count = sum(failure['cause'] == 'sut' for failure in failures)
+    pending_count = sum(failure['cause'] == 'pending' for failure in failures)
+    fault_interpretation = (f'Identifiquei {sut_count} falhas classificadas como defeito do SUT por parecer com evidência '
+                            f'e {pending_count} falhas com triagem pendente. A classificação registra o diagnóstico humano; '
+                            'o coletor não confirma a causa pelo nome do teste ou pela mensagem de erro.')
+    if not failures:
+        fault_interpretation = ('Não encontrei casos reprovados nos resultados disponíveis. '
+                                'Essa ausência não comprova ausência de defeitos nas jornadas fora do escopo ou não executadas.')
+    risks.extend(problems)
+    if pending_count:
+        risks.append(f'Mantenho {pending_count} falhas sem causa confirmada; a investigação pode revelar defeitos do produto, da TAS ou do ambiente.')
+    for failure in failures:
+        risks.append(f"{failure['suite']} / {failure['test']}: {failure['residual_risk']}")
+    for suite in suites:
+        for case in suite['cases']:
+            if case['status'] == 'skipped':
+                risks.append(f"Não validei {suite['name']} / {case['name']}: caso ignorado nesta execução; mantenho a jornada sem evidência desse teste.")
+    incomplete = [suite['name'] for suite in suites if not suite['complete']]
+    if incomplete:
+        risks.append('Não obtive validação completa das suítes: ' + ', '.join(incomplete) + '. Não atribuo falhas de coleta ao SUT sem investigação.')
+    risks.append('Mantenho risco residual nas jornadas não exercitadas, no código fora da cobertura instrumentada e no ambiente de destino; uma execução aprovada não elimina esses riscos.')
+    return {'approval_interpretation': approval, 'fault_interpretation': fault_interpretation,
+            'failure_assessments': failures, 'sut_failures': sut_count,
+            'pending_failures': pending_count, 'assessment_problems': problems, 'residual_risks': risks}
+
+
+def markdown_text(value):
+    return re.sub(r'([\\`*_{}\[\]()#+!|>])', r'\\\1', html.escape(str(value)).replace('\n', ' '))
+
+
+def build(root, expected, outcomes, job_status="success", assessments_path=ASSESSMENTS):
     root.mkdir(parents=True, exist_ok=True)
     clean_artifacts(root)
     suites = [read_suite(root, name, outcomes.get(name, "skipped")) for name in expected]
@@ -185,6 +280,7 @@ def build(root, expected, outcomes, job_status="success"):
     below_target = [k for k, value in coverage.items() if value < 70]
     if below_target:
         risks.append("Cobertura abaixo da meta inicial de 70%: " + ", ".join(below_target) + ".")
+    result.update(interpret(result, suites, assessments_path, risks))
     list_html = lambda items: "".join(f"<li>{html.escape(str(item))}</li>" for item in items)
     suite_rows = "".join(f"<tr><td>{x['name']}</td><td>{x['counts']['passed']}</td><td>{x['counts']['failed']}</td><td>{x['counts']['skipped']}</td><td>{x['duration_seconds'] if x['duration_seconds'] is not None else 'N/D'}</td><td>{'Completa' if x['complete'] else 'Incompleta'}</td></tr>" for x in suites)
     failures = [f"{x['name']}: {c['name']} — {c['message']}" for x in suites for c in x["cases"] if c["status"] == "failed"]
@@ -199,6 +295,13 @@ def build(root, expected, outcomes, job_status="success"):
               "PIPELINE_SECONDS": result["pipeline_seconds_until_report"] if result["pipeline_seconds_until_report"] is not None else "N/D",
               "SUITES_HTML": suite_rows, "FAILURES_HTML": list_html(failures or ["Nenhum caso reprovado registrado; conferir completude da execução."]),
               "RISKS_HTML": list_html(risks),
+              "APPROVAL_INTERPRETATION": result['approval_interpretation'],
+              "FAULT_INTERPRETATION": result['fault_interpretation'],
+              "ASSESSMENTS_HTML": list_html([
+                  f"{failure['suite']} / {failure['test']} — {CAUSES[failure['cause']]}. "
+                  f"Diagnóstico: {failure['diagnosis']} Parecer: {failure['reviewer']}. "
+                  f"Evidência: {failure['evidence'] or 'pendente'}. Risco residual: {failure['residual_risk']}"
+                  for failure in result['failure_assessments']] or ['Nenhum caso reprovado registrado; conferir a completude da execução.']),
               "COVERAGE_HTML": list_html([f"{k}: {pct(coverage.get(k))}" for k in ("lines", "branches", "functions", "statements")])}
     for suite in suites:
         write_junit(suite, root / suite["name"] / "normalized.xml")
@@ -215,7 +318,15 @@ def build(root, expected, outcomes, job_status="success"):
                f"Falhos: {result['counts']['failed']} | Ignorados: {result['counts']['skipped']}\n\n"
                f"Taxa de aprovação dos casos disponíveis: {pct(result['success_rate'])}. "
                f"Coleta {'parcial' if result['partial'] else 'completa'}.\n\n"
+               "### Interpretação dos números\n\n" + markdown_text(result['approval_interpretation']) + "\n\n"
+               "### Diagnóstico das falhas\n\n" + markdown_text(result['fault_interpretation']) + "\n\n" +
+               '\n'.join('- ' + markdown_text(
+                   f"{failure['suite']} / {failure['test']}: {CAUSES[failure['cause']]}. "
+                   f"{failure['diagnosis']} Parecer: {failure['reviewer']}. Evidência: {failure['evidence'] or 'pendente'}. "
+                   f"Risco residual: {failure['residual_risk']}") for failure in result['failure_assessments']) +
+               "\n\n### Riscos residuais\n\n" + '\n'.join('- ' + markdown_text(risk) for risk in risks) + "\n\n"
                "Baixe o artefato qualidade para abrir quality/technical.html e quality/business.html.\n")
+    summary = redact(summary)
     (output / "summary.md").write_text(summary, encoding="utf-8")
     if os.getenv("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
@@ -227,10 +338,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=ROOT / "test-results")
     parser.add_argument("--expected", default="mobile,api,e2e")
+    parser.add_argument("--assessments", type=Path, default=ASSESSMENTS)
     args = parser.parse_args()
     report = build(args.root, args.expected.split(","), {
         "mobile": os.getenv("MOBILE_OUTCOME", "skipped"),
         "api": os.getenv("API_OUTCOME", "skipped"),
-        "e2e": os.getenv("E2E_OUTCOME", "skipped")}, os.getenv("PRE_REPORT_STATUS", "success"))
+        "e2e": os.getenv("E2E_OUTCOME", "skipped")}, os.getenv("PRE_REPORT_STATUS", "success"), args.assessments)
     # Missing results must not silently turn a broken collection into a green job.
     raise SystemExit(1 if report["partial"] or report["counts"]["failed"] else 0)

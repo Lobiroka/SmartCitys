@@ -5,6 +5,8 @@
 <body><h1>SmartCitys — Relatório técnico de qualidade</h1>
 <section class="meta"><h2>{{STATUS}}</h2><p>Workflow: {{WORKFLOW}} · Execução: {{RUN}} · Tentativa: {{ATTEMPT}}<br>Commit: {{COMMIT}}<br>Gerado em UTC: {{DATE}}</p><a href="{{RUN_URL}}">Execução e logs no GitHub Actions</a></section>
 <section><h2>Resultados</h2><p>Executados: <strong>{{EXECUTED}}</strong> · Aprovados: {{PASSED}} · Falhos: {{FAILED}} · Ignorados: {{SKIPPED}}</p><p>Aprovação: {{SUCCESS_RATE}} · Falha: {{FAILURE_RATE}}. Percentuais calculados somente sobre casos executados disponíveis.</p><table><thead><tr><th>Suíte</th><th>Aprovados</th><th>Falhos</th><th>Ignorados</th><th>Tempo (s)</th><th>Coleta</th></tr></thead><tbody>{{SUITES_HTML}}</tbody></table><p>Tempo da execução até o relatório: {{PIPELINE_SECONDS}} s (não inclui upload e encerramento do job).</p><p>Duração mobile/API: processo de testes e cobertura; E2E: execução do script de preparação e teste, quando disponível. Não somar tempos como se fossem equivalentes.</p></section>
+<section><h2>Interpretação dos números</h2><p>{{APPROVAL_INTERPRETATION}}</p></section>
+<section><h2>Diagnóstico das falhas e risco residual</h2><p>{{FAULT_INTERPRETATION}}</p><ul>{{ASSESSMENTS_HTML}}</ul></section>
 <section><h2>Cobertura instrumentada</h2><p>{{SCOPE}}</p><ul>{{COVERAGE_HTML}}</ul><p>Meta inicial de atenção: 70% por dimensão. Não bloqueia automaticamente a pipeline nem representa percentual de qualidade do produto.</p></section>
 <section><h2>Falhas e problemas de execução</h2><ul>{{FAILURES_HTML}}</ul></section>
 <section><h2>Limitações e riscos</h2><ul>{{RISKS_HTML}}</ul></section>
