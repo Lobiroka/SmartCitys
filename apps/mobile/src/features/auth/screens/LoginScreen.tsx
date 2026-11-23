@@ -18,7 +18,7 @@ export function LoginScreen() {
 
     return (
         <ThemedView style={styles.container}>
-            <ThemedText style={styles.title}>Smart City</ThemedText>
+            <ThemedText style={styles.title}>SmartCitys</ThemedText>
 
             <ThemedText style={styles.description}>
                 Entre para registrar e acompanhar denúncias.

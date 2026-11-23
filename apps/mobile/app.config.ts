@@ -43,7 +43,7 @@ export default function defineExpoConfig({
         updates: projectId
             ? { enabled: true, url: 'https://u.expo.dev/' + projectId }
             : { enabled: false },
-        name: config.name ?? 'wb',
+        name: config.name ?? 'SmartCitys',
         slug: config.slug ?? 'wb',
         android: {
             ...config.android,
