@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="SmartCity_API_36" tests="1" failures="0" time="264.342" timestamp="2026-11-23T00:22:06">
+    <testcase id="Final 1 - cadastro, login, foto, GPS, filtros e persistência" name="Final 1 - cadastro, login, foto, GPS, filtros e persistência" classname="Final 1 - cadastro, login, foto, GPS, filtros e persistência" file=".maestro\final\citizen-register-and-report.yaml" time="264.307" timestamp="2026-11-23T00:22:06" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

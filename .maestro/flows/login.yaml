@@ -1,0 +1,53 @@
+appId: com.darkartsbm.smartcitys
+name: Entrar com credenciais ou sessão Keycloak existente
+---
+- tapOn:
+    id: "login-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "username|tab-occurrences|com.android.chrome:id/signin_fre_dismiss_button"
+    timeout: 60000
+
+- runFlow:
+    when:
+      visible:
+        id: "com.android.chrome:id/signin_fre_dismiss_button"
+    commands:
+      - tapOn:
+          id: "com.android.chrome:id/signin_fre_dismiss_button"
+      - extendedWaitUntil:
+          visible:
+            id: "username|login-button|tab-occurrences"
+          timeout: 60000
+      - runFlow:
+          when:
+            visible:
+              id: "login-button"
+          commands:
+            - tapOn:
+                id: "login-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "username|tab-occurrences"
+    timeout: 60000
+
+- runFlow:
+    when:
+      visible:
+        id: "username"
+    commands:
+      - tapOn:
+          id: "username"
+      - inputText: "${E2E_USERNAME}"
+      - tapOn:
+          id: "password"
+      - inputText: "${E2E_PASSWORD}"
+      - hideKeyboard
+      - tapOn:
+          id: "kc-login"
+
+- extendedWaitUntil:
+    visible: "Menu do Perfil"
+    timeout: 60000

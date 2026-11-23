@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { pushNotificationService } from '@/src/composition/appDependencies';
 import { Alert, AppState, Button, Linking, Pressable, Text, View } from 'react-native';
 import MapView, { Callout, Marker } from 'react-native-maps';
@@ -34,6 +34,8 @@ export function MainMapScreen() {
     const { session, signOut } = useAuthSession();
     const { occurrences, occurrenceError } = useOccurrenceFeedViewModel();
     const mapRef = useRef<MapView>(null);
+    const [hasMapLoaded, setHasMapLoaded] = useState(false);
+    const [hasMapSettled, setHasMapSettled] = useState(false);
     const controlsTop = Math.max(48, useSafeAreaInsets().top + 12);
     const isAuthenticated = session.status === 'authenticated';
 
@@ -66,13 +68,18 @@ export function MainMapScreen() {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={styles.container}
+            testID={hasMapLoaded && hasMapSettled && !isLoading && !locationError
+                ? 'main-map-loaded' : 'main-map-loading'}>
             <MapView
                 ref={mapRef}
                 style={styles.map}
                 region={region}
                 showsUserLocation
                 showsMyLocationButton={false}
+                onMapLoaded={() => setHasMapLoaded(true)}
+                onRegionChange={() => setHasMapSettled(false)}
+                onRegionChangeComplete={() => setHasMapSettled(true)}
                 onPress={() => {
                     if (isProfileMenuOpen) {
                         toggleProfileMenu();

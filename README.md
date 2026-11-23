@@ -1,8 +1,18 @@
 # SmartCitys
 
+### Validação completa da entrega final
+
+O comando `npm.cmd run mobile:test:e2e:final -- --citizen-device SERIAL_CIDADAO --manager-device SERIAL_GESTOR`
+valida cadastro/login, ocorrência com foto e GPS, acompanhamento e filtros, alteração de status
+pela interface do gestor e push real ao cidadão. Exige dois Androids de testes com o mesmo app
+da branch e credenciais dedicadas de gestor. Para development com Metro, acrescente `--dev-client`.
+Preparação, cuidados com dados e relatórios: [guia da jornada completa](.maestro/README.md#jornada-completa-da-entrega-final).
+Execução aprovada em 22/11/2026: [evidências e limites](docs/tas-evidence/final-2026-11-22/README.md).
+Evidências refeitas em 23/11/2026, aguardando o mapa carregado: [novo relatório aprovado](docs/tas-evidence/final-map-2026-11-23/README.md).
+
 Aplicativo mobile para registro e acompanhamento de ocorrências urbanas, com mapa, autenticação Keycloak e acesso para cidadãos e gestores. O monorepo reúne o aplicativo React Native/Expo e os serviços Express da API.
 
-## Estado do projeto — 19/11/2026
+## Estado do projeto — 22/11/2026
 
 O MVP Android está disponível para testes internos na versão **1.0.1**. O backend está publicado na AWS com API HTTPS e PostgreSQL de ocorrências no RDS; a antiga migração Supabase → RDS já foi realizada. A autenticação utiliza o realm de testes do Keycloak.
 
@@ -118,7 +128,25 @@ Revise o SQL e versione schema e migration juntos. Não edite migrations já apl
 - Tema claro/escuro e componentes com GlueStack/NativeWind.
 - Perfis EAS development/preview e atualização OTA Android compatível com o runtime instalado.
 
-Pesquisa e filtros da listagem do cidadão atuam nos registros carregados; o carregamento das próximas páginas e filtros avançados no servidor precisam evoluir.
+A lista do cidadão percorre as páginas da API e aplica pesquisa/status localmente ao conjunto carregado. Se qualquer página falhar, mantém a lista anterior e mostra o erro. Esse carregamento pode ficar mais lento com muitas ocorrências e fotos; filtros/paginação sob demanda no servidor continuam como evolução. O feed do mapa ainda mostra até 100 registros recentes.
+
+## Entrega final Android
+
+A [documentação OpenAPI 3.0.3](docs/api/openapi.json) descreve as rotas atuais, autenticação, papéis, corpos, paginação e respostas. Importe o arquivo no Postman/Insomnia ou abra no Swagger Editor. As instruções de banco e variáveis estão no [README da API](apps/backend/README.md); o [exemplo público do app](apps/mobile/.env.team.example) é usado pelo atalho de desenvolvimento. O [exemplo para compilação própria](apps/mobile/.env.example) contém os nomes das variáveis nativas Maps/Firebase exigidas pelo EAS; seus valores ficam fora do Git.
+
+### Android físico no Linux
+
+Com Node.js 22, Android SDK Platform-Tools e o APK development instalados, conecte um celular com depuração USB, autorize o computador e execute na raiz:
+
+```bash
+adb devices
+npm ci
+npm run team:android
+```
+
+Mantenha apenas um Android autorizado conectado e o Metro aberto. Para a API local, execute `npm run team:backend -- up` em outro terminal e use `npm run team:android:local`. Docker Engine com Compose no Linux atende a stack; não é necessário iniciar um emulador. Na API local, o envio real de push fica desativado.
+
+As alterações desta branch só aparecem no development carregando este código. A versão preview publicada tem seu próprio bundle/OTA e precisa ser distribuída e validada pelo responsável após integração. Não foi gerado um novo APK nesta revisão.
 
 ## Arquitetura
 
@@ -201,11 +229,14 @@ Os horários estão sujeitos à fila do GitHub Actions. A rotina de manutenção
 
 Na validação registrada em 19/11/2026, passaram **55 testes mobile e 26 testes da API**; seis testes de filtros avançados da suíte existente permanecem desativados. A [CI da stack local](https://github.com/Lobiroka/SmartCitys/actions/runs/44577588376) validou banco novo, reaplicação de migrations e saúde dos serviços. Isso não substitui o primeiro onboarding completo em um computador da equipe.
 
-Limitação conhecida: a checagem TypeScript ainda aponta uma declaração ausente para o import de `global.css` em `apps/mobile/app/_layout.tsx`. A suíte de testes aprovada não significa que essa checagem de tipos esteja aprovada.
+Na revisão local de 22/11/2026 desta entrega, passaram **64 testes mobile**, **39 testes da API** e os **34 testes dos scripts de automação**. Os seis testes de filtros avançados continuam ignorados. Lint, checagem TypeScript mobile, compilação TypeScript do Demand Service, validação da especificação OpenAPI e verificação do diff passaram. A API foi testada em PostgreSQL local isolado, com push simulado. Não houve execução Android nem geração de APK nesta revisão; o novo roteiro Maestro de foto/GPS ainda precisa ser executado no aparelho.
+
+A declaração de CSS está em `apps/mobile/global.d.ts`. A checagem de tipos pode ser executada separadamente com `npx tsc --project apps/mobile/tsconfig.json --noEmit`.
 
 - [Política de manutenção da TAS](docs/tas.md)
 - [Evidências da TAS](docs/tas-evidencias.md)
 - [Execução E2E com Maestro](.maestro/README.md)
+- [Contrato OpenAPI](docs/api/openapi.json)
 - [Testes de API](apps/backend/demand-service/README-TEST.md)
 
 ## Credenciais e proteção da equipe
@@ -227,9 +258,11 @@ O procedimento e a ordem de ativação estão no [guia da equipe](docs/team-deve
 - [ ] Configurar `ci-main`, recriar as credenciais da automação, validar e concluir a PR #24.
 - [ ] Realizar e registrar o primeiro uso do development com API compartilhada e API local em uma máquina da equipe.
 - [ ] Instalar Docker Desktop nas máquinas que executarão o backend local.
-- [ ] Corrigir a declaração TypeScript do CSS e manter os checks aplicáveis aprovados.
+- [x] Corrigir a declaração TypeScript do CSS.
+- [ ] Validar no Android o cadastro novo, foto/GPS, filtros, gestão pelas telas, push real e APK preview sem Metro.
 - [ ] Evoluir o armazenamento de fotos para S3 e tratar imagens antigas.
-- [ ] Evoluir paginação e filtros avançados, com testes correspondentes.
+- [x] Percorrer as páginas na lista do cidadão para pesquisar também além dos primeiros 100 registros.
+- [ ] Evoluir filtros avançados e paginação sob demanda no servidor.
 - [ ] Integrar e validar o mapa de calor e o processamento de dados como evolução separada da stack principal.
 - [ ] Compilar, assinar e homologar iOS, além de planejar a distribuição de produção.
 - [ ] Manter o inventário operacional, os backups e os ensaios de restauração documentados.

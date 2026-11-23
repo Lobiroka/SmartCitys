@@ -1,0 +1,1376 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SmartCitys API",
+    "version": "1.0.1",
+    "description": "Contrato das rotas externas do API Gateway. Keycloak emite tokens; login e cadastro não são endpoints desta API. No Demand Service direto, o prefixo interno é /demandas. Gateway limita 200 requisições por IP em 15 minutos."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8080",
+      "description": "Ambiente local via team:backend"
+    },
+    {
+      "url": "https://api.darkartsbm.com",
+      "description": "Integração compartilhada; não executar testes destrutivos"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Operação"
+    },
+    {
+      "name": "Ocorrências"
+    },
+    {
+      "name": "Gestão"
+    },
+    {
+      "name": "Notificações"
+    },
+    {
+      "name": "Métricas"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/ping": {
+      "get": {
+        "operationId": "ping",
+        "summary": "Verificar o gateway",
+        "tags": [
+          "Operação"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": []
+      }
+    },
+    "/warmup": {
+      "get": {
+        "operationId": "warmup",
+        "summary": "Iniciar aquecimento dos serviços",
+        "tags": [
+          "Operação"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "warming up"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "Dispara verificações de saúde em segundo plano; não confirma que os serviços estão prontos.",
+        "security": []
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Verificar gateway e dependências",
+        "tags": [
+          "Operação"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "description": "Uma ou mais dependências indisponíveis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/demands": {
+      "post": {
+        "operationId": "createOccurrence",
+        "summary": "Criar ocorrência própria",
+        "tags": [
+          "Ocorrências"
+        ],
+        "responses": {
+          "201": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Occurrence"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "413": {
+            "description": "Corpo maior que 5 MB; resposta do parser pode ser texto/HTML."
+          }
+        },
+        "description": "Perfis cidadao ou gestor. Status inicial ABERTA; proprietário obtido do subject do token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OccurrenceInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/demands/my-demands": {
+      "get": {
+        "operationId": "listOwnOccurrences",
+        "summary": "Listar ocorrências próprias",
+        "tags": [
+          "Ocorrências"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OccurrencePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "cidadao ou gestor: somente registros do subject autenticado. Ordenação por data_registro decrescente. Apenas page e limit são interpretados pelo servidor; search, status e filtros avançados não são aplicados. Filtros do cidadão são locais no app.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/demands/feed": {
+      "get": {
+        "operationId": "listFeed",
+        "summary": "Listar feed geral autenticado",
+        "tags": [
+          "Ocorrências"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OccurrencePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "cidadao ou gestor. Não é uma rota pública. Ordenação por data_registro decrescente. Apenas page e limit são interpretados pelo servidor; search, status e filtros avançados não são aplicados. Filtros do cidadão são locais no app.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/demands/gestor": {
+      "get": {
+        "operationId": "listManagerOccurrences",
+        "summary": "Listar todas as ocorrências para gestão",
+        "tags": [
+          "Gestão"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OccurrencePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "Exige perfil gestor. Ordenação por data_registro decrescente. Apenas page e limit são interpretados pelo servidor; search, status e filtros avançados não são aplicados. Filtros do cidadão são locais no app.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/demands/{id}": {
+      "get": {
+        "operationId": "getOwnOccurrence",
+        "summary": "Consultar detalhes de ocorrência própria",
+        "tags": [
+          "Ocorrências"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Occurrence"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "cidadao ou gestor. Ocorrência de outro proprietário retorna 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateOwnOccurrence",
+        "summary": "Editar ocorrência própria aberta",
+        "tags": [
+          "Ocorrências"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Occurrence"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "cidadao ou gestor. Somente status ABERTA; outro status retorna 400. Dados de outro proprietário retornam 404.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OccurrenceInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "deleteOwnOccurrence",
+        "summary": "Excluir ocorrência própria aberta",
+        "tags": [
+          "Ocorrências"
+        ],
+        "responses": {
+          "204": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "cidadao ou gestor. Somente ABERTA; remove também imagens e histórico por cascade.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/demands/gestor/{id}": {
+      "get": {
+        "operationId": "getManagerOccurrence",
+        "summary": "Consultar detalhes para gestão",
+        "tags": [
+          "Gestão"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Occurrence"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "Exige gestor. Inclui fotos e histórico.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/demands/gestor/{id}/status": {
+      "patch": {
+        "operationId": "changeStatus",
+        "summary": "Alterar status",
+        "tags": [
+          "Gestão"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "Exige gestor. Rejeita o valor atual com 400. Registra a alteração no histórico. Após persistir, tenta publicar evento e enviar push aos aparelhos do proprietário. Sucesso HTTP não comprova entrega do push; falha no transporte não reverte o status.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "$ref": "#/components/schemas/Status"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/demands/gestor/{id}/prioridade": {
+      "patch": {
+        "operationId": "changePriority",
+        "summary": "Alterar prioridade",
+        "tags": [
+          "Gestão"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "Exige gestor. Rejeita o valor atual com 400. Registra a alteração no histórico. Aceita texto sem diferenciar maiúsculas ou acentos. Não envia push de status.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prioridade": {
+                    "$ref": "#/components/schemas/Priority"
+                  }
+                },
+                "required": [
+                  "prioridade"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/demands/devices/push": {
+      "put": {
+        "operationId": "registerPushDevice",
+        "summary": "Registrar aparelho para push",
+        "tags": [
+          "Notificações"
+        ],
+        "responses": {
+          "204": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "cidadao ou gestor. Inscrição vinculada ao subject autenticado. DELETE é idempotente e não remove inscrição pertencente a outro usuário.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushDevice"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unregisterPushDevice",
+        "summary": "Remover inscrição própria de push",
+        "tags": [
+          "Notificações"
+        ],
+        "responses": {
+          "204": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "cidadao ou gestor. Inscrição vinculada ao subject autenticado. DELETE é idempotente e não remove inscrição pertencente a outro usuário.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushDevice"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "getMetrics",
+        "summary": "Consultar indicadores",
+        "tags": [
+          "Métricas"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Metrics"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "Exige gestor. Cache Redis com TTL de 300 segundos."
+      }
+    },
+    "/metrics/refresh": {
+      "post": {
+        "operationId": "refreshMetrics",
+        "summary": "Recalcular indicadores",
+        "tags": [
+          "Métricas"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Metrics"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "Exige gestor. Recalcula a partir do PostgreSQL e atualiza o cache."
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Access token Keycloak com issuer/audience válidos e perfil cidadao ou gestor. O app usa Authorization Code com PKCE; nunca envie client_secret."
+      }
+    },
+    "schemas": {
+      "Category": {
+        "type": "string",
+        "enum": [
+          "ILUMINACAO_PUBLICA",
+          "MANUTENCAO_DE_VIAS",
+          "SANEAMENTO",
+          "COLETA_DE_LIXO",
+          "FISCALIZACAO",
+          "SEGURANCA",
+          "SINALIZACAO_DE_TRANSITO",
+          "OUTROS_EMPECILHOS"
+        ]
+      },
+      "Region": {
+        "type": "string",
+        "enum": [
+          "REGIAO_METROPOLITANA_DO_RECIFE",
+          "ZONA_DA_MATA",
+          "AGRESTE",
+          "SERTAO",
+          "OUTRA"
+        ]
+      },
+      "Status": {
+        "type": "string",
+        "enum": [
+          "ABERTA",
+          "EM_ANALISE",
+          "RESOLVIDA"
+        ]
+      },
+      "Priority": {
+        "type": "string",
+        "enum": [
+          "ALTA",
+          "MEDIA",
+          "BAIXA"
+        ]
+      },
+      "Image": {
+        "type": "object",
+        "properties": {
+          "id_imagem": {
+            "type": "integer"
+          },
+          "caminho_file": {
+            "type": "string",
+            "description": "Data URI JPEG em base64 no fluxo Android atual."
+          },
+          "data_upload": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "denuncia_id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id_imagem",
+          "caminho_file",
+          "data_upload",
+          "denuncia_id"
+        ]
+      },
+      "History": {
+        "type": "object",
+        "properties": {
+          "id_historico": {
+            "type": "integer"
+          },
+          "data_abertura": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data_alteracao": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "prioridade": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "denuncia_id": {
+            "type": "integer"
+          },
+          "gestor_id": {
+            "type": "integer"
+          }
+        }
+      },
+      "OccurrenceInput": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "categoria": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "regiao": {
+            "$ref": "#/components/schemas/Region"
+          },
+          "descricao": {
+            "type": "string",
+            "minLength": 1
+          },
+          "endereco": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "nullable": true
+          },
+          "prioridade": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "imagens": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Fotos em data URI base64. Corpo completo limitado a 5 MB no Demand Service."
+          }
+        },
+        "required": [
+          "titulo",
+          "categoria",
+          "regiao",
+          "descricao"
+        ],
+        "description": "Informe endereço não vazio OU latitude e longitude juntas. PATCH requer os mesmos campos obrigatórios do POST; substitui imagens (omitidas resultam em remoção das fotos). Prioridade omitida no POST assume MEDIA."
+      },
+      "OccurrenceRecord": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "categoria": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "regiao": {
+            "$ref": "#/components/schemas/Region"
+          },
+          "descricao": {
+            "type": "string",
+            "minLength": 1
+          },
+          "endereco": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "nullable": true
+          },
+          "prioridade": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "id_denuncia": {
+            "type": "integer"
+          },
+          "cidadao_id": {
+            "type": "integer"
+          },
+          "email_solicitante": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "data_registro": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_denuncia",
+          "titulo",
+          "categoria",
+          "regiao",
+          "descricao",
+          "status",
+          "prioridade",
+          "data_registro",
+          "cidadao_id"
+        ]
+      },
+      "Occurrence": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OccurrenceRecord"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "imagens": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              },
+              "historicos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/History"
+                },
+                "description": "Presente nas consultas de detalhes."
+              }
+            },
+            "required": [
+              "imagens"
+            ]
+          }
+        ]
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "OccurrencePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Occurrence"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "ChangeResult": {
+        "type": "object",
+        "properties": {
+          "denuncia": {
+            "$ref": "#/components/schemas/OccurrenceRecord"
+          },
+          "historico": {
+            "$ref": "#/components/schemas/History"
+          }
+        },
+        "required": [
+          "denuncia",
+          "historico"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "PushDevice": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^(ExponentPushToken|ExpoPushToken)\\[[A-Za-z0-9_-]{1,128}\\]$",
+            "example": "ExpoPushToken[exemplo_123]"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "Metrics": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "byCategory": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "byRegion": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "byStatus": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "total",
+          "byCategory",
+          "byRegion",
+          "byStatus",
+          "updatedAt"
+        ]
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "gateway": {
+            "type": "string",
+            "enum": [
+              "api-gateway"
+            ]
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ok",
+                    "error"
+                  ]
+                },
+                "code": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "status",
+                "code"
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "gateway",
+          "services"
+        ]
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Entrada inválida ou alteração não permitida",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Token ausente, inválido ou expirado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Perfil sem permissão",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Ocorrência inexistente ou não pertence ao solicitante",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Falha interna",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Limite de 200 requisições por IP em 15 minutos atingido; resposta de texto do gateway."
+      }
+    }
+  }
+}

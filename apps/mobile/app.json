@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "wb",
+    "name": "SmartCitys",
     "slug": "wb",
     "version": "1.0.1",
     "platforms": [
@@ -48,14 +48,14 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Permita que o Smart City use a câmera para fotografar a ocorrência.",
+          "cameraPermission": "Permita que o SmartCitys use a câmera para fotografar a ocorrência.",
           "recordAudioAndroid": false
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Permita que o Smart City use sua localização para registrar e exibir ocorrências próximas."
+          "locationWhenInUsePermission": "Permita que o SmartCitys use sua localização para registrar e exibir ocorrências próximas."
         }
       ]
     ],

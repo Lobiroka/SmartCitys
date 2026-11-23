@@ -173,7 +173,7 @@ Criar um Environment vazio ou adicionar apenas `environment:` no YAML não prote
 
 Configuração integrada pela [PR #21](https://github.com/Lobiroka/SmartCitys/pull/21). Validação: 55 testes mobile passaram, incluindo cinco verificações da configuração do cliente. A [CI da stack local](https://github.com/Lobiroka/SmartCitys/actions/runs/44577588376) passou com banco novo, reaplicação de migrations, saúde dos três serviços e testes da API: 26 passaram e seis permanecem desativados pela suíte existente.
 
-A checagem TypeScript ainda aponta uma declaração ausente para o import de `global.css` em `app/_layout.tsx`, anterior a este ambiente; não considerar a checagem de tipos integralmente aprovada. Docker não está instalado na máquina usada para preparar esta configuração; a execução dos containers foi validada na CI.
+Na validação original deste ambiente, a checagem TypeScript apontava uma declaração ausente para o import de `global.css`. A revisão de entrega adiciona `apps/mobile/global.d.ts`; execute `npx tsc --project apps/mobile/tsconfig.json --noEmit` para conferir a branch atual. Docker não está instalado na máquina usada para preparar esta configuração; a execução dos containers foi validada na CI.
 
 - Conferir a conclusão do APK development no link registrado acima.
 - Concluir a migração dos secrets da CI para `ci-main` antes de considerar isolado o acesso de escrita dos integrantes.

@@ -14,7 +14,7 @@ name: Autenticar para cenários negativos E3
     commands:
       - tapOn:
           id: "android:id/aerr_close"
-- assertVisible: "Smart City"
+- assertVisible: "SmartCitys"
 - tapOn:
     id: "login-button"
 

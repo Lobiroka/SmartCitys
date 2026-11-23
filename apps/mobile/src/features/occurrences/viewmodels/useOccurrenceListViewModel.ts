@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 
 import { occurrenceService } from '@/src/composition/appDependencies';
@@ -53,8 +53,10 @@ export function useOccurrenceListViewModel(
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const requestId = useRef(0);
 
     const load = useCallback(async (refreshing = false) => {
+        const currentRequest = ++requestId.current;
         if (refreshing) {
             setIsRefreshing(true);
         } else {
@@ -63,19 +65,31 @@ export function useOccurrenceListViewModel(
         setError(null);
 
         try {
-            const result = await dependencies.service.listMine({ limit: 100 });
-            setOccurrences(result.data);
+            const collected = new Map<number, Occurrence>();
+            let page = 1;
+            let totalPages = 1;
+            do {
+                const result = await dependencies.service.listMine({ page, limit: 100 });
+                if (currentRequest !== requestId.current) return;
+                for (const occurrence of result.data) collected.set(occurrence.id, occurrence);
+                totalPages = result.pagination.totalPages;
+                page += 1;
+            } while (page <= totalPages);
+            setOccurrences([...collected.values()]);
         } catch (caught) {
-            setError(errorMessage(caught));
+            if (currentRequest === requestId.current) setError(errorMessage(caught));
         } finally {
-            setIsLoading(false);
-            setIsRefreshing(false);
+            if (currentRequest === requestId.current) {
+                setIsLoading(false);
+                setIsRefreshing(false);
+            }
         }
     }, [dependencies.service]);
 
     useFocusEffect(
         useCallback(() => {
             void load();
+            return () => { requestId.current += 1; };
         }, [load]),
     );
 

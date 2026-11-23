@@ -59,7 +59,7 @@ describe('RootNavigator e restauração da sessão', () => {
         await act(async () => finishRestore({ status: 'anonymous' }));
 
         await waitFor(() => expect(screen.getByTestId('login-button')).toBeTruthy());
-        expect(screen.getByText('Smart City')).toBeTruthy();
+        expect(screen.getByText('SmartCitys')).toBeTruthy();
         expect(screen.queryByTestId('(tabs)')).toBeNull();
         expect(screen.queryByTestId('modal')).toBeNull();
         expect(service.restoreSession).toHaveBeenCalledTimes(1);

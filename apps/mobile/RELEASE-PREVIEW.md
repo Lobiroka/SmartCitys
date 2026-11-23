@@ -2,6 +2,23 @@
 
 O perfil `preview` do EAS Build gera um APK assinado para distribuição interna. O mesmo APK recebe atualizações compatíveis do canal `preview`.
 
+## Nome exibido do aplicativo
+
+O nome público é **SmartCitys**, definido em `expo.name` no `app.json` e usado
+pelo `app.config.ts`. A tela de login e os textos de permissão usam a mesma marca.
+O Expo gera o nome do Android (`app_name`) e o nome exibido no iOS a partir dessa
+configuração durante a compilação nativa.
+
+O nome sob o ícone dos aplicativos já instalados só muda ao instalar um novo
+APK/build; uma atualização OTA de JavaScript não substitui esse recurso nativo.
+Na preparação da versão final, atualizar a versão conforme a política de runtime
+e gerar o APK. Essa alteração de nome não gerou nem publicou um novo build.
+
+O `slug` e o `scheme` continuam `wb`; o projeto EAS e os identificadores Android
+e iOS permanecem os mesmos. Eles identificam integrações e o retorno de login,
+e não precisam acompanhar o nome público. Não é necessário recriar o projeto
+Expo, Firebase, as contas Keycloak ou as restrições Maps por causa desse nome.
+
 ## Preview 1.0.1
 
 A versão 1.0.1 incorpora no próprio APK as correções já presentes na `main`: menu do perfil somente com Sair, controles do mapa alinhados e afastados da barra do sistema, e sincronização das permissões de notificações pelas configurações do Android. Uma instalação nova não precisa buscar uma OTA anterior para receber essas correções.

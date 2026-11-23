@@ -18,7 +18,7 @@ export function LoginScreen() {
 
     return (
         <ThemedView style={styles.container}>
-            <ThemedText style={styles.title}>Smart City</ThemedText>
+            <ThemedText style={styles.title}>SmartCitys</ThemedText>
 
             <ThemedText style={styles.description}>
                 Entre para registrar e acompanhar denúncias.
@@ -50,6 +50,7 @@ export function LoginScreen() {
                 accessibilityState={{ disabled: isLoading }}
                 accessibilityRole="button"
                 onPress={() => void signIn('register')}
+                testID="register-button"
             >
                 <ThemedText type="defaultSemiBold" lightColor="#1d4ed8" darkColor="#93c5fd">
                     Criar conta

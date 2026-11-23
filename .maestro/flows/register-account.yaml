@@ -1,0 +1,94 @@
+appId: com.darkartsbm.smartcitys
+name: Criar cidadão pelo formulário real do Keycloak
+---
+- tapOn:
+    id: register-button
+- extendedWaitUntil:
+    visible:
+      id: "firstName|username|com.android.chrome:id/signin_fre_dismiss_button"
+    timeout: 60000
+- runFlow:
+    when:
+      visible:
+        id: com.android.chrome:id/signin_fre_dismiss_button
+    commands:
+      - tapOn:
+          id: com.android.chrome:id/signin_fre_dismiss_button
+      - extendedWaitUntil:
+          visible:
+            id: "firstName|username|register-button"
+          timeout: 60000
+      - runFlow:
+          when:
+            visible:
+              id: register-button
+          commands:
+            - tapOn:
+                id: register-button
+- extendedWaitUntil:
+    visible:
+      id: "firstName|username"
+    timeout: 60000
+- runFlow:
+    when:
+      visible:
+        id: kc-login
+    commands:
+      - tapOn: "Register|Cadastre-se|Registre-se"
+- scrollUntilVisible:
+    element:
+      id: username
+    direction: UP
+- tapOn:
+    id: username
+- inputText: ${MAESTRO_E2E_USERNAME}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: password
+    direction: DOWN
+- tapOn:
+    id: password
+- inputText: ${MAESTRO_E2E_PASSWORD}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: password-confirm
+    direction: DOWN
+- tapOn:
+    id: password-confirm
+- inputText: ${MAESTRO_E2E_PASSWORD}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: email
+    direction: DOWN
+- tapOn:
+    id: email
+- inputText: ${MAESTRO_E2E_EMAIL}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: firstName
+    direction: DOWN
+- tapOn:
+    id: firstName
+- inputText: QA
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: lastName
+    direction: DOWN
+- tapOn:
+    id: lastName
+- inputText: Entrega
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Register|Cadastrar|Cadastre-se|Registrar"
+    direction: DOWN
+- tapOn: "Register|Cadastrar|Cadastre-se|Registrar"
+- extendedWaitUntil:
+    visible: Menu do Perfil
+    timeout: 60000
+- assertNotVisible:
+    id: tab-manager

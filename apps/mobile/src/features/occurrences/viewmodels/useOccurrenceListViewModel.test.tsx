@@ -32,8 +32,71 @@ describe('useOccurrenceListViewModel', () => {
         await act(async () => { await Promise.resolve(); });
 
         await waitFor(() => expect(result.current.isLoading).toBe(false));
-        expect(service.listMine).toHaveBeenCalledWith({ limit: 100 });
+        expect(service.listMine).toHaveBeenCalledWith({ page: 1, limit: 100 });
         expect(result.current.occurrences).toEqual([occurrence]);
+    });
+
+    it('pesquisa e filtra também registros depois da primeira página', async () => {
+        const service = createOccurrenceServiceMock();
+        const firstPage = Array.from({ length: 100 }, (_, index) =>
+            occurrenceFixture({ id: index + 1 }),
+        );
+        const last = occurrenceFixture({ id: 101, title: 'Demanda antiga', status: 'RESOLVIDA' });
+        service.listMine.mockResolvedValueOnce({
+            data: firstPage,
+            pagination: { page: 1, limit: 100, total: 101, totalPages: 2 },
+        }).mockResolvedValueOnce({
+            data: [last],
+            pagination: { page: 2, limit: 100, total: 101, totalPages: 2 },
+        });
+        const { result } = renderHook(() => useOccurrenceListViewModel({ service }));
+
+        await waitFor(() => expect(result.current.occurrences).toHaveLength(101));
+        expect(service.listMine).toHaveBeenNthCalledWith(2, { page: 2, limit: 100 });
+        act(() => {
+            result.current.setSearch('antiga');
+            result.current.setStatus('RESOLVIDA');
+        });
+        expect(result.current.filteredOccurrences).toEqual([last]);
+    });
+
+    it('preserva a lista anterior quando uma página posterior falha', async () => {
+        const service = createOccurrenceServiceMock();
+        const saved = occurrenceFixture();
+        service.listMine.mockResolvedValueOnce({
+            data: [saved],
+            pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
+        }).mockResolvedValueOnce({
+            data: [occurrenceFixture({ id: 2 })],
+            pagination: { page: 1, limit: 100, total: 101, totalPages: 2 },
+        }).mockRejectedValueOnce(new Error('Falha na segunda página'));
+        const { result } = renderHook(() => useOccurrenceListViewModel({ service }));
+        await waitFor(() => expect(result.current.occurrences).toEqual([saved]));
+
+        await act(async () => result.current.load(true));
+
+        expect(result.current.occurrences).toEqual([saved]);
+        expect(result.current.error).toBe('Falha na segunda página');
+        expect(result.current.isRefreshing).toBe(false);
+    });
+
+    it('ignora uma resposta antiga quando uma atualização termina primeiro', async () => {
+        const service = createOccurrenceServiceMock();
+        let resolveOld!: (value: Awaited<ReturnType<typeof service.listMine>>) => void;
+        const updated = occurrenceFixture({ id: 2, status: 'EM_ANALISE' });
+        service.listMine.mockReturnValueOnce(new Promise((resolve) => { resolveOld = resolve; }))
+            .mockResolvedValueOnce({
+                data: [updated],
+                pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
+            });
+        const { result } = renderHook(() => useOccurrenceListViewModel({ service }));
+        await act(async () => result.current.load(true));
+        await act(async () => resolveOld({
+            data: [occurrenceFixture()],
+            pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
+        }));
+
+        expect(result.current.occurrences).toEqual([updated]);
     });
 
     it('remove o item da lista apenas depois de o serviço confirmar', async () => {

@@ -1,5 +1,72 @@
 # Teste E2E do MVP
 
+## Jornada completa da entrega final
+
+`npm.cmd run mobile:test:e2e:final -- --citizen-device emulator-5554 --manager-device emulator-5556`
+executa os três roteiros em `final/`, em sequência, sem atalhos de criação ou atualização por API:
+
+1. cadastra um cidadão novo no formulário real do Keycloak, sai e entra novamente;
+2. confirma ausência de Gestão, valida campos obrigatórios e registra ocorrência com GPS e foto da câmera;
+3. pesquisa, alterna filtros e reabre o registro para conferir foto e GPS persistidos;
+4. em outro Android, autentica o gestor, confere o mesmo registro, foto e GPS e muda o status pela tela;
+5. no Android do cidadão, exige o push real na bandeja e confere o novo status e os filtros.
+
+Antes das capturas de cadastro e login, aguarda o evento nativo `onMapLoaded`
+(tiles renderizados), a localização resolvida e o fim da movimentação da câmera,
+por até 90 segundos. Em seguida aguarda a estabilização visual da tela. Mostrar o
+menu do perfil ou emitir `onMapReady` não basta para liberar essas capturas.
+Essa exigência pertence à jornada final com serviços reais, sem ser adicionada
+ao fluxo básico da regressão isolada.
+
+Em emuladores, mantenha o GPS virtual atualizado durante o ensaio. Uma única
+posição enviada antes do cadastro pode ficar antiga quando o formulário pedir
+uma posição de alta precisão. Em outro terminal PowerShell, com o SDK no PATH:
+
+```powershell
+while ($true) {
+  adb -s emulator-5554 emu geo fix -34.877 -8.0476
+  Start-Sleep -Seconds 3
+}
+```
+
+Essas coordenadas são dados fictícios de preparação do emulador. O aplicativo
+continua obtendo a posição pelo serviço nativo do Android. Encerre esse terminal
+ao terminar o teste; não use esse comando com um aparelho físico.
+
+São necessários **dois dispositivos distintos e exclusivos de testes**, com o mesmo APK da branch,
+Maestro e ADB no PATH, Python 3.10 ou superior, internet e API/Keycloak de testes com push
+configurado. O executor usa somente a biblioteca padrão do Python. O roteiro limpa
+os dados do app **e do Chrome** nesses dois dispositivos, removendo sessões SSO antigas.
+Não use um celular ou navegador com dados pessoais a preservar.
+Em emuladores, configure uma localização válida antes da execução. Para development, mantenha
+o Metro na porta 8081 e acrescente `--dev-client`; o executor prepara o encaminhamento ADB.
+Esse teste não valida um APK final quando executado com Metro.
+O atalho `team:android` exige apenas um Android conectado: inicie-o com o aparelho
+do cidadão e abra/conecte o segundo Android depois, mantendo o Metro em execução.
+Não execute esse atalho novamente com os dois conectados.
+
+Configure `E2E_MANAGER_USERNAME` e `E2E_MANAGER_PASSWORD` no ambiente do processo,
+ou acrescente `--credentials-file CAMINHO_LOCAL` apontando para JSON local ignorado pelo Git
+com essas duas propriedades. Não passe senhas na linha de comando nem as versione.
+O cidadão e a senha são gerados em memória a cada execução; o realm precisa permitir cadastro
+e atribuir apenas `cidadao` por padrão. Não são necessárias credenciais administrativas.
+
+O teste cria conta e ocorrência fictícias no ambiente compartilhado e envia notificação real.
+Não altera infraestrutura nem remove dados automaticamente. O responsável pode localizar os
+dados pelo identificador da execução. Por depender de push e de dois Androids, esta jornada é
+uma execução explícita de integração; não substitui nem passa a fazer parte automaticamente
+da regressão diária isolada.
+
+O resultado fica em `test-results/e2e/final-<id>/`: `execution.json`, JUnit agregado e logs,
+JUnit e screenshots por etapa. Aprovação exige as três etapas e os respectivos JUnits válidos;
+erro, timeout ou relatório ausente interrompe o fluxo. Logs de texto são sanitizados; revise
+visualmente screenshots antes de publicá-los. Execuções com falha também devem ser preservadas.
+
+Os fluxos antigos reutilizam `flows/start-app.yaml`, `flows/login.yaml` e
+`flows/create-occurrence.yaml`, mantendo suas validações originais.
+
+## Jornada básica do MVP
+
 O fluxo `mvp.yaml` valida o caminho crítico em um build próprio do aplicativo:
 
 1. abre o app com estado limpo;
@@ -210,6 +277,17 @@ branch que tenha o artefato `apk-e2e-<run_id>`. O workflow confere se o código 
 e a configuração de build são iguais antes de reutilizar o APK. Os três níveis de
 testes continuam executando. Se modificar secrets de build, gere um APK novo.
 
+## Registro com foto e GPS
+
+O fluxo `registro-com-foto.yaml` habilita captura real da câmera no subfluxo de registro, salva a demanda e reabre Editar para verificar que foto e coordenadas vieram da API. O fluxo padrão existente mantém seu escopo; a captura adicional é habilitada apenas quando `E2E_WITH_PHOTO=1` é fornecido pelo novo fluxo.
+
+Defina `MAESTRO_E2E_USERNAME`, `MAESTRO_E2E_PASSWORD` e um `MAESTRO_E2E_TITLE` exclusivo no ambiente, sem versionar valores. No development com Metro, defina também `MAESTRO_E2E_DEV_CLIENT=1`. Com um Android conectado, execute na raiz:
+
+```bash
+maestro test .maestro/registro-com-foto.yaml
+```
+
+Esse fluxo precisa de câmera/GPS funcionais e cria dados no ambiente real do aplicativo. O roteiro isolado não faz cadastro de conta nova, gestão nem verificação de push. A jornada final ampliada validou essas etapas em Android com cliente development e Metro; consulte as [evidências de 23/11/2026](../docs/tas-evidence/final-map-2026-11-23/README.md). A homologação do APK final independente do Metro permanece pendente.
 ## E3 — cenários negativos
 
 A execução está conectada ao workflow **Regressão completa**, em

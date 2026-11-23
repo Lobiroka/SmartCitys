@@ -1,0 +1,54 @@
+appId: com.darkartsbm.smartcitys
+name: Final 3 - cidadão recebe push e acompanha o mesmo registro
+---
+- swipe:
+    start: 50%, 1%
+    end: 50%, 80%
+    duration: 500
+- extendedWaitUntil:
+    visible: Uma das suas ocorrências teve o status atualizado.
+    timeout: 90000
+- takeScreenshot: 06-push-real-recebido
+- back
+- launchApp:
+    clearState: false
+    stopApp: false
+- runFlow:
+    when:
+      true: ${typeof MAESTRO_E2E_DEV_CLIENT !== 'undefined' && MAESTRO_E2E_DEV_CLIENT === '1'}
+    commands:
+      - openLink: "exp+wb://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081&disableOnboarding=1&disableFab=1&disableAutoLaunch=1"
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 60000
+- tapOn:
+    id: tab-home
+- tapOn:
+    id: tab-occurrences
+- runFlow: ../flows/search-occurrence.yaml
+- tapOn:
+    id: occurrence-filter-EM_ANALISE
+- extendedWaitUntil:
+    visible:
+      id: occurrence-title-.*
+      text: ${MAESTRO_E2E_TITLE}
+    timeout: 30000
+- assertVisible:
+    id: occurrence-status-.*
+    text: Em análise
+- takeScreenshot: 07-cidadao-status-atualizado
+- tapOn:
+    id: occurrence-filter-ABERTA
+- assertVisible: Nenhuma ocorrência encontrada.
+- assertNotVisible:
+    id: occurrence-title-.*
+    text: ${MAESTRO_E2E_TITLE}
+- tapOn:
+    id: occurrence-filter-ALL
+- assertVisible:
+    id: occurrence-title-.*
+    text: ${MAESTRO_E2E_TITLE}
+- assertVisible:
+    id: occurrence-status-.*
+    text: Em análise

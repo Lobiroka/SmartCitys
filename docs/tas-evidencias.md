@@ -2,6 +2,26 @@
 
 Data: 18/11/2026. Política: [tas.md](tas.md).
 
+## Evidências refeitas com mapa carregado — 23/11/2026
+
+Nova execução integral aprovada em aproximadamente 6min37s, sobre `df7f4d7`:
+três etapas e zero falhas, incluindo mapa carregado após cadastro e login,
+foto/GPS, filtros, gestor pela tela, push real e status final no cidadão.
+A TAS agora aguarda os tiles, a câmera estabilizada e a localização antes das
+duas capturas do mapa. Corrigida também a rolagem para o campo de coordenadas,
+que fica acima do botão de GPS. As tentativas anteriores foram preservadas como
+falhas; não houve mudança no serviço de GPS do app nem nas chaves do Google.
+[Relatório, reprodução, JUnits e localização das sete capturas](tas-evidence/final-map-2026-11-23/README.md).
+
+## Jornada integrada da entrega final — 22/11/2026
+
+Na branch `mobile-entrega-final`, uma execução completa com dois Androids foi
+aprovada: cadastro/login, ocorrência com foto e GPS, pesquisa/filtros, mudança de
+status pela interface do gestor, push real e acompanhamento pelo cidadão.
+Os três JUnits passaram em aproximadamente 6min44s, sobre o commit `bbd79c8`.
+[Relatório, metadados, falhas anteriores e limites](tas-evidence/final-2026-11-22/README.md).
+Validado em development com Metro; esse resultado não homologa um novo APK.
+
 ## Caso real e encaminhamento
 
 A [issue #6](https://github.com/Lobiroka/SmartCitys/issues/6) registra identificação da falha da regressão, correções no Gradle e no roteiro Maestro, links de validação e encerramento. A seção 7 da política distingue as causas e explicita que a intermitência observada no login não está comprovadamente resolvida. A política foi definida depois do incidente; não atribuímos cumprimento retroativo de prazos.
