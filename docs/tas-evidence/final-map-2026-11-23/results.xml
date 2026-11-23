@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites><testsuite name="citizen-register-and-report" tests="1" failures="0"><testcase name="citizen-register-and-report" time="273.845" /></testsuite><testsuite name="manager-update" tests="1" failures="0"><testcase name="manager-update" time="77.501" /></testsuite><testsuite name="citizen-notification" tests="1" failures="0"><testcase name="citizen-notification" time="45.924" /></testsuite></testsuites>

@@ -1,0 +1,36 @@
+{
+  "run_id": "final-1f2a77a933ce404fbd42d81b3b1683aa",
+  "title": "E2E final 1f2a77a933ce404fbd42d81b3b1683aa",
+  "devices": {
+    "citizen": "emulator-5554",
+    "manager": "emulator-5556"
+  },
+  "development_client": true,
+  "source_commit": "df7f4d7e7fe6e636a33109c0bae6fe0ad4d98593",
+  "started_at": "2026-11-23T03:21:57.716540+00:00",
+  "status": "passed",
+  "phases": [
+    {
+      "name": "citizen-register-and-report",
+      "device": "emulator-5554",
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 273.845
+    },
+    {
+      "name": "manager-update",
+      "device": "emulator-5556",
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 77.501
+    },
+    {
+      "name": "citizen-notification",
+      "device": "emulator-5554",
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 45.924
+    }
+  ],
+  "finished_at": "2026-11-23T03:28:34.992365+00:00"
+}

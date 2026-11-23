@@ -1,0 +1,25 @@
+{
+  "run_id": "final-1f2a77a933ce404fbd42d81b3b1683aa",
+  "map_capture_requires": [
+    "onMapLoaded",
+    "onRegionChangeComplete",
+    "location resolved",
+    "waitForAnimationToEnd",
+    "main-map-loaded"
+  ],
+  "emulator_gps": {
+    "device": "emulator-5554",
+    "latitude": -8.0476,
+    "longitude": -34.877,
+    "interval_seconds": 3,
+    "command": "adb emu geo fix",
+    "simulated": true
+  },
+  "gps_confirmation": {
+    "selector": "occurrence-coordinates",
+    "scroll_direction": "UP",
+    "decimal_places": 6,
+    "native_location_service_unchanged": true
+  },
+  "screenshots_publication": "local only; awaiting owner human review"
+}
