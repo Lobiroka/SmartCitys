@@ -24,20 +24,27 @@ As durações do executor incluem a inicialização do Maestro e diferem dos tem
 de cenário no JUnit. A ocorrência fictícia validada foi a **#10**, identificada
 pelo título único desta execução.
 
-As sete capturas estão reunidas localmente em
-`test-results/e2e/evidencias-mapa-2026-11-23/`:
+## Capturas da execução
 
-1. `01-cadastro-concluido.png` — cadastro concluído e mapa carregado.
-2. `02-login-cidadao.png` — novo login e mapa carregado.
-3. `03-foto-gps-recarregados.png` — foto persistida na edição.
-4. `04-gestor-foto-gps.png` — mesmo registro, foto e GPS no outro Android.
-5. `05-gestor-status-salvo.png` — Em análise e confirmação de alteração salva.
-6. `06-push-real-recebido.png` — notificação real no Android do cidadão.
-7. `07-cidadao-status-atualizado.png` — mesmo registro em Em análise na lista.
+Publicação das sete capturas autorizada pelo responsável nesta conversa em
+23/11/2026. Clique em uma imagem para abrir o arquivo em tamanho original.
+
+| Etapa comprovada | Captura |
+|---|---|
+| Cadastro concluído e mapa carregado | [<img src="01-cadastro-concluido.png" width="240" alt="Cadastro concluído com ruas do mapa carregadas">](01-cadastro-concluido.png) |
+| Novo login e mapa carregado | [<img src="02-login-cidadao.png" width="240" alt="Cidadão autenticado com mapa carregado">](02-login-cidadao.png) |
+| Foto persistida na edição da ocorrência | [<img src="03-foto-gps-recarregados.png" width="240" alt="Foto recarregada na edição da ocorrência">](03-foto-gps-recarregados.png) |
+| Mesmo registro, foto e GPS no Android do gestor | [<img src="04-gestor-foto-gps.png" width="240" alt="Gestor visualiza a ocorrência 10 com foto e coordenadas">](04-gestor-foto-gps.png) |
+| Status Em análise e confirmação de alteração salva | [<img src="05-gestor-status-salvo.png" width="240" alt="Gestor confirma a alteração de status salva">](05-gestor-status-salvo.png) |
+| Notificação real no Android do cidadão | [<img src="06-push-real-recebido.png" width="240" alt="Notificação de atualização recebida pelo cidadão">](06-push-real-recebido.png) |
+| Mesmo registro em Em análise na lista do cidadão | [<img src="07-cidadao-status-atualizado.png" width="240" alt="Cidadão acompanha a ocorrência com status Em análise">](07-cidadao-status-atualizado.png) |
+
+Cópias locais permanecem em `test-results/e2e/evidencias-mapa-2026-11-23/`.
 
 Também permanecem os originais, sem alteração, nas pastas `takeScreenshot` de
-`test-results/e2e/final-1f2a77a933ce404fbd42d81b3b1683aa/`. As imagens ficam
-fora do Git até a revisão humana do responsável; os resultados textuais estão versionados.
+`test-results/e2e/final-1f2a77a933ce404fbd42d81b3b1683aa/`. As imagens publicadas
+são cópias integrais dos originais; [hashes das capturas](capturas-sha256.json)
+permitem verificar sua integridade.
 
 ## O que mudou
 
@@ -126,9 +133,9 @@ A câmera e o GPS usam dados sintéticos do emulador; a imagem da câmera tem fu
 escuro e carimbo de data/hora. Uma execução aprovada não demonstra estabilidade
 histórica nem substitui a conferência em aparelho físico.
 
-Somente relatórios textuais e seus hashes são versionados. As sete capturas
-permanecem locais para revisão humana do responsável antes de publicação no Git,
-conforme a política da TAS. Logs brutos, senhas e tokens não são publicados.
+Relatórios, hashes e as sete capturas autorizadas pelo responsável estão
+versionados conforme a política da TAS. São dados fictícios do ensaio em
+emuladores. Logs brutos, senhas e tokens não são publicados.
 
 ## Verificações complementares
 
