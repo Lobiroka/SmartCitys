@@ -35,6 +35,7 @@ export function MainMapScreen() {
     const { occurrences, occurrenceError } = useOccurrenceFeedViewModel();
     const mapRef = useRef<MapView>(null);
     const [hasMapLoaded, setHasMapLoaded] = useState(false);
+    const [hasMapSettled, setHasMapSettled] = useState(false);
     const controlsTop = Math.max(48, useSafeAreaInsets().top + 12);
     const isAuthenticated = session.status === 'authenticated';
 
@@ -68,7 +69,8 @@ export function MainMapScreen() {
 
     return (
         <View style={styles.container}
-            testID={hasMapLoaded && !isLoading && !locationError ? 'main-map-loaded' : 'main-map-loading'}>
+            testID={hasMapLoaded && hasMapSettled && !isLoading && !locationError
+                ? 'main-map-loaded' : 'main-map-loading'}>
             <MapView
                 ref={mapRef}
                 style={styles.map}
@@ -76,6 +78,8 @@ export function MainMapScreen() {
                 showsUserLocation
                 showsMyLocationButton={false}
                 onMapLoaded={() => setHasMapLoaded(true)}
+                onRegionChange={() => setHasMapSettled(false)}
+                onRegionChangeComplete={() => setHasMapSettled(true)}
                 onPress={() => {
                     if (isProfileMenuOpen) {
                         toggleProfileMenu();

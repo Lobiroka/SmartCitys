@@ -5,4 +5,8 @@ name: Aguardar tiles do mapa e localização antes da captura
     visible:
       id: main-map-loaded
     timeout: 90000
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    id: main-map-loaded
 - assertNotVisible: Buscando localização...

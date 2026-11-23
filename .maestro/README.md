@@ -12,10 +12,26 @@ executa os três roteiros em `final/`, em sequência, sem atalhos de criação o
 5. no Android do cidadão, exige o push real na bandeja e confere o novo status e os filtros.
 
 Antes das capturas de cadastro e login, aguarda o evento nativo `onMapLoaded`
-(tiles renderizados) e a localização resolvida, por até 90 segundos. Mostrar o
+(tiles renderizados), a localização resolvida e o fim da movimentação da câmera,
+por até 90 segundos. Em seguida aguarda a estabilização visual da tela. Mostrar o
 menu do perfil ou emitir `onMapReady` não basta para liberar essas capturas.
 Essa exigência pertence à jornada final com serviços reais, sem ser adicionada
 ao fluxo básico da regressão isolada.
+
+Em emuladores, mantenha o GPS virtual atualizado durante o ensaio. Uma única
+posição enviada antes do cadastro pode ficar antiga quando o formulário pedir
+uma posição de alta precisão. Em outro terminal PowerShell, com o SDK no PATH:
+
+```powershell
+while ($true) {
+  adb -s emulator-5554 emu geo fix -34.877 -8.0476
+  Start-Sleep -Seconds 3
+}
+```
+
+Essas coordenadas são dados fictícios de preparação do emulador. O aplicativo
+continua obtendo a posição pelo serviço nativo do Android. Encerre esse terminal
+ao terminar o teste; não use esse comando com um aparelho físico.
 
 São necessários **dois dispositivos distintos e exclusivos de testes**, com o mesmo APK da branch,
 Maestro e ADB no PATH, Python 3.10 ou superior, internet e API/Keycloak de testes com push
