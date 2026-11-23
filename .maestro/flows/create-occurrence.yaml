@@ -49,8 +49,14 @@ name: Registrar ocorrência e confirmar retorno à lista
 - tapOn:
     id: "occurrence-location-button"
 - scrollUntilVisible:
-    element: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
-    direction: DOWN
+    element:
+      id: occurrence-coordinates
+    direction: UP
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: occurrence-coordinates
+      text: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
     timeout: 30000
 - runFlow:
     when:

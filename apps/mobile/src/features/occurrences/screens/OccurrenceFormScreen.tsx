@@ -126,7 +126,7 @@ export function OccurrenceFormScreen({ id }: Props) {
                         placeholder="Rua, número e referência" placeholderTextColor={colors.icon} />
                 </Field>
                 <Field label="Localização">
-                    <ThemedText>
+                    <ThemedText testID="occurrence-coordinates">
                         {vm.latitude === null || vm.longitude === null
                             ? 'Localização ainda não confirmada.'
                             : `${vm.latitude.toFixed(6)}, ${vm.longitude.toFixed(6)}`}
