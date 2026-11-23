@@ -18,6 +18,8 @@ As duas capturas iniciais mostram as ruas e os nomes dos lugares no mapa.
 
 [JUnit agregado](results.xml), [metadados](execution.json),
 [preparação e condições das capturas](preparation.json) e [hashes dos relatórios](sha256.json).
+Os hashes consideram as quebras de linha LF dos arquivos versionados pelo Git,
+para não depender da conversão CRLF realizada no checkout Windows.
 As durações do executor incluem a inicialização do Maestro e diferem dos tempos
 de cenário no JUnit. A ocorrência fictícia validada foi a **#10**, identificada
 pelo título único desta execução.
