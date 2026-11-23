@@ -15,7 +15,7 @@ jest.mock('expo-router/react-navigation', () => ({
 }));
 
 jest.mock('@/components/ui/action-button', () => {
-    const { Pressable, Text } = require('react-native');
+    const { Pressable, Text } = jest.requireActual('react-native');
     return {
         ActionButton: ({ label, onPress }: { label: string; onPress: () => void }) => (
             <Pressable accessibilityRole="button" onPress={onPress}>
