@@ -1,12 +1,142 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartCitys — Relatório técnico</title>
-<style>body{font:16px/1.6 system-ui,sans-serif;max-width:1100px;margin:32px auto;padding:0 20px;color:#17243a;background:#f5f7fb}section{background:white;border:1px solid #d7dfeb;border-radius:12px;padding:20px;margin:20px 0}table{border-collapse:collapse;width:100%}th,td{border:1px solid #d7dfeb;padding:8px;text-align:left}li{overflow-wrap:anywhere;white-space:pre-wrap}a{color:#164db4}h1,h2{line-height:1.2}.meta{overflow-wrap:anywhere}</style></head>
-<body><h1>SmartCitys — Relatório técnico de qualidade</h1>
-<section class="meta"><h2>{{STATUS}}</h2><p>Workflow: {{WORKFLOW}} · Execução: {{RUN}} · Tentativa: {{ATTEMPT}}<br>Commit: {{COMMIT}}<br>Gerado em UTC: {{DATE}}</p><a href="{{RUN_URL}}">Execução e logs no GitHub Actions</a></section>
-<section><h2>Resultados</h2><p>Executados: <strong>{{EXECUTED}}</strong> · Aprovados: {{PASSED}} · Falhos: {{FAILED}} · Ignorados: {{SKIPPED}}</p><p>Aprovação: {{SUCCESS_RATE}} · Falha: {{FAILURE_RATE}}. Percentuais calculados somente sobre casos executados disponíveis.</p><table><thead><tr><th>Suíte</th><th>Aprovados</th><th>Falhos</th><th>Ignorados</th><th>Tempo (s)</th><th>Coleta</th></tr></thead><tbody>{{SUITES_HTML}}</tbody></table><p>Tempo da execução até o relatório: {{PIPELINE_SECONDS}} s (não inclui upload e encerramento do job).</p><p>Duração mobile/API: processo de testes e cobertura; E2E: execução do script de preparação e teste, quando disponível. Não somar tempos como se fossem equivalentes.</p></section>
-<section><h2>Cobertura instrumentada</h2><p>{{SCOPE}}</p><ul>{{COVERAGE_HTML}}</ul><p>Meta inicial de atenção: 70% por dimensão. Não bloqueia automaticamente a pipeline nem representa percentual de qualidade do produto.</p></section>
-<section><h2>Falhas e problemas de execução</h2><ul>{{FAILURES_HTML}}</ul></section>
-<section><h2>Limitações e riscos</h2><ul>{{RISKS_HTML}}</ul></section>
-<section><h2>Artefatos produzidos</h2><p>Links relativos funcionam após extrair o ZIP completo. APK e evidências E2E também podem estar em artefatos separados da execução.</p><ul>{{ARTIFACTS_HTML}}</ul></section>
-<section><h2>Conclusão técnica</h2><p>{{RECOMMENDATION}}</p></section></body></html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SmartCitys — Análise dos testes</title>
+  <style>{{REPORT_STYLES_HTML}}</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <p class="eyebrow">Smart City · Registro e acompanhamento de ocorrências urbanas</p>
+      <h1>O que os testes mostram?</h1>
+      <p class="intro">Relaciono as telas do cidadão, os serviços de ocorrências e os fluxos Android aos resultados desta execução.</p>
+    </div>
+    <a class="nav-link" href="business.html">← Voltar ao resumo</a>
+  </header>
+
+  <nav class="report-nav" aria-label="Navegação pelo relatório">
+    <a href="#resumo">Resumo</a>
+    <a href="#resultados">Resultados</a>
+    <a href="#app-context">No aplicativo</a>
+    <a href="#roteiros-android">Roteiros Android</a>
+    <a href="#falhas">Falhas</a>
+    <a href="#cobertura">Cobertura</a>
+  </nav>
+  <div class="reading-tools" data-js-only hidden>
+    <span>Prefere consultar as explicações?</span>
+    <button type="button" data-details-action="open">Abrir todas</button>
+    <button type="button" data-details-action="close">Recolher todas</button>
+    <span class="sr-only" data-reading-status role="status"></span>
+  </div>
+
+  <section id="resumo" class="verdict {{STATUS_CLASS}}" aria-labelledby="verdict-title">
+    <span class="badge">{{STATUS_LABEL}} · {{STATUS}}</span>
+    <h2 id="verdict-title">{{RESULT_HEADLINE}}</h2>
+    <p>{{APPROVAL_EXPLANATION}}</p>
+    <p class="action"><strong>Próximo passo:</strong> {{NEXT_STEP}}</p>
+  </section>
+
+  <section>
+    <h2>Por que classifiquei assim?</h2>
+    <ul class="readable-list">{{STATUS_REASONS_HTML}}</ul>
+    <p class="muted">Uma falha determina o vermelho. Sem falhas, informação incompleta determina o inconclusivo. Com execução completa, testes ignorados ou cobertura ausente ou abaixo da referência determinam o amarelo. O verde exige todos os critérios medidos atendidos.</p>
+  </section>
+
+  <section id="resultados">
+    <h2>Resultados por área</h2>
+    <ul class="readable-list">{{AREAS_HTML}}</ul>
+    <div class="table-scroll" role="region" aria-label="Resultados por área" tabindex="0">
+      <table>
+        <caption>{{TEST_SCOPE}}</caption>
+        <thead><tr><th scope="col">Área testada</th><th scope="col">Passaram</th><th scope="col">Falharam</th><th scope="col">Não executados</th><th scope="col">Duração</th><th scope="col">Resultados recebidos</th></tr></thead>
+        <tbody>{{SUITES_HTML}}</tbody>
+      </table>
+    </div>
+    <p class="muted">“Passaram” indica testes que confirmaram o esperado. “Falharam” indica resultados diferentes do esperado, ainda sujeitos à investigação da causa. “Não executados” indica testes registrados como ignorados; eles não entram na aprovação.</p>
+    <p class="muted">“Resultados recebidos: completos” significa que consegui ler os resultados esperados daquela área. Isso não significa que todas as funcionalidades foram testadas. Etapas ausentes ou interrompidas tornam a validação incompleta.</p>
+    <p class="muted">Tempo desde o início da coleta até este relatório: {{READABLE_DURATION}}. Esse tempo inclui a preparação dos testes, mas não o envio dos arquivos ao GitHub.</p>
+    <details>
+      <summary>Como interpreto a aprovação e a duração?</summary>
+      <p>{{RATE_MEANING}}</p>
+      <p>{{APPROVAL_INTERPRETATION}}</p>
+      <p>Os tempos medem atividades diferentes: aplicativo e serviços incluem o processo de testes; os fluxos Android também podem incluir preparação e limpeza. Não somo esses tempos para estimar a duração total.</p>
+    </details>
+  </section>
+
+  {{APP_CONTEXT_HTML}}
+
+  <section id="roteiros-android">
+    <h2>Roteiros executados no Smart City para Android</h2>
+    <p>Esta lista vem dos resultados da execução. A aprovação de um roteiro vale para as ações percorridas nele; não comprova todas as funções do aplicativo.</p>
+    {{ANDROID_CASES_HTML}}
+  </section>
+
+  <section id="falhas">
+    <h2>Falhas: o que aconteceu e qual é a causa?</h2>
+    <p>{{FAULT_EXPLANATION}}</p>
+    {{ASSESSMENTS_HTML}}
+    <details>
+      <summary>Ver mensagens de erro para investigação</summary>
+      <ul class="raw-errors">{{FAILURES_HTML}}</ul>
+    </details>
+  </section>
+
+  <section>
+    <h2>O que ainda falta verificar?</h2>
+    <ul class="readable-list">{{MAIN_RISKS_HTML}}</ul>
+    <details>
+      <summary>Ver os testes não executados</summary>
+      <ul>{{SKIPPED_HTML}}</ul>
+    </details>
+    <details>
+      <summary>Consultar todos os riscos e limitações</summary>
+      <ul>{{RISKS_HTML}}</ul>
+    </details>
+  </section>
+
+  <section id="cobertura">
+    <h2>Quanto do código foi exercitado?</h2>
+    <p>A cobertura indica quais partes do código foram percorridas durante os testes. Ela não é uma nota de qualidade do aplicativo.</p>
+    <p>Por exemplo: 80% de cobertura de linhas significa que os testes percorreram 80% das linhas consideradas nessa medição. Isso não significa que o aplicativo esteja 80% correto.</p>
+    <ul class="coverage">{{COVERAGE_HTML}}</ul>
+    <p class="muted">A referência inicial é 70% em cada indicador medido. Um valor menor pede revisão; esse limite não bloqueia a execução automaticamente.</p>
+    <details>
+      <summary>Entender os indicadores e o trecho de código medido</summary>
+      <p>Linhas e instruções mostram o código percorrido; decisões mostram as alternativas exercitadas, como os caminhos de um “se”; funções mostram as rotinas chamadas.</p>
+      <p>{{SCOPE}}</p>
+      <p>Essa medição se limita à parte de ocorrências do aplicativo. Os serviços e os fluxos Android não têm uma medição de cobertura própria neste relatório.</p>
+    </details>
+  </section>
+
+  <section id="proximos-passos">
+    <h2>O que recomendo fazer depois?</h2>
+    <ol class="readable-list">{{NEXT_STEPS_HTML}}</ol>
+    <p class="muted">A decisão de entrega também precisa considerar o impacto das pendências e a avaliação da equipe. Este relatório não autoriza uma publicação automaticamente.</p>
+  </section>
+
+  <section>
+    <h2>Arquivos para conferir os resultados</h2>
+    <p>Para consultar registros, capturas de tela e resultados completos, extraia todo o arquivo ZIP antes de abrir os links abaixo.</p>
+    <details>
+      <summary>Mostrar arquivos desta execução</summary>
+      <ul class="evidence-list">{{ARTIFACTS_HTML}}</ul>
+    </details>
+    <details>
+      <summary>Ver identificação da execução</summary>
+      <dl class="metadata">
+        <dt>Rotina de testes</dt><dd>{{WORKFLOW}}</dd>
+        <dt>Execução / tentativa</dt><dd>{{RUN}} / {{ATTEMPT}}</dd>
+        <dt>Versão do código (commit)</dt><dd>{{COMMIT}}</dd>
+        <dt>Relatório gerado em</dt><dd>{{READABLE_DATE}}</dd>
+      </dl>
+    </details>
+    <p><a href="{{RUN_URL}}">Abrir esta execução no GitHub Actions</a></p>
+  </section>
+  <footer><p>Relatório gerado a partir dos resultados disponíveis nesta execução. <a href="business.html">Voltar ao resumo dos testes.</a></p></footer>
+</main>
+<script type="module">{{REPORT_SCRIPT_HTML}}</script>
+</body>
+</html>
