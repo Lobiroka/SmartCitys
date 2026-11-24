@@ -14,6 +14,12 @@ Aceite final em 24/11/2026: **APK preview 1.0.2, três etapas aprovadas, sem Met
 
 Aplicativo mobile para registro e acompanhamento de ocorrências urbanas, com mapa, autenticação Keycloak e acesso para cidadãos e gestores. O monorepo reúne o aplicativo React Native/Expo e os serviços Express da API.
 
+## Vídeo demonstrativo
+
+[Assistir ou baixar o screencast do SmartCitys](docs/screencast-smartcitys-integrado.mp4) — 2min46s, Full HD, com legendas e sem áudio.
+
+O vídeo mostra mapa, registro com foto e GPS, pesquisa e filtros, alteração de status pelo gestor, confirmação pelo cidadão e logout até a tela de login. O recebimento da notificação Android não foi demonstrado nesta gravação.
+
 ## Estado do projeto — 24/11/2026
 
 O MVP Android está disponível para testes internos na versão **1.0.2**, com nome **SmartCitys** e jornada completa homologada no APK, em dois emuladores, sem Metro. O backend está publicado na AWS com API HTTPS e PostgreSQL de ocorrências no RDS; a antiga migração Supabase → RDS já foi realizada. A autenticação utiliza o realm de testes do Keycloak.
@@ -44,7 +50,7 @@ O development foi concluído e sua assinatura, versão e presença do cliente Ex
 
 Os dois perfis usam o pacote `com.darkartsbm.smartcitys`; não ficam instalados lado a lado como aplicativos distintos. Prefira um emulador dedicado ao development para preservar o preview de avaliação. O preview não carrega o código local pelo Metro.
 
-O APK final 1.0.2 tem versionCode `3`, runtime `1.0.2`, bundle embutido e a mesma assinatura do preview 1.0.1. Foram verificadas instalação limpa e atualização do instalador sobre o preview anterior; o E2E limpa os dados dos dispositivos dedicados. Detalhes, SHA-256 e limites do aceite estão no [relatório do APK final](docs/tas-evidence/final-apk-1.0.2-2026-11-24/README.md). Capturas comparativas U1 × atual e screencast continuam pendentes como materiais da entrega.
+O APK final 1.0.2 tem versionCode `3`, runtime `1.0.2`, bundle embutido e a mesma assinatura do preview 1.0.1. Foram verificadas instalação limpa e atualização do instalador sobre o preview anterior; o E2E limpa os dados dos dispositivos dedicados. Detalhes, SHA-256 e limites do aceite estão no [relatório do APK final](docs/tas-evidence/final-apk-1.0.2-2026-11-24/README.md). Capturas comparativas U1 × atual continuam pendentes como materiais da entrega.
 
 Android é a plataforma validada para o piloto. A configuração iOS existe, mas assinatura, build, distribuição e aceite no iPhone continuam pendentes. Não há distribuição de produção nas lojas configurada neste fluxo.
 
