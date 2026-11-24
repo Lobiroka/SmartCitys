@@ -32,6 +32,9 @@ Este é o estado documentado a partir das implementações e validações regist
 
 ## Qual APK instalar?
 
+**Professor/avaliador:** [baixar o APK final pela pasta docs](https://github.com/Lobiroka/SmartCitys/raw/refs/heads/main/docs/SmartCitys-1.0.2.apk)
+ou consultar as [instruções de instalação](docs/README.md).
+
 | Perfil | Uso | Download |
 |---|---|---|
 | **Preview final 1.0.2** | Avaliar o app pronto, sem Metro; cadastro, foto/GPS, filtros, gestor e push validados | [Build preview](https://expo.dev/accounts/dkartss-team/projects/wb/builds/f0bce9b6-f868-44c0-8b1a-db11d847c50b) · [APK direto](https://expo.dev/artifacts/eas/wzHDfBIjJpJ1IO0ue4f749Alez2Vzrt7YCiAjulM_Iw.apk) |
