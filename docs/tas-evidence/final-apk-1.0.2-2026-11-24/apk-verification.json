@@ -1,0 +1,16 @@
+{
+  "package": "com.darkartsbm.smartcitys",
+  "version_code": "3",
+  "version": "1.0.2",
+  "label": "SmartCitys",
+  "runtime_version": "1.0.2",
+  "sha256": "a2eacb1759627fc826a9499a489be3386fb67f5ab2b52b77711f5d6e1b7eb20b",
+  "size_bytes": 143512728,
+  "signing_certificate_sha256": "9d2d3487d4835af836805453f4664a9875f033640481461d1624e90e416a45ad",
+  "signature_matches_preview_1_0_1": true,
+  "embedded_javascript": [
+    "assets/index.android.bundle"
+  ],
+  "embedded_update_id": "8122de70-6002-46e7-8fdf-637da3dda224",
+  "debuggable": false
+}

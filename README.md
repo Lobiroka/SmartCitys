@@ -9,12 +9,14 @@ da branch e credenciais dedicadas de gestor. Para development com Metro, acresce
 Preparação, cuidados com dados e relatórios: [guia da jornada completa](.maestro/README.md#jornada-completa-da-entrega-final).
 Execução aprovada em 22/11/2026: [evidências e limites](docs/tas-evidence/final-2026-11-22/README.md).
 Evidências refeitas em 23/11/2026, aguardando o mapa carregado: [novo relatório aprovado](docs/tas-evidence/final-map-2026-11-23/README.md).
+Aceite final em 24/11/2026: **APK preview 1.0.2, três etapas aprovadas, sem Metro**.
+[APK, JUnit e capturas da jornada completa](docs/tas-evidence/final-apk-1.0.2-2026-11-24/README.md).
 
 Aplicativo mobile para registro e acompanhamento de ocorrências urbanas, com mapa, autenticação Keycloak e acesso para cidadãos e gestores. O monorepo reúne o aplicativo React Native/Expo e os serviços Express da API.
 
-## Estado do projeto — 22/11/2026
+## Estado do projeto — 24/11/2026
 
-O MVP Android está disponível para testes internos na versão **1.0.1**. O backend está publicado na AWS com API HTTPS e PostgreSQL de ocorrências no RDS; a antiga migração Supabase → RDS já foi realizada. A autenticação utiliza o realm de testes do Keycloak.
+O MVP Android está disponível para testes internos na versão **1.0.2**, com nome **SmartCitys** e jornada completa homologada no APK, em dois emuladores, sem Metro. O backend está publicado na AWS com API HTTPS e PostgreSQL de ocorrências no RDS; a antiga migração Supabase → RDS já foi realizada. A autenticação utiliza o realm de testes do Keycloak.
 
 O ambiente de desenvolvimento da equipe já está integrado à `main`: cada integrante usa sua própria conta e pode alterar o app e executar o backend com banco/cache locais, sem receber credenciais privadas AWS ou Firebase Admin.
 
@@ -32,12 +34,14 @@ Este é o estado documentado a partir das implementações e validações regist
 
 | Perfil | Uso | Download |
 |---|---|---|
-| **Preview 1.0.1** | Avaliar o app pronto, sem Metro ou código-fonte na máquina do avaliador | [Build preview](https://expo.dev/accounts/dkartss-team/projects/wb/builds/c8a701fc-095a-4abe-8dd3-0ad28a0daf67) |
+| **Preview final 1.0.2** | Avaliar o app pronto, sem Metro; cadastro, foto/GPS, filtros, gestor e push validados | [Build preview](https://expo.dev/accounts/dkartss-team/projects/wb/builds/f0bce9b6-f868-44c0-8b1a-db11d847c50b) · [APK direto](https://expo.dev/artifacts/eas/wzHDfBIjJpJ1IO0ue4f749Alez2Vzrt7YCiAjulM_Iw.apk) |
 | **Development 1.0.1** | Programar e carregar o código do computador pelo Metro | [Build development](https://expo.dev/accounts/dkartss-team/projects/wb/builds/103030d5-f0d1-4134-a6c2-5f0458cc7931) · [APK direto](https://expo.dev/artifacts/eas/X8BhvkN_iwkHaEMfyyRaXxkLemRMIEputo8E9gJHU_c.apk) |
 
 O development foi concluído e sua assinatura, versão e presença do cliente Expo foram conferidas. Ele permite HTTP de desenvolvimento para a API local. O primeiro ensaio completo em uma máquina da equipe ainda precisa ser registrado.
 
 Os dois perfis usam o pacote `com.darkartsbm.smartcitys`; não ficam instalados lado a lado como aplicativos distintos. Prefira um emulador dedicado ao development para preservar o preview de avaliação. O preview não carrega o código local pelo Metro.
+
+O APK final 1.0.2 tem versionCode `3`, runtime `1.0.2`, bundle embutido e a mesma assinatura do preview 1.0.1. Foram verificadas instalação limpa e atualização do instalador sobre o preview anterior; o E2E limpa os dados dos dispositivos dedicados. Detalhes, SHA-256 e limites do aceite estão no [relatório do APK final](docs/tas-evidence/final-apk-1.0.2-2026-11-24/README.md). Capturas comparativas U1 × atual e screencast continuam pendentes como materiais da entrega.
 
 Android é a plataforma validada para o piloto. A configuração iOS existe, mas assinatura, build, distribuição e aceite no iPhone continuam pendentes. Não há distribuição de produção nas lojas configurada neste fluxo.
 
@@ -187,7 +191,7 @@ packages/                     Espaço para módulos compartilhados
 
 Stack principal: Expo 57, React Native 0.86, React 19, TypeScript, Expo Router, Expo Location/Camera/Notifications, React Native Maps, GlueStack/NativeWind; Express, Prisma, PostgreSQL e Redis no backend.
 
-A versão do app é `1.0.1`, o scheme é `wb` e o callback é `wb://auth/callback`. As versões exatas das dependências estão nos respectivos `package.json` e lockfiles.
+A versão do app é `1.0.2`, o scheme é `wb` e o callback é `wb://auth/callback`. As versões exatas das dependências estão nos respectivos `package.json` e lockfiles.
 
 ## Infraestrutura e operação
 
@@ -229,7 +233,9 @@ Os horários estão sujeitos à fila do GitHub Actions. A rotina de manutenção
 
 Na validação registrada em 19/11/2026, passaram **55 testes mobile e 26 testes da API**; seis testes de filtros avançados da suíte existente permanecem desativados. A [CI da stack local](https://github.com/Lobiroka/SmartCitys/actions/runs/44577588376) validou banco novo, reaplicação de migrations e saúde dos serviços. Isso não substitui o primeiro onboarding completo em um computador da equipe.
 
-Na revisão local de 22/11/2026 desta entrega, passaram **64 testes mobile**, **39 testes da API** e os **34 testes dos scripts de automação**. Os seis testes de filtros avançados continuam ignorados. Lint, checagem TypeScript mobile, compilação TypeScript do Demand Service, validação da especificação OpenAPI e verificação do diff passaram. A API foi testada em PostgreSQL local isolado, com push simulado. Não houve execução Android nem geração de APK nesta revisão; o novo roteiro Maestro de foto/GPS ainda precisa ser executado no aparelho.
+Na revisão local de 22/11/2026 desta entrega, passaram **64 testes mobile**, **39 testes da API** e os **34 testes dos scripts de automação**. Os seis testes de filtros avançados continuam ignorados. Lint, checagem TypeScript mobile, compilação TypeScript do Demand Service, validação da especificação OpenAPI e verificação do diff passaram. A API foi testada em PostgreSQL local isolado, com push simulado. Essa revisão antecedeu a execução Android.
+
+Na preparação do APK 1.0.2, em 24/11/2026, passaram **87 testes mobile em 20 suítes**, lint, TypeScript e checks da [PR #45](https://github.com/Lobiroka/SmartCitys/pull/45). O APK compilado a partir de `18dfe1c` passou pela jornada completa com serviços reais: cadastro/login, mapa carregado, foto e GPS, acompanhamento/filtros, alteração pela tela do gestor e push ao cidadão. Foram **três etapas, zero falhas, aproximadamente 6 minutos**, com `development_client: false`. [Evidências do APK final](docs/tas-evidence/final-apk-1.0.2-2026-11-24/README.md).
 
 A declaração de CSS está em `apps/mobile/global.d.ts`. A checagem de tipos pode ser executada separadamente com `npx tsc --project apps/mobile/tsconfig.json --noEmit`.
 

@@ -1,0 +1,25 @@
+{
+  "maestro_version": "2.12.1",
+  "android_api": 36,
+  "citizen_avd": "SmartCity_API_36",
+  "manager_avd": "SmartCity_Gestor_API_36",
+  "api_url": "https://api.darkartsbm.com",
+  "keycloak_issuer": "https://auth.darkartsbm.com/realms/smartcitys-test",
+  "adb_reverse": [],
+  "development_client": false,
+  "gps": {
+    "latitude": -8.0476,
+    "longitude": -34.877,
+    "refresh_seconds": 3,
+    "source": "emulator geo fix"
+  },
+  "camera": "Captura real via Expo Camera da câmera virtual do emulador, imagem com data/hora.",
+  "installation": {
+    "citizen": "Instalação limpa do APK 1.0.2 após remover somente o app de testes com assinatura debug antiga.",
+    "manager": "Preview 1.0.1 versionCode 2 instalado; atualização com adb install -r para 1.0.2 versionCode 3 aprovada.",
+    "app_data": "O roteiro limpa os dados do app e do Chrome nos emuladores dedicados. Preservação de sessão durante upgrade não foi avaliada."
+  },
+  "service_health": "Gateway, Demand e Metrics responderam saudáveis antes da jornada.",
+  "source_commit": "18dfe1cf597019c276839764b8db43da7244b223",
+  "occurrence_id": 12
+}

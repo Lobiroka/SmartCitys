@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="SmartCity_Gestor_API_36" tests="1" failures="0" time="55.699" timestamp="2026-11-24T10:36:41">
+    <testcase id="Final 2 - gestor confere foto e GPS e altera status pela tela" name="Final 2 - gestor confere foto e GPS e altera status pela tela" classname="Final 2 - gestor confere foto e GPS e altera status pela tela" file=".maestro\final\manager-update.yaml" time="55.678" timestamp="2026-11-24T10:36:41" status="SUCCESS"/>
+  </testsuite>
+</testsuites>
