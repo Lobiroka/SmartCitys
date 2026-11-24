@@ -79,6 +79,8 @@ services:
       <<: *auth
       PORT: 3003
       DATABASE_URL_DEMAND: postgresql://smartcitys:${TEAM_DB_PASSWORD}@postgres:5432/smartcitys_dev?schema=demand
+      # Opcional: conexão SELECT da camada prata. Vazia não bloqueia a API.
+      DATABASE_URL_ETL: ${DATABASE_URL_ETL:-}
       REDIS_URL: redis://redis:6379
     volumes:
       - ./metrics-service:/app
@@ -115,6 +117,23 @@ services:
       interval: 5s
       timeout: 4s
       retries: 30
+
+  metrics-tests:
+    image: smartcitys-team-metrics:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.team
+      args:
+        SERVICE: metrics-service
+    profiles: [test]
+    command: ["npm", "test"]
+    environment:
+      # Os testes substituem persistência e identidade; nenhuma conexão ETL real.
+      DATABASE_URL_ETL: ''
+      DATABASE_URL_DEMAND: postgresql://smartcitys:${TEAM_TEST_DB_PASSWORD}@postgres-test:5432/smartcitys_test?schema=demand
+    volumes:
+      - ./metrics-service:/app
+      - /app/node_modules
 
   postgres-test:
     image: postgres:16-alpine

@@ -19,6 +19,7 @@ import type { IconSymbolName } from
  */
 const MAPPING = {
   'house.fill': 'home',
+  'chart.bar.fill': 'bar-chart',
   'paperplane.fill': 'send',
   'briefcase.fill': 'work',
   'chevron.left.forwardslash.chevron.right': 'code',

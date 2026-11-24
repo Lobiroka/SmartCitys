@@ -6,6 +6,7 @@ import { occurrenceFixture } from
 import { OccurrenceListScreen } from './OccurrenceListScreen';
 import { useOccurrenceListViewModel } from
     '@/src/features/occurrences/viewmodels/useOccurrenceListViewModel';
+import { OccurrenceMapView } from '@/src/features/inundation/components/OccurrenceMapView';
 
 const mockPush = jest.fn();
 
@@ -15,6 +16,15 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/src/features/occurrences/viewmodels/useOccurrenceListViewModel', () => ({
     useOccurrenceListViewModel: jest.fn(),
+}));
+
+jest.mock('@/src/features/inundation/viewmodels/useInundationViewModel', () => ({
+    useInundationViewModel: () => ({ layer: null, isLoading: false,
+        error: 'Camada indisponível', reload: jest.fn() }),
+}));
+
+jest.mock('@/src/features/inundation/components/OccurrenceMapView', () => ({
+    OccurrenceMapView: jest.fn(() => null),
 }));
 
 const useViewModelMock = jest.mocked(useOccurrenceListViewModel);
@@ -43,11 +53,35 @@ describe('OccurrenceListScreen', () => {
         const screen = await render(<OccurrenceListScreen />);
 
         expect(screen.getByText('Poste sem iluminação')).toBeTruthy();
+        expect(screen.getByLabelText('Nova ocorrência')).toBeTruthy();
         fireEvent.press(screen.getByTestId('occurrence-create-button'));
         expect(mockPush).toHaveBeenCalledWith('/(tabs)/create-occurrence');
 
         fireEvent.press(screen.getByTestId('occurrence-edit-1'));
         expect(mockPush).toHaveBeenCalledWith('/(tabs)/edit-occurrence?id=1');
+    });
+
+    it('mostra mapa apenas nos registros com coordenadas, sem impedir edição se a camada falhar', async () => {
+        const located = occurrenceFixture({ latitude: -8.1197, longitude: -34.9043 });
+        const addressOnly = occurrenceFixture({ id: 2, latitude: null, longitude: null });
+        useViewModelMock.mockReturnValue(viewModel({
+            occurrences: [located, addressOnly],
+            filteredOccurrences: [located, addressOnly],
+        }) as never);
+        const screen = await render(<OccurrenceListScreen />);
+
+        expect(jest.mocked(OccurrenceMapView)).toHaveBeenCalled();
+        expect(jest.mocked(OccurrenceMapView).mock.calls.every(([props]) =>
+            props.coordinates !== null && props.coordinates.latitude === located.latitude
+            && props.coordinates.longitude === located.longitude)).toBe(true);
+        expect(jest.mocked(OccurrenceMapView).mock.calls[0][0]).toEqual(expect.objectContaining({
+            title: located.title,
+            coordinates: { latitude: -8.1197, longitude: -34.9043 },
+            error: 'Camada indisponível',
+        }));
+        fireEvent.press(screen.getByTestId('occurrence-edit-1'));
+        expect(mockPush).toHaveBeenCalledWith('/(tabs)/edit-occurrence?id=1');
+        expect(screen.getByTestId('occurrence-filter-ALL')).toBeTruthy();
     });
 
     it('delega pesquisa e confirmação de exclusão ao ViewModel', async () => {

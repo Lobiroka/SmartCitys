@@ -34,6 +34,28 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    overviewButton: {
+        position: 'absolute',
+        right: 16,
+        minHeight: 44,
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        paddingHorizontal: 12,
+        justifyContent: 'center',
+    },
+    overviewButtonText: { color: '#155e75', fontWeight: '600' },
+    layerControls: {
+        position: 'absolute',
+        bottom: 16,
+        left: 12,
+        right: 12,
+        gap: 8,
+    },
+    layerOccurrenceError: {
+        backgroundColor: '#fff',
+        padding: 12,
+        borderRadius: 8,
+    },
     messageBox: {
         position: 'absolute',
         top: 168,

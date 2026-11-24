@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { OccurrenceFormScreen } from './OccurrenceFormScreen';
 import { useOccurrenceFormViewModel } from
     '@/src/features/occurrences/viewmodels/useOccurrenceFormViewModel';
+import { SgbOccurrenceMap } from '@/src/features/inundation/components/SgbOccurrenceMap';
 
 const mockBack = jest.fn();
 const mockTakePicture = jest.fn();
@@ -33,6 +34,10 @@ jest.mock('@/src/features/occurrences/viewmodels/useOccurrenceFormViewModel', ()
     useOccurrenceFormViewModel: jest.fn(),
 }));
 
+jest.mock('@/src/features/inundation/components/SgbOccurrenceMap', () => ({
+    SgbOccurrenceMap: jest.fn(() => null),
+}));
+
 const useViewModelMock = jest.mocked(useOccurrenceFormViewModel);
 
 function viewModel(overrides: Record<string, unknown> = {}) {
@@ -53,6 +58,17 @@ function viewModel(overrides: Record<string, unknown> = {}) {
 }
 
 describe('OccurrenceFormScreen', () => {
+    it('apresenta no mapa as coordenadas do formulário e mantém o GPS disponível', async () => {
+        useViewModelMock.mockReturnValue(viewModel({ latitude: -8.1197, longitude: -34.9043 }) as never);
+        const screen = await render(<OccurrenceFormScreen />);
+
+        expect(jest.mocked(SgbOccurrenceMap).mock.calls[0][0])
+            .toEqual({ latitude: -8.1197, longitude: -34.9043 });
+        expect(screen.getByText('-8.119700, -34.904300')).toBeTruthy();
+        expect(screen.getByTestId('occurrence-coordinates')).toBeTruthy();
+        expect(screen.getByTestId('occurrence-location-button')).toBeTruthy();
+    });
+
     it('liga os campos da View aos comandos do ViewModel', async () => {
         const vm = viewModel();
         useViewModelMock.mockReturnValue(vm as never);

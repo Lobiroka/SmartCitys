@@ -182,3 +182,44 @@ Na validação original deste ambiente, a checagem TypeScript apontava uma decla
 - Fazer o primeiro ensaio em uma máquina da equipe: app com API compartilhada, app com API local e testes da API isolados.
 
 Não considerar o onboarding homologado apenas pela existência do Compose; conferir a execução do workflow e o primeiro uso do cliente Android.
+
+## Dashboard e camada de inundação: integração opcional
+
+A API local mantém o funcionamento anterior sem configurar a ETL. As rotas
+`GET /metrics/dashboard` e `GET /metrics/inundation` permitem cidadãos e gestores
+autenticados; KPIs, refresh e indicadores brutos de bairro continuam exclusivos
+de gestores. O APK development SDK 57 e o login Keycloak existentes são mantidos.
+
+Para ativar os dados públicos, a pipeline deve carregar previamente as tabelas
+IBGE, limites dos bairros e inundação SGB no banco prata. Configure uma conexão
+SELECT em `DATABASE_URL_ETL` no ambiente do comando `team:backend -- up` ou no
+arquivo local ignorado `apps/backend/.env.team.local`, preservando senhas locais.
+Somente o Metrics recebe essa conexão. Não é preciso fornecer credenciais de
+AWS/RDS, mudar o schema Demand, abrir portas ou executar migrations remotas.
+
+Sem a variável ou os dados, a integração informa 503 sem bloquear CRUD, health,
+mapa ou KPIs e sem inventar dados. Ano do indicador/suscetibilidade e data de
+extração são informações diferentes; SGB não representa alerta em tempo real.
+O app consulta seu backend, não as APIs públicas.
+
+`npm run team:backend -- test` executa também os testes Metrics, sem conexão ETL
+real. Use o ensaio local com banco prata de integração autorizado para validar
+conectividade e dados, e o tablet development para conferir novas telas junto
+a login, GPS/câmera, CRUD e gestão existentes. Não executar fluxos Maestro que
+limpam app/Chrome em dispositivos com dados pessoais a preservar. Detalhes em
+[Metrics](../apps/backend/metrics-service/README.md).
+
+### Metro de outro checkout já aberto
+
+A porta padrão continua 8081. Para testar esta branch sem encerrar o Metro de
+outro projeto, escolha outra porta; o script encaminha a mesma porta por USB e
+abre o APK development. Exemplo no Linux/macOS:
+
+```bash
+SMARTCITYS_METRO_PORT=8083 npm run team:android:local
+```
+
+No PowerShell, defina `$env:SMARTCITYS_METRO_PORT = "8083"` antes do comando.
+O script rejeita portas inválidas e a porta 8080 da API no modo local. Em uma
+máquina que atingiu o limite de observadores de arquivos, `CI=1` permite o
+ensaio sem observação automática; reinicie o Metro após editar o código.

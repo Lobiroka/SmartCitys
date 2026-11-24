@@ -31,9 +31,10 @@ if (action === 'up') {
   compose(['up', '-d', '--wait', '--wait-timeout', '180', '--renew-anon-volumes', 'demand-service', 'metrics-service', 'api-gateway']);
   console.log('API local em http://127.0.0.1:8080/health. Banco local separado da AWS e dos testes.');
 } else if (action === 'test') {
-  compose(['build', 'demand-service']);
+  compose(['build', 'demand-service', 'metrics-service']);
   compose(['--profile', 'test', 'up', '-d', '--wait', 'postgres-test', 'redis-test']);
   compose(['--profile', 'test', 'run', '--rm', '--no-deps', 'tests']);
+  compose(['--profile', 'test', 'run', '--rm', '--no-deps', 'metrics-tests']);
 } else if (action === 'migrate') {
   compose(['build', 'demand-service']);
   compose(['up', '-d', '--wait', 'postgres']);

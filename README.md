@@ -12,6 +12,22 @@ Evidências refeitas em 23/11/2026, aguardando o mapa carregado: [novo relatóri
 
 Aplicativo mobile para registro e acompanhamento de ocorrências urbanas, com mapa, autenticação Keycloak e acesso para cidadãos e gestores. O monorepo reúne o aplicativo React Native/Expo e os serviços Express da API.
 
+## Integração Dashboard e ETL
+
+Esta branch acrescenta Dashboard entre Home e Ocorrências, mapas nas ocorrências
+e a camada histórica de inundação do SGB, preservando o APK development SDK 57 e
+o login Keycloak. A API lê a camada prata por uma conexão somente de leitura;
+o app não consulta as APIs públicas diretamente.
+
+**A ETL possui um [README exclusivo](pipelines/recife/README.md).** Consulte esse
+documento para preparar o ambiente, configurar MongoDB e PostgreSQL/Neon,
+executar a pipeline IBGE/SGB com Spark, agendar cargas com Prefect e rodar os
+testes. Ele também explica as camadas bronze e prata e as cargas idempotentes.
+
+Veja também o [registro de integração e validação no tablet](docs/integracao-smartcity.md)
+e os [contratos Metrics](apps/backend/metrics-service/README.md). As validações desta branch
+usaram serviços locais; publicação em nuvem e ativação do Neon ficam separadas.
+
 ## Estado do projeto — 22/11/2026
 
 O MVP Android está disponível para testes internos na versão **1.0.1**. O backend está publicado na AWS com API HTTPS e PostgreSQL de ocorrências no RDS; a antiga migração Supabase → RDS já foi realizada. A autenticação utiliza o realm de testes do Keycloak.

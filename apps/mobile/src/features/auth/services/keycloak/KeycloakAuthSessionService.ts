@@ -9,6 +9,8 @@ import { keycloakConfig } from
         '@/src/features/auth/config/keycloakConfig';
 import type { AuthSession } from
         '@/src/features/auth/models/AuthSession';
+import type { AuthTokens } from
+        '@/src/features/auth/models/AuthTokens';
 import type { AuthIntent, AuthSessionService } from
         '@/src/features/auth/services/AuthSessionService';
 import { fetchAuthenticatedSession } from
@@ -28,55 +30,65 @@ export class KeycloakAuthSessionService
     implements AuthSessionService, AccessTokenProvider
 {
     private discovery?: DiscoveryDocument;
+    private currentTokensPromise?: Promise<AuthTokens | null>;
+    private signOutPromise?: Promise<void>;
 
     constructor(
         private readonly storage: AuthTokenStorage,
     ) {}
 
     async getValidAccessToken(): Promise<string> {
-        const storedTokens = await this.storage.load();
+        const currentTokens = await this.getCurrentTokens();
 
-        if (!storedTokens) {
+        if (!currentTokens) {
             throw new Error('Não existe uma sessão autenticada.');
         }
 
-        if (isAccessTokenFresh(storedTokens)) {
-            return storedTokens.accessToken;
-        }
-
-        const discovery = await this.getDiscovery();
-
-        const refreshedTokens = await refreshStoredTokens(
-            storedTokens,
-            keycloakConfig.clientId,
-            discovery,
-            this.storage,
-        );
-
-        return refreshedTokens.accessToken;
+        return currentTokens.accessToken;
     }
 
     async restoreSession(): Promise<AuthSession> {
-        const storedTokens = await this.storage.load();
+        const currentTokens = await this.getCurrentTokens();
 
-        if (!storedTokens) {
+        if (!currentTokens) {
             return { status: 'anonymous' };
         }
 
         const discovery = await this.getDiscovery();
 
-        const currentTokens = isAccessTokenFresh(storedTokens)
-            ? storedTokens
-            : await refreshStoredTokens(
-                storedTokens,
-                keycloakConfig.clientId,
-                discovery,
-                this.storage,
-            );
-
         return fetchAuthenticatedSession(
             currentTokens.accessToken,
             discovery,
+        );
+    }
+
+    private getCurrentTokens(): Promise<AuthTokens | null> {
+        if (this.signOutPromise) {
+            return Promise.resolve(null);
+        }
+
+        // Compartilhar também a leitura evita renovar um snapshot antigo.
+        this.currentTokensPromise ??= this.loadCurrentTokens().finally(() => {
+            this.currentTokensPromise = undefined;
+        });
+
+        return this.currentTokensPromise;
+    }
+
+    private async loadCurrentTokens(): Promise<AuthTokens | null> {
+        const storedTokens = await this.storage.load();
+
+        if (!storedTokens || isAccessTokenFresh(storedTokens)) {
+            return storedTokens;
+        }
+
+        const discovery = await this.getDiscovery();
+
+        return refreshStoredTokens(
+            storedTokens,
+            keycloakConfig.clientId,
+            discovery,
+            this.storage,
         );
     }
 
@@ -102,7 +114,17 @@ export class KeycloakAuthSessionService
         );
     }
 
-    async signOut(): Promise<void> {
+    signOut(): Promise<void> {
+        this.signOutPromise ??= this.performSignOut().finally(() => {
+            this.signOutPromise = undefined;
+        });
+
+        return this.signOutPromise;
+    }
+
+    private async performSignOut(): Promise<void> {
+        // A renovação precisa terminar antes de limpar o armazenamento.
+        await this.currentTokensPromise?.catch(() => undefined);
         const storedTokens = await this.storage.load();
 
         try {

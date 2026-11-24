@@ -12,6 +12,11 @@ const args = process.argv.slice(2);
 if (args.some(arg => !['--local-api', '--check'].includes(arg))) {
   throw new Error('Opções aceitas: --local-api e --check.');
 }
+const metroPort = Number(process.env.SMARTCITYS_METRO_PORT ?? 8081);
+if (!Number.isInteger(metroPort) || metroPort < 1024 || metroPort > 65535
+  || (args.includes('--local-api') && metroPort === 8080)) {
+  throw new Error('SMARTCITYS_METRO_PORT deve ser uma porta entre 1024 e 65535, diferente da API local 8080.');
+}
 const envPath = path.join(mobile, '.env.team.local');
 if (!existsSync(envPath)) copyFileSync(path.join(mobile, '.env.team.example'), envPath);
 const config = parseEnv(readFileSync(envPath, 'utf8'));
@@ -28,6 +33,7 @@ if (args.includes('--local-api')) env.EXPO_PUBLIC_API_URL = 'http://127.0.0.1:80
 if (args.includes('--check')) {
   console.log('Configuração pública da equipe carregada; nenhum segredo é necessário para iniciar o Metro.');
   console.log(args.includes('--local-api') ? 'Destino: API local via USB/emulador.' : 'Destino: API compartilhada.');
+  console.log(`Porta do Metro: ${metroPort}.`);
   process.exit(0);
 }
 
@@ -43,14 +49,14 @@ const devices = probe.stdout.split(/\r?\n/).map(line => line.match(/^(\S+)\s+dev
 const serial = devices.length === 1 ? devices[0] : undefined;
 if (!serial) throw new Error('Mantenha apenas um Android conectado: feche outros emuladores ou desconecte os outros celulares.');
 env.ANDROID_SERIAL = serial;
-for (const port of args.includes('--local-api') ? [8080, 8081] : [8081]) {
+for (const port of args.includes('--local-api') ? [8080, metroPort] : [metroPort]) {
   const reverse = spawnSync(adb, ['-s', serial, 'reverse', `tcp:${port}`, `tcp:${port}`], { stdio: 'inherit', env });
   if (reverse.status !== 0) throw new Error(`Não foi possível encaminhar a porta ${port}.`);
 }
 const require = createRequire(import.meta.url);
 const expoCli = path.join(path.dirname(require.resolve('expo/package.json')), 'bin/cli');
 console.log('Use o APK DEVELOPMENT da equipe. O APK preview não carrega o código local.');
-const child = spawn(process.execPath, [expoCli, 'start', '--dev-client', '--localhost', '--port', '8081', '--android'], {
+const child = spawn(process.execPath, [expoCli, 'start', '--dev-client', '--localhost', '--port', String(metroPort), '--android'], {
   cwd: mobile, env, stdio: 'inherit',
 });
 child.on('error', error => { console.error(error.message); process.exitCode = 1; });

@@ -1,4 +1,4 @@
-# Casos de teste derivados com apoio de IA
+# Casos de teste derivados
 
 Este arquivo registra a segunda rodada de geração de casos de teste do Smart City. Os casos foram revisados contra o código, o README, as suítes existentes e o fluxo Maestro. Suposições da primeira rodada, como protocolo `DEM`, status `RECEIVED`, função `transicaoPermitida` e endpoint `/api/v1/demands`, foram removidas por não representarem o projeto atual.
 

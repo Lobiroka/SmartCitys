@@ -889,6 +889,125 @@
         },
         "description": "Exige gestor. Recalcula a partir do PostgreSQL e atualiza o cache."
       }
+    },
+    "/metrics/dashboard": {
+      "get": {
+        "operationId": "getDashboard",
+        "summary": "Consultar resumo de ocorrências por bairro",
+        "tags": [
+          "Métricas"
+        ],
+        "description": "Exige cidadao ou gestor. Agrega todas as ocorrências do banco Demand e cruza coordenadas com limites e indicadores da camada prata da ETL. Não retorna títulos, descrições, fotos, usuários ou coordenadas individuais. Endereços livres não são usados para inferir bairro. Valores ausentes permanecem null; ano é referência histórica, não data de extração. Cache-Control: no-store. Não consulta APIs públicas durante a requisição.",
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/EtlUnavailable"
+          }
+        }
+      }
+    },
+    "/metrics/inundation": {
+      "get": {
+        "operationId": "getInundationAreas",
+        "summary": "Consultar áreas de suscetibilidade à inundação do SGB",
+        "tags": [
+          "Métricas"
+        ],
+        "description": "Exige cidadao ou gestor. Lê apenas public.recife_inundacao_sgb, carregada anteriormente pela ETL. Classes Baixa/Média/Alta e geometria GeoJSON WGS84; ano e dataExtracao preservados. Representa suscetibilidade histórica, não alerta nem alagamento em tempo real. Cache-Control: private, max-age=300. Sem chamada direta à API SGB.",
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InundationAreas"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/EtlUnavailable"
+          }
+        }
+      }
+    },
+    "/metrics/indicators/neighborhoods": {
+      "get": {
+        "operationId": "getNeighborhoodIndicators",
+        "summary": "Consultar indicadores IBGE tratados por bairro",
+        "tags": [
+          "Métricas"
+        ],
+        "description": "Exige gestor. Consulta SELECT da camada prata; código sem resultado retorna items vazio e total zero. Ausentes permanecem null, distintos de zero. Nenhuma carga ou chamada à API IBGE é executada nesta consulta.",
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeighborhoodIndicators"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/EtlUnavailable"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "name": "codigoBairro",
+            "in": "query",
+            "required": false,
+            "description": "Igualdade do código textual, preservando zeros iniciais. Não aceita arrays nem objetos.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{1,20}$",
+              "minLength": 1,
+              "maxLength": 20
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -1315,6 +1434,367 @@
           "gateway",
           "services"
         ]
+      },
+      "DashboardCounts": {
+        "type": "object",
+        "required": [
+          "total",
+          "saneamento",
+          "byStatus"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "saneamento": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "byStatus": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Contagens por status, incluindo ABERTA, EM_ANALISE e RESOLVIDA."
+          }
+        }
+      },
+      "DashboardNeighborhood": {
+        "type": "object",
+        "required": [
+          "codigoBairro",
+          "bairro",
+          "populacao",
+          "percentualRedeEsgoto",
+          "ano",
+          "dataExtracao",
+          "occurrences",
+          "occurrencesPer10k"
+        ],
+        "properties": {
+          "codigoBairro": {
+            "type": "string"
+          },
+          "bairro": {
+            "type": "string"
+          },
+          "populacao": {
+            "type": "integer",
+            "nullable": true
+          },
+          "percentualRedeEsgoto": {
+            "type": "number",
+            "nullable": true
+          },
+          "ano": {
+            "type": "integer",
+            "nullable": true
+          },
+          "dataExtracao": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "occurrences": {
+            "$ref": "#/components/schemas/DashboardCounts"
+          },
+          "occurrencesPer10k": {
+            "type": "number",
+            "nullable": true,
+            "description": "Ocorrências registradas por 10 mil habitantes do ano de referência. Não representa incidência atual."
+          }
+        }
+      },
+      "Dashboard": {
+        "type": "object",
+        "required": [
+          "updatedAt",
+          "source",
+          "occurrences",
+          "matchedOccurrences",
+          "unmatched",
+          "geography",
+          "items"
+        ],
+        "properties": {
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string"
+          },
+          "occurrences": {
+            "$ref": "#/components/schemas/DashboardCounts"
+          },
+          "matchedOccurrences": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unmatched": {
+            "type": "object",
+            "required": [
+              "withoutCoordinates",
+              "outsideCoverage",
+              "ambiguous"
+            ],
+            "properties": {
+              "withoutCoordinates": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "outsideCoverage": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "ambiguous": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "geography": {
+            "type": "object",
+            "required": [
+              "totalNeighborhoods",
+              "mappedNeighborhoods"
+            ],
+            "properties": {
+              "totalNeighborhoods": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "mappedNeighborhoods": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardNeighborhood"
+            }
+          }
+        }
+      },
+      "NeighborhoodIndicator": {
+        "type": "object",
+        "required": [
+          "codigoBairro",
+          "bairro",
+          "populacao",
+          "domiciliosTotal",
+          "domiciliosRedeGeral",
+          "percentualRedeEsgoto",
+          "ano",
+          "dataExtracao"
+        ],
+        "properties": {
+          "codigoBairro": {
+            "type": "string"
+          },
+          "bairro": {
+            "type": "string",
+            "nullable": true
+          },
+          "populacao": {
+            "type": "integer",
+            "nullable": true
+          },
+          "domiciliosTotal": {
+            "type": "integer",
+            "nullable": true
+          },
+          "domiciliosRedeGeral": {
+            "type": "integer",
+            "nullable": true
+          },
+          "percentualRedeEsgoto": {
+            "type": "number",
+            "nullable": true
+          },
+          "ano": {
+            "type": "integer",
+            "nullable": true
+          },
+          "dataExtracao": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "NeighborhoodIndicators": {
+        "type": "object",
+        "required": [
+          "source",
+          "total",
+          "items"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NeighborhoodIndicator"
+            }
+          }
+        }
+      },
+      "PolygonGeometry": {
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Polygon"
+            ]
+          },
+          "coordinates": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number"
+                },
+                "description": "[longitude, latitude], WGS84."
+              }
+            }
+          }
+        }
+      },
+      "MultiPolygonGeometry": {
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "MultiPolygon"
+            ]
+          },
+          "coordinates": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "array",
+                "minItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  },
+                  "description": "[longitude, latitude], WGS84."
+                }
+              }
+            }
+          }
+        }
+      },
+      "InundationArea": {
+        "type": "object",
+        "required": [
+          "id",
+          "classe",
+          "ano",
+          "descricaoFonte",
+          "geometry",
+          "bbox",
+          "fonte",
+          "dataExtracao"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "classe": {
+            "type": "string",
+            "enum": [
+              "Baixa",
+              "Média",
+              "Alta"
+            ]
+          },
+          "ano": {
+            "type": "integer",
+            "nullable": true
+          },
+          "descricaoFonte": {
+            "type": "string",
+            "nullable": true
+          },
+          "geometry": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              }
+            ]
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "number"
+            },
+            "description": "[minLongitude, minLatitude, maxLongitude, maxLatitude]."
+          },
+          "fonte": {
+            "type": "string"
+          },
+          "dataExtracao": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "InundationAreas": {
+        "type": "object",
+        "required": [
+          "source",
+          "items"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InundationArea"
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -1370,6 +1850,16 @@
       },
       "TooManyRequests": {
         "description": "Limite de 200 requisições por IP em 15 minutos atingido; resposta de texto do gateway."
+      },
+      "EtlUnavailable": {
+        "description": "Conexão ETL não configurada, carga necessária ausente/incompleta ou fonte temporariamente indisponível; demais rotas permanecem independentes.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
       }
     }
   }

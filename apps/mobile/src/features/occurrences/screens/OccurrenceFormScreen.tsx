@@ -22,6 +22,7 @@ import {
 } from '@/src/features/occurrences/models/occurrenceOptions';
 import { useOccurrenceFormViewModel } from
     '@/src/features/occurrences/viewmodels/useOccurrenceFormViewModel';
+import { SgbOccurrenceMap } from '@/src/features/inundation/components/SgbOccurrenceMap';
 
 type Props = { id?: number };
 
@@ -126,6 +127,7 @@ export function OccurrenceFormScreen({ id }: Props) {
                         placeholder="Rua, número e referência" placeholderTextColor={colors.icon} />
                 </Field>
                 <Field label="Localização">
+                    <SgbOccurrenceMap latitude={vm.latitude} longitude={vm.longitude} />
                     <ThemedText testID="occurrence-coordinates">
                         {vm.latitude === null || vm.longitude === null
                             ? 'Localização ainda não confirmada.'

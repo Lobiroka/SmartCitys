@@ -62,6 +62,10 @@ name: Registrar ocorrência e confirmar retorno à lista
     when:
       true: ${typeof E2E_WITH_PHOTO !== 'undefined' && E2E_WITH_PHOTO === '1'}
     commands:
+      # A margem rola o formulário sem arrastar o mapa interativo.
+      - swipe:
+          start: 98%, 82%
+          end: 98%, 25%
       - scrollUntilVisible:
           element:
             id: occurrence-camera-button

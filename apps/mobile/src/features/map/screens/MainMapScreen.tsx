@@ -14,11 +14,22 @@ import { useMainMapViewModel } from '../viewmodels/useMainMapViewModel';
 import {styles} from "@/src/features/map/styles/MainMapScreen.styles";
 import { useOccurrenceFeedViewModel } from
     '@/src/features/occurrences/viewmodels/useOccurrenceFeedViewModel';
+import { useInundationViewModel } from '@/src/features/inundation/viewmodels/useInundationViewModel';
+import { InundationPolygons } from '@/src/features/inundation/components/InundationPolygons';
+import { InundationLegend } from '@/src/features/inundation/components/InundationLegend';
+import type { MapRegion } from '../models/MapRegion';
 import {
     occurrenceCategories,
     occurrenceLabel,
     occurrenceStatuses,
 } from '@/src/features/occurrences/models/occurrenceOptions';
+
+const RECIFE_REGION: MapRegion = {
+    latitude: -8.0631,
+    longitude: -34.8711,
+    latitudeDelta: 0.15,
+    longitudeDelta: 0.15,
+};
 
 export function MainMapScreen() {
     const { region,
@@ -33,6 +44,10 @@ export function MainMapScreen() {
 
     const { session, signOut } = useAuthSession();
     const { occurrences, occurrenceError } = useOccurrenceFeedViewModel();
+    const inundation = useInundationViewModel();
+    const [showInundation, setShowInundation] = useState(true);
+    const [overviewRegion, setOverviewRegion] = useState<MapRegion | null>(null);
+    const [visibleRegion, setVisibleRegion] = useState<MapRegion | null>(null);
     const mapRef = useRef<MapView>(null);
     const [hasMapLoaded, setHasMapLoaded] = useState(false);
     const [hasMapSettled, setHasMapSettled] = useState(false);
@@ -74,18 +89,25 @@ export function MainMapScreen() {
             <MapView
                 ref={mapRef}
                 style={styles.map}
-                region={region}
+                region={overviewRegion ?? region}
                 showsUserLocation
                 showsMyLocationButton={false}
                 onMapLoaded={() => setHasMapLoaded(true)}
                 onRegionChange={() => setHasMapSettled(false)}
-                onRegionChangeComplete={() => setHasMapSettled(true)}
+                onRegionChangeComplete={(nextRegion) => {
+                    setHasMapSettled(true);
+                    setVisibleRegion(nextRegion);
+                }}
                 onPress={() => {
                     if (isProfileMenuOpen) {
                         toggleProfileMenu();
                     }
                 }}
             >
+                {showInundation && (
+                    <InundationPolygons layer={inundation.layer}
+                        region={visibleRegion ?? overviewRegion ?? region} />
+                )}
                 {occurrences.map((occurrence) => {
                     if (occurrence.latitude === null || occurrence.longitude === null) {
                         return null;
@@ -157,6 +179,7 @@ export function MainMapScreen() {
                 accessibilityState={{ disabled: isLoading }}
                 disabled={isLoading}
                 onPress={() => {
+                    setOverviewRegion(null);
                     if (locationError) {
                         void (isPermissionBlocked ? handleOpenSettings() : loadLocation());
                         return;
@@ -165,6 +188,19 @@ export function MainMapScreen() {
                 }}
             >
                 <MaterialIcons name="my-location" size={24} color="#2563eb" />
+            </Pressable>
+
+            <Pressable
+                testID="main-map-recife-button"
+                style={[styles.overviewButton, { top: controlsTop + 60 }]}
+                accessibilityRole="button"
+                onPress={() => {
+                    setOverviewRegion(RECIFE_REGION);
+                    setVisibleRegion(RECIFE_REGION);
+                    mapRef.current?.animateToRegion(RECIFE_REGION);
+                }}
+            >
+                <Text style={styles.overviewButtonText}>Ver Recife</Text>
             </Pressable>
 
             {isLoading && (
@@ -190,11 +226,15 @@ export function MainMapScreen() {
                 </View>
             )}
 
-            {occurrenceError && !locationError && (
-                <View style={styles.occurrenceErrorBox}>
-                    <Text>{occurrenceError}</Text>
-                </View>
-            )}
+            <View pointerEvents="box-none" style={styles.layerControls}>
+                {occurrenceError && !locationError && (
+                    <View style={styles.layerOccurrenceError}>
+                        <Text>{occurrenceError}</Text>
+                    </View>
+                )}
+                <InundationLegend {...inundation}
+                    enabled={showInundation} onChange={setShowInundation} />
+            </View>
         </View>
     );
 }

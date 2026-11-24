@@ -46,6 +46,7 @@ O caminho recomendado usa `compose.team.yml` e o atalho, que já fornecem as var
 |---|---|---|
 | `DATABASE_URL` | Demand/Prisma | PostgreSQL com `?schema=demand` |
 | `DATABASE_URL_DEMAND` | Metrics/Prisma | Leitura do mesmo banco/schema |
+| `DATABASE_URL_ETL` | Metrics/Prisma, opcional | SELECT da camada prata IBGE/geografia/SGB; ausência não impede bootstrap |
 | `TEST_DATABASE_URL` | Testes Demand | Banco exclusivo; a suíte cria e remove dados |
 | `REDIS_URL` | Demand e Metrics | Cache/eventos; testes usam Redis separado |
 | `KEYCLOAK_ISSUER` | Demand e Metrics | URL exata do realm que emite os tokens |
@@ -62,7 +63,7 @@ O backend local mantém `EXPO_PUSH_ACCESS_TOKEN` vazio. Push real exige o ambien
 
 Cadastro, login e recuperação de senha pertencem ao Keycloak. O app usa Authorization Code com PKCE e não tem `client_secret`. Esta API não oferece `/auth/login` nem `/auth/register`.
 
-Rotas protegidas recebem `Authorization: Bearer <access_token>`. O servidor valida assinatura, issuer, audience, validade e papéis. `cidadao` e `gestor` usam as funções de ocorrência própria; as rotas `/gestor` e métricas exigem `gestor`. Ocultar uma aba no app não substitui essa autorização.
+Rotas protegidas recebem `Authorization: Bearer <access_token>`. O servidor valida assinatura, issuer, audience, validade e papéis. `cidadao` e `gestor` usam as funções de ocorrência própria; as rotas `/gestor`, KPIs e indicadores brutos exigem `gestor`. O resumo agregado Dashboard e a camada SGB permitem `cidadao` ou `gestor`, sem expor dados individuais. Ocultar uma aba no app não substitui essa autorização.
 
 ## Documentação de endpoints
 
@@ -80,6 +81,8 @@ O contrato importável está em [OpenAPI 3.0.3](../../docs/api/openapi.json). Im
 | PUT, DELETE | `/demands/devices/push` | Aparelho do usuário autenticado |
 | GET | `/metrics` | Gestor |
 | POST | `/metrics/refresh` | Gestor |
+| GET | `/metrics/dashboard`, `/metrics/inundation` | Cidadão ou gestor |
+| GET | `/metrics/indicators/neighborhoods` | Gestor |
 
 As listagens aceitam `page` (padrão 1) e `limit` (padrão 20, máximo 100), retornando `data` e `pagination`. O servidor ainda não aplica `search`, `status` ou filtros avançados. A lista do cidadão no app percorre as páginas e filtra localmente. O feed do mapa continua limitado aos 100 registros mais recentes.
 
@@ -90,3 +93,19 @@ A alteração de status grava histórico e tenta enviar push. Uma resposta HTTP 
 ## Testes
 
 Use `npm run team:backend -- test`, que aplica migrations e executa Vitest com banco e Redis exclusivos. Não execute a suíte no RDS ou em banco com dados pessoais. [Detalhes dos testes](demand-service/README-TEST.md).
+
+## Integração opcional IBGE e SGB
+
+Dashboard e inundação leem somente dados tratados na camada prata da ETL, via
+`DATABASE_URL_ETL` com permissão SELECT. Não consultam APIs públicas no app ou na
+requisição HTTP. MongoDB bronze, Spark, cargas idempotentes e Prefect pertencem à
+pipeline, executada antes do produto consultar o banco. A ausência da conexão ou
+carga retorna 503 nas rotas novas; o CRUD, health e KPIs continuam funcionando.
+Não há fallback para dados sintéticos nem dependência de Expo Go.
+
+O Compose local aceita `DATABASE_URL_ETL` opcional pelo ambiente ou pelo arquivo
+local ignorado usado por `team:backend`, sem substituir as senhas locais. A suíte
+`team:backend -- test` mantém os testes Demand em banco/cache exclusivos e executa
+os testes Metrics com persistência simulada e a conexão ETL vazia. Conectividade
+real com Neon e a jornada Android exigem validação separada com conta própria.
+Veja [contratos, configuração e limites dos indicadores](metrics-service/README.md).

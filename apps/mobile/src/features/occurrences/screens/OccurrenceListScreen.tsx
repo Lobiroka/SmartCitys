@@ -21,11 +21,14 @@ import {
 import type { Occurrence } from '@/src/features/occurrences/models/Occurrence';
 import { useOccurrenceListViewModel } from
     '@/src/features/occurrences/viewmodels/useOccurrenceListViewModel';
+import { useInundationViewModel } from '@/src/features/inundation/viewmodels/useInundationViewModel';
+import { OccurrenceMapView } from '@/src/features/inundation/components/OccurrenceMapView';
 
 export function OccurrenceListScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
     const vm = useOccurrenceListViewModel();
+    const inundation = useInundationViewModel();
 
     function confirmRemove(item: Occurrence) {
         Alert.alert(
@@ -54,9 +57,10 @@ export function OccurrenceListScreen() {
                         <View style={styles.titleRow}>
                             <ThemedText type="title">Ocorrências</ThemedText>
                             <Pressable style={styles.primaryButton}
+                                accessibilityRole="button" accessibilityLabel="Nova ocorrência"
                                 testID="occurrence-create-button"
                                 onPress={() => router.push('/(tabs)/create-occurrence' as Href)}>
-                                <ThemedText lightColor="#fff" darkColor="#fff">Nova</ThemedText>
+                                <ThemedText style={styles.addButtonText} lightColor="#fff" darkColor="#fff">+</ThemedText>
                             </Pressable>
                         </View>
                         <TextInput
@@ -109,6 +113,13 @@ export function OccurrenceListScreen() {
                         <ThemedText>{occurrenceLabel(occurrenceCategories, item.category)}</ThemedText>
                         <ThemedText numberOfLines={2}>{item.description}</ThemedText>
                         <ThemedText style={styles.muted}>{item.address}</ThemedText>
+                        {item.latitude !== null && item.longitude !== null && (
+                            <OccurrenceMapView
+                                coordinates={{ latitude: item.latitude, longitude: item.longitude }}
+                                title={item.title}
+                                {...inundation}
+                            />
+                        )}
                         {item.status === 'ABERTA' && (
                             <View style={styles.actions}>
                                 <Pressable style={styles.secondaryButton}
@@ -140,7 +151,8 @@ const styles = StyleSheet.create({
     filters: { gap: 8 },
     chip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7 },
     chipSelected: { backgroundColor: '#0a7ea4', borderColor: '#0a7ea4' },
-    primaryButton: { backgroundColor: '#0a7ea4', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 },
+    primaryButton: { backgroundColor: '#0a7ea4', borderRadius: 24, width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+    addButtonText: { fontSize: 32, lineHeight: 36 },
     card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, padding: 14, gap: 7, marginBottom: 12 },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
     cardTitle: { flex: 1 },

@@ -35,6 +35,9 @@ env:
     element: ".*-?\\d+\\.\\d{6}, -?\\d+\\.\\d{6}.*"
     direction: DOWN
     timeout: 30000
+- swipe:
+    start: 98%, 82%
+    end: 98%, 25%
 - scrollUntilVisible:
     element:
       id: occurrence-photo-preview

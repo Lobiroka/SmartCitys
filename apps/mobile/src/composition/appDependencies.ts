@@ -1,4 +1,6 @@
 import { apiConfig } from '@/src/config/apiConfig';
+import { ApiDashboardService } from '@/src/features/dashboard/services/ApiDashboardService';
+import { ApiInundationService } from '@/src/features/inundation/services/ApiInundationService';
 import { KeycloakAuthSessionService } from
         '@/src/features/auth/services/keycloak/KeycloakAuthSessionService';
 import { ExpoSecureAuthTokenStorage } from
@@ -31,3 +33,6 @@ export const occurrenceService =
 
 export const managerOccurrenceService = new ApiManagerOccurrenceService(httpClient);
 export const pushNotificationService = new PushNotificationService(httpClient);
+
+export const dashboardService = new ApiDashboardService(httpClient);
+export const inundationService = new ApiInundationService(httpClient);
