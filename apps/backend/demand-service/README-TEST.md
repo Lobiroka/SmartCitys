@@ -20,6 +20,21 @@ Em `apps/backend/demand-service`, instale dependências com `npm ci` e gere o cl
 
 ## Cobertura e limites
 
+Cada teste e cada hook de preparação/limpeza têm limite de **30 segundos** no
+Vitest. O cliente Prisma usado pela aplicação dentro da suíte continua acessando
+o PostgreSQL real, com **15 segundos** para transações interativas. Essa configuração
+fica em `src/tests/setupAuth.ts` e se aplica somente aos testes; o cliente da API
+publicada permanece com sua configuração própria. A espera para adquirir uma
+transação mantém o padrão do Prisma.
+
+Os prazos foram ampliados após a [regressão 45401325535](https://github.com/Lobiroka/SmartCitys/actions/runs/45401325535),
+acompanhada na [issue #46](https://github.com/Lobiroka/SmartCitys/issues/46), registrar
+dois timeouts de 5 segundos e expiração de transação após cerca de 7,1 segundos.
+`transactionTimeout.test.ts` verifica uma operação SQL de 6 segundos no banco
+isolado, garantindo que ampliar só o prazo do Vitest não deixe o antigo limite
+de transação ativo. O teste não grava dados. Falhas acima dos novos limites
+continuam reprovando a suíte; não há retry automático nem testes desativados.
+
 - Criação com endereço ou GPS, autenticação e validação de campos.
 - Papéis cidadão/gestor, propriedade e controle de edição/exclusão.
 - Persistência de imagens, consultas próprias, feed e paginação.
