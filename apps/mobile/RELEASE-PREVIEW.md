@@ -2,6 +2,25 @@
 
 O perfil `preview` do EAS Build gera um APK assinado para distribuição interna. O mesmo APK recebe atualizações compatíveis do canal `preview`.
 
+## APK final 1.0.2 — 24/11/2026
+
+[Baixar APK](https://expo.dev/artifacts/eas/wzHDfBIjJpJ1IO0ue4f749Alez2Vzrt7YCiAjulM_Iw.apk) · [Build concluído](https://expo.dev/accounts/dkartss-team/projects/wb/builds/f0bce9b6-f868-44c0-8b1a-db11d847c50b) · [Relatório e evidências](../../docs/tas-evidence/final-apk-1.0.2-2026-11-24/README.md).
+
+Compilado do commit `18dfe1c`, integrado pela PR #45. Nome nativo **SmartCitys**,
+versão **1.0.2**, versionCode **3** e runtime **1.0.2**, com a assinatura anterior
+preservada e o JavaScript embutido. Instalação limpa e atualização sobre o preview
+1.0.1 foram verificadas nos emuladores dedicados.
+
+A jornada de cadastro/login → foto/GPS → filtros/acompanhamento → gestor pela tela
+→ push/status ao cidadão passou nas três etapas, sem Metro e sem encaminhamentos
+ADB para a API ou o bundle. O ensaio usa API HTTPS e Keycloak compartilhados, dois
+Androids API 36 e câmera/GPS virtuais. Não comprova aceite em iPhone nem preservação
+de sessões antigas: o roteiro limpa os dados dos dispositivos de testes.
+
+SHA-256: `a2eacb1759627fc826a9499a489be3386fb67f5ab2b52b77711f5d6e1b7eb20b`.
+O APK é o preview distribuível da entrega, sem exigir instalação do código ou Metro
+na máquina do avaliador. Não houve publicação em loja nem deploy AWS nesta versão.
+
 ## Nome exibido do aplicativo
 
 O nome público é **SmartCitys**, definido em `expo.name` no `app.json` e usado
@@ -11,8 +30,9 @@ configuração durante a compilação nativa.
 
 O nome sob o ícone dos aplicativos já instalados só muda ao instalar um novo
 APK/build; uma atualização OTA de JavaScript não substitui esse recurso nativo.
-Na preparação da versão final, atualizar a versão conforme a política de runtime
-e gerar o APK. Essa alteração de nome não gerou nem publicou um novo build.
+O APK final 1.0.2 foi gerado após atualizar a versão conforme a política de runtime.
+A alteração de nome já está incluída nesse arquivo; instalar novamente um link
+de build antigo continua fornecendo o APK antigo.
 
 O `slug` e o `scheme` continuam `wb`; o projeto EAS e os identificadores Android
 e iOS permanecem os mesmos. Eles identificam integrações e o retorno de login,

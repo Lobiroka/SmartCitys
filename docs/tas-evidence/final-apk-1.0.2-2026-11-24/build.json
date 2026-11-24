@@ -1,0 +1,18 @@
+[
+  {
+    "id": "f0bce9b6-f868-44c0-8b1a-db11d847c50b",
+    "status": "FINISHED",
+    "appVersion": "1.0.2",
+    "versionCode": "3",
+    "sourceCommit": "18dfe1cf597019c276839764b8db43da7244b223",
+    "profile": "preview",
+    "runtimeVersion": "1.0.2",
+    "channel": "preview",
+    "artifacts": {
+      "buildUrl": "https://expo.dev/artifacts/eas/wzHDfBIjJpJ1IO0ue4f749Alez2Vzrt7YCiAjulM_Iw.apk",
+      "applicationArchiveUrl": "https://expo.dev/artifacts/eas/wzHDfBIjJpJ1IO0ue4f749Alez2Vzrt7YCiAjulM_Iw.apk"
+    },
+    "createdAt": "2026-11-24T13:13:31.495Z",
+    "completedAt": "2026-11-24T13:33:39.070Z"
+  }
+]

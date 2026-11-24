@@ -2,6 +2,19 @@
 
 Data: 18/11/2026. Política: [tas.md](tas.md).
 
+## Aceite do APK final 1.0.2 sem Metro — 24/11/2026
+
+O APK preview compilado do commit `18dfe1c`, com nome SmartCitys, versionCode 3,
+runtime 1.0.2 e assinatura anterior preservada, passou pela jornada completa em
+dois emuladores Android: cadastro/login, foto/GPS, acompanhamento/filtros, gestor
+alterando pela interface e push real ao cidadão. Três etapas, zero falhas,
+aproximadamente 6 minutos, com `development_client: false` e sem ADB reverse.
+
+[APK, metadados, JUnits e sete capturas revisadas](tas-evidence/final-apk-1.0.2-2026-11-24/README.md).
+Foram verificadas instalação limpa e atualização sobre o preview 1.0.1; o ensaio
+limpa os dados dos emuladores e não comprova preservação de sessões antigas.
+Não houve alteração na política da TAS ou na regressão diária para realizar esse aceite.
+
 ## Evidências refeitas com mapa carregado — 23/11/2026
 
 Nova execução integral aprovada em aproximadamente 6min37s, sobre `df7f4d7`:

@@ -1,0 +1,18 @@
+{
+  "01-cadastro-concluido.png": "04e71cc5f68fe824723b064d12effbfe117b44e26dc11d0f1b1b884a35605cd5",
+  "02-login-cidadao.png": "94972001a3b321c297099fb33d01a30ddde713912dfdf701935a6f8664cf33cf",
+  "03-foto-gps-recarregados.png": "ced21c00c1fbb4cbfec88f29533f0c1550c0c701df81f26faaf8f7078d0aa557",
+  "04-gestor-foto-gps.png": "6d5c840ce8a19f49b6b9ae294568905611e54dd1c05c90983680fa306d7978ab",
+  "05-gestor-status-salvo.png": "88f874793263e4fbfbf487a0bda097ff27ed358d2cdff625248436481a7aef24",
+  "06-push-real-recebido.png": "e23472cb9d114884dfc5fd53639860a69e8d4ace7580461a38bb8cfabd97b36f",
+  "07-cidadao-status-atualizado.png": "94d0efa278edc83e5bfd63377da286601657e1757fdf03462e79c02f564bef8c",
+  "apk-verification.json": "9c69e1d2daf0da89eb50b21085f6d2c9939c47d5386fcd730a8c789d6ffc84a5",
+  "build.json": "8b15c109efe1c1788e0b62d3d9efd8bbed75d0b2afa7f64f45c04f10346e607c",
+  "citizen-notification.xml": "6fa3cc2b3e775b05acbb31e125c9f6739ec93c8e2b2d9bddbe1e008b92175b7f",
+  "citizen-register-and-report.xml": "d1a3f43d428499862e3e2637312d0e2240afd66a1400ffddbbb70b755ebd74c1",
+  "execution.json": "6bf61efd3667dba91190beb6d3b623da4410d3d3b0b4972f00c340606b88cb29",
+  "manager-update.xml": "ff4690f84534c03c8738f1310d591ab2c0a1c1ec6326c332aee10fdfd3257ae9",
+  "preparation.json": "c2cb7aa9cd1f55446fc6ad5b690dc69940d73c218e46dd7a993b0da882a8383c",
+  "README.md": "1e0946815f2ae7fc14b8f09c3f9f676afd80b3eb51fd35bc5244934865983bec",
+  "results.xml": "081d0d58c9deb7375e6cac067cffcc11ebe97439250d91453dd5efcdfe9b8da6"
+}
