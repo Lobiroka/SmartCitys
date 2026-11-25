@@ -67,6 +67,8 @@ jobs:
 
   publicar-preview:
     name: Publicar OTA Android preview
+    # Configurar ci-main e mover EXPO_TOKEN antes de integrar esta alteração.
+    environment: ci-main
     needs: unitarios
     if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
