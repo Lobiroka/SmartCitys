@@ -24,6 +24,13 @@ documento para preparar o ambiente, configurar MongoDB e PostgreSQL/Neon,
 executar a pipeline IBGE/SGB com Spark, agendar cargas com Prefect e rodar os
 testes. Ele também explica as camadas bronze e prata e as cargas idempotentes.
 
+Para executar a pipeline na mesma VPS do backend, há um
+[complemento Docker Compose](apps/backend/compose.etl.yml) com containers
+separados para o servidor Prefect e o executor da ETL. A configuração do backend
+permanece no arquivo Compose atual. A preparação das conexões, primeira carga e
+ativação do agendamento estão no
+[procedimento Docker da ETL](pipelines/recife/README.md#executar-com-o-backend-no-docker-compose).
+
 Veja também o [registro de integração e validação no tablet](docs/integracao-smartcity.md)
 e os [contratos Metrics](apps/backend/metrics-service/README.md). As validações desta branch
 usaram serviços locais; publicação em nuvem e ativação do Neon ficam separadas.

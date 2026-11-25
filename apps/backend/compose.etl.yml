@@ -1,0 +1,57 @@
+x-etl-runtime: &etl-runtime
+  image: ${SMARTCITY_ETL_IMAGE:-smartcity-recife-etl:local}
+  build:
+    context: ${SMARTCITY_ETL_CONTEXT:-../../pipelines/recife}
+    dockerfile: Dockerfile
+  profiles: [etl]
+  init: true
+  restart: unless-stopped
+  networks: [etl-control]
+
+services:
+  metrics-service:
+    environment:
+      DATABASE_URL_ETL: ${DATABASE_URL_ETL:-}
+
+  prefect-server:
+    <<: *etl-runtime
+    command: [prefect, server, start, --host, 0.0.0.0]
+    environment:
+      PREFECT_HOME: /home/etl/.prefect
+      PREFECT_UI_STATIC_DIRECTORY: /home/etl/.prefect/ui
+      PREFECT_API_URL: http://127.0.0.1:4200/api
+      PREFECT_SERVER_ANALYTICS_ENABLED: 'false'
+      PREFECT_SERVER_EPHEMERAL_ENABLED: 'false'
+    volumes:
+      - prefect-data:/home/etl/.prefect
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4200/api/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+
+  etl-runner:
+    <<: *etl-runtime
+    command: [python, serve_etl.py]
+    env_file:
+      - ${ETL_ENV_FILE:-../../pipelines/recife/.env}
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PREFECT_API_KEY: ''
+      PREFECT_SERVER_EPHEMERAL_ENABLED: 'false'
+      PYTHON_DOTENV_DISABLED: '1'
+      SPARK_LOCAL_IP: 127.0.0.1
+    depends_on:
+      prefect-server: { condition: service_healthy }
+    stop_grace_period: 2m
+
+volumes:
+  prefect-data:
+
+networks:
+  etl-control:
