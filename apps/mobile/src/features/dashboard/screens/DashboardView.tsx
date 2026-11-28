@@ -13,6 +13,8 @@ export type DashboardColors = { card: ColorValue; border: ColorValue; text: Colo
 const number = (value: number | null, decimals = 0) => value === null ? '—'
     : value.toLocaleString('pt-BR', { maximumFractionDigits: decimals });
 
+// APRESENTAÇÃO ETL — este cartão exibe população e percentual recebidos da API.
+// O ano é a referência do indicador (IBGE 2010); dataExtracao é a data da coleta.
 function NeighborhoodCard({ item, colors }: { item: NeighborhoodDashboard; colors: DashboardColors }) {
     const coverage = item.percentualRedeEsgoto;
     return (

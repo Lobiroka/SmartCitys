@@ -15,6 +15,9 @@ export async function findDashboardOccurrences(): Promise<DashboardOccurrenceRow
   }, { maxWait: 5000, timeout: 6000 });
 }
 
+// APRESENTAÇÃO ETL — o backend lê os indicadores prata e os limites no Neon
+// em transação somente de leitura. A permissão SELECT também é configurada
+// no papel do banco usado pela conexão DATABASE_URL_ETL.
 export async function findDashboardNeighborhoods(): Promise<DashboardNeighborhoodRow[]> {
   return getEtlPrisma().$transaction(async (tx) => {
     await tx.$executeRaw`SET TRANSACTION READ ONLY`;

@@ -43,6 +43,9 @@ class Load:
         """
         if not data or not any(str(item.get("D1C", "")).strip().isdigit() or item.get("type") == "Feature" for item in data):
             raise ValueError("Carga bronze vazia ou sem bairros válidos")
+        # APRESENTAÇÃO ETL — bronze e idempotência: o SHA-256 identifica esta
+        # resposta bruta. O _id único e o upsert reutilizam o snapshot quando
+        # o conteúdo é igual; somente ultima_observacao muda na nova consulta.
         canonical = json.dumps(data, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
         snapshot_id = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         now = datetime.now(timezone.utc)
@@ -95,6 +98,9 @@ class Load:
             ADD COLUMN IF NOT EXISTS data_extracao TIMESTAMPTZ;
         """).format(table=table)
 
+        # APRESENTAÇÃO ETL — prata: codigo_bairro é a chave. ON CONFLICT faz
+        # upsert: insere um bairro novo ou atualiza o existente, sem duplicá-lo.
+        # A conexão abaixo publica os indicadores e os limites em uma transação.
         insert_sql = sql.SQL("""
         INSERT INTO {table} (
             codigo_bairro,

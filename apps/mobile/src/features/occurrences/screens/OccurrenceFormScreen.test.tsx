@@ -52,6 +52,7 @@ function viewModel(overrides: Record<string, unknown> = {}) {
         photo: null, setPhoto: jest.fn(),
         isLoading: false, isSaving: false, error: null,
         useCurrentLocation: jest.fn(),
+        useShoppingRecifeAddress: jest.fn(),
         save: jest.fn().mockResolvedValue(true),
         ...overrides,
     };

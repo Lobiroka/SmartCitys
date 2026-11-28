@@ -63,6 +63,8 @@ class Extract:
 
 
 
+        # APRESENTAÇÃO ETL — extração da API pública: GET com timeout,
+        # verificação de erro HTTP e leitura do JSON bruto, antes do tratamento.
         response = requests.get(
             url,
             timeout=60

@@ -142,6 +142,9 @@ def load_neondb(data: dict) -> int:
     return final_count
 
 
+# APRESENTAÇÃO ETL — caminho do dado: APIs públicas -> MongoDB bronze -> Spark
+# -> PostgreSQL/Neon prata. O backend consulta a prata e entrega os dados ao app.
+# Este flow coordena as etapas e o subflow SGB; cada @task define suas tentativas.
 @flow(name="ETL Smart City Recife", log_prints=True, persist_result=False)
 def etl_recife_flow():
     require_config("MONGODB_URI", MONGODB_URI)

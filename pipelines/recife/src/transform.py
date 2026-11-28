@@ -82,6 +82,9 @@ class Transform:
                 if (population.select("codigo_bairro").subtract(source.select("codigo_bairro")).limit(1).count()
                     or source.select("codigo_bairro").subtract(population.select("codigo_bairro")).limit(1).count()):
                     raise ValueError("Conjuntos de bairros divergentes entre as fontes")
+            # APRESENTAÇÃO ETL — Spark integra as três fontes pelo código do
+            # bairro. A fórmula abaixo é rede / total * 100: em Aflitos,
+            # os dados de 2010 usados no ensaio foram 1906 / 1937 = 98,40%.
             result = population.join(total, "codigo_bairro").join(network, "codigo_bairro")
             if result.filter(F.col("domicilios_rede_geral") > F.col("domicilios_total")).limit(1).count():
                 raise ValueError("Domicílios ligados à rede excedem o total")
@@ -100,6 +103,7 @@ class Transform:
             result = result.withColumn("data_extracao", F.date_format(
                 "data_extracao", "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"))
             # O recorte de 94 bairros cabe no driver. As operações acima são Spark SQL.
+            # Pandas apenas adapta a saída já transformada para a carga SQL.
             records = [row.asDict() for row in result.select(*COLUMNS).orderBy("bairro", "codigo_bairro").collect()]
             frame = pd.DataFrame(records, columns=COLUMNS)
             frame["data_extracao"] = pd.to_datetime(frame["data_extracao"], utc=True)

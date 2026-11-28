@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { occurrenceService } from '@/src/composition/appDependencies';
 import { getCurrentCoordinates } from '@/src/features/location/services/locationService';
@@ -42,6 +42,7 @@ export function useOccurrenceFormViewModel(
     const [isLoading, setIsLoading] = useState(Boolean(id));
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const locationRequest = useRef(0);
 
     useEffect(() => {
         if (!id) return;
@@ -75,17 +76,30 @@ export function useOccurrenceFormViewModel(
     }, [dependencies.service, id]);
 
     const useCurrentLocation = useCallback(async () => {
+        const request = ++locationRequest.current;
         setError(null);
         try {
             const coordinates = await dependencies.getCoordinates();
+            if (request !== locationRequest.current) return;
             setLatitude(coordinates.latitude);
             setLongitude(coordinates.longitude);
         } catch (caught) {
+            if (request !== locationRequest.current) return;
             setError(caught instanceof Error
                 ? caught.message
                 : 'Não foi possível obter sua localização.');
         }
     }, [dependencies]);
+
+    const useShoppingRecifeAddress = useCallback(() => {
+        locationRequest.current += 1;
+        setAddress('Shopping Recife, Rua Padre Carapuceiro, 777, Boa Viagem, Recife - PE');
+        // Ponto aproximado do mapa oficial: shoppingrecife.com.br/page/como-chegar/.
+        setLatitude(-8.118946);
+        setLongitude(-34.904827);
+        setRegion('REGIAO_METROPOLITANA_DO_RECIFE');
+        setError(null);
+    }, []);
 
     const save = useCallback(async () => {
         const trimmedAddress = address.trim();
@@ -146,6 +160,7 @@ export function useOccurrenceFormViewModel(
         photo, setPhoto,
         isLoading, isSaving, error,
         useCurrentLocation,
+        useShoppingRecifeAddress,
         save,
     };
 }

@@ -125,6 +125,17 @@ export function OccurrenceFormScreen({ id }: Props) {
                     <TextInput value={vm.address} onChangeText={vm.setAddress} style={inputStyle}
                         testID="occurrence-address-input"
                         placeholder="Rua, número e referência" placeholderTextColor={colors.icon} />
+                    {!id && (
+                        <Pressable style={styles.secondaryButton}
+                            testID="occurrence-test-address-button"
+                            accessibilityRole="button"
+                            accessibilityHint="Preenche o endereço e marca o Shopping Recife no mapa."
+                            accessibilityState={{ disabled: vm.isSaving }}
+                            disabled={vm.isSaving}
+                            onPress={vm.useShoppingRecifeAddress}>
+                            <ThemedText>Usar endereço de teste: Shopping Recife</ThemedText>
+                        </Pressable>
+                    )}
                 </Field>
                 <Field label="Localização">
                     <SgbOccurrenceMap latitude={vm.latitude} longitude={vm.longitude} />

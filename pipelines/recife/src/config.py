@@ -4,6 +4,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
+# APRESENTAÇÃO ETL — este módulo centraliza a leitura da configuração externa.
+# As conexões vêm do ambiente ou do .env local ignorado pelo Git; os valores
+# privados não são escritos no código. Na apresentação, mostre este módulo.
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 MONGODB_URI = os.getenv("MONGODB_URI")
